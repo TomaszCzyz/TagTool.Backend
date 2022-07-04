@@ -1,0 +1,427 @@
+# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+###############################
+# Core EditorConfig Options   #
+###############################
+root = true
+# All files
+[*]
+indent_style = space
+insert_final_newline = true
+charset = utf-8
+end_of_line = crlf
+indent_size = 2
+# Code files
+[*.cs]
+indent_size = 4
+
+# Xml project files
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+indent_size = 2
+
+# Xml config files
+[*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_size = 2
+
+###############################
+# .NET Coding Conventions     #
+###############################
+[*.cs]
+# Organize usings
+dotnet_sort_system_directives_first = true
+# this. preferences
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+# Language keywords vs BCL types preferences
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+# Parentheses preferences
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+# Modifier preferences
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_readonly_field = true:warning
+# Expression-level preferences
+dotnet_style_object_initializer = true:warning
+dotnet_style_collection_initializer = true:warning
+dotnet_style_explicit_tuple_names = true:warning
+dotnet_style_null_propagation = true:warning
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+dotnet_style_prefer_inferred_tuple_names = true:warning
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+dotnet_style_prefer_auto_properties = true:warning
+dotnet_style_prefer_conditional_expression_over_assignment = true:warning
+dotnet_style_prefer_conditional_expression_over_return = true:warning
+###############################
+# Naming Conventions          #
+###############################
+## Naming styles
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# PascalCase with I prefix
+dotnet_naming_style.interface_style.capitalization = pascal_case
+dotnet_naming_style.interface_style.required_prefix = I
+
+# PascalCase with T prefix
+dotnet_naming_style.type_parameter_style.capitalization = pascal_case
+dotnet_naming_style.type_parameter_style.required_prefix = T
+
+# camelCase with _ prefix
+dotnet_naming_style._camelCase.capitalization = camel_case
+dotnet_naming_style._camelCase.required_prefix = _
+
+## Rules
+# Interfaces
+dotnet_naming_symbols.interface_symbol.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbol.applicable_accessibilities = *
+dotnet_naming_rule.interface_naming.symbols = interface_symbol
+dotnet_naming_rule.interface_naming.style = interface_style
+dotnet_naming_rule.interface_naming.severity = warning
+
+# Classes, Structs, Enums, Properties, Methods, Local Functions, Events, Namespaces
+dotnet_naming_symbols.class_symbol.applicable_kinds = class, struct, enum, property, method, local_function, event, namespace, delegate
+dotnet_naming_symbols.class_symbol.applicable_accessibilities = *
+
+dotnet_naming_rule.class_naming.symbols = class_symbol
+dotnet_naming_rule.class_naming.style = pascal_case_style
+dotnet_naming_rule.class_naming.severity = warning
+
+# Type Parameters
+dotnet_naming_symbols.type_parameter_symbol.applicable_kinds = type_parameter
+dotnet_naming_symbols.type_parameter_symbol.applicable_accessibilities = *
+
+dotnet_naming_rule.type_parameter_naming.symbols = type_parameter_symbol
+dotnet_naming_rule.type_parameter_naming.style = type_parameter_style
+dotnet_naming_rule.type_parameter_naming.severity = warning
+
+# Visible Fields
+dotnet_naming_symbols.public_field_symbol.applicable_kinds = field
+dotnet_naming_symbols.public_field_symbol.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+
+dotnet_naming_rule.public_field_naming.symbols = public_field_symbol
+dotnet_naming_rule.public_field_naming.style = pascal_case_style
+dotnet_naming_rule.public_field_naming.severity = warning
+
+# Private constant Fields
+dotnet_naming_symbols.const_field_symbol.applicable_kinds = field
+dotnet_naming_symbols.const_field_symbol.applicable_accessibilities = private
+dotnet_naming_symbols.const_field_symbol.required_modifiers = const
+
+dotnet_naming_rule.const_field_naming.symbols = const_field_symbol
+dotnet_naming_rule.const_field_naming.style = pascal_case_style
+dotnet_naming_rule.const_field_naming.severity = warning
+
+# Private Fields
+dotnet_naming_symbols.private_field_symbol.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbol.applicable_accessibilities = private
+
+dotnet_naming_rule.private_field_naming.symbols = private_field_symbol
+dotnet_naming_rule.private_field_naming.style = _camelCase
+dotnet_naming_rule.private_field_naming.severity = warning
+
+# Parameters
+dotnet_naming_symbols.parameter_symbol.applicable_kinds = parameter
+dotnet_naming_symbols.parameter_symbol.applicable_accessibilities = *
+
+dotnet_naming_rule.parameter_naming.symbols = parameter_symbol
+dotnet_naming_rule.parameter_naming.style = camel_case_style
+dotnet_naming_rule.parameter_naming.severity = warning
+
+# Everything Local
+dotnet_naming_symbols.everything_else.applicable_kinds = local
+dotnet_naming_symbols.everything_else.applicable_accessibilities = *
+
+dotnet_naming_rule.everything_else_naming.symbols = everything_else
+dotnet_naming_rule.everything_else_naming.style = camel_case_style
+dotnet_naming_rule.everything_else_naming.severity = warning
+###############################
+# C# Coding Conventions       #
+###############################
+[*.cs]
+# var preferences
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
+csharp_style_var_elsewhere = true:warning
+# Expression-bodied members
+csharp_style_expression_bodied_methods = when_on_single_line:silent
+csharp_style_expression_bodied_constructors = when_on_single_line:silent
+csharp_style_expression_bodied_operators = when_on_single_line:silent
+csharp_style_expression_bodied_properties = when_on_single_line:warning
+csharp_style_expression_bodied_indexers = when_on_single_line:warning
+csharp_style_expression_bodied_accessors = when_on_single_line:warning
+# Pattern matching preferences
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+# Null-checking preferences
+csharp_style_throw_expression = true:warning
+csharp_style_conditional_delegate_call = true:warning
+# Modifier preferences
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:warning
+# Expression-level preferences
+csharp_prefer_braces = when_multiline:warning
+csharp_style_deconstructed_variable_declaration = true:warning
+csharp_prefer_simple_default_expression = true:warning
+csharp_style_pattern_local_over_anonymous_function = true:warning
+csharp_style_inlined_variable_declaration = true:warning
+csharp_style_implicit_object_creation_when_type_is_apparent = true
+csharp_style_prefer_index_operator = true
+csharp_style_prefer_null_check_over_type_check = true
+csharp_style_prefer_range_operator = true
+csharp_style_unused_value_assignment_preference = discard_variable
+csharp_style_unused_value_expression_statement_preference = discard_variable
+# 'using' directive preferences
+csharp_using_directive_placement = outside_namespace:warning
+# New line preferences
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
+# File-scoped namespace
+csharp_style_namespace_declarations = file_scoped:warning
+
+###############################
+# C# Formatting Rules         #
+###############################
+# New line preferences
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+# Indentation preferences
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = flush_left
+csharp_indent_case_contents_when_block = false
+# Space preferences
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_before_open_square_brackets = false
+csharp_space_between_empty_square_brackets = false
+csharp_space_between_square_brackets = false
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+
+
+###############################
+# C# Analyzers rules          #
+###############################
+dotnet_analyzer_diagnostic.severity = warning
+
+dotnet_code_quality.CA1062.exclude_extension_method_this_parameter = true
+dotnet_code_quality.CA1822.api_surface = private, internal
+dotnet_diagnostic.CA1005.severity = warning
+dotnet_diagnostic.CA1008.severity = warning
+dotnet_diagnostic.CA1019.severity = warning
+dotnet_diagnostic.CA1024.severity = warning
+dotnet_diagnostic.CA1050.severity = warning
+dotnet_diagnostic.CA1060.severity = warning
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1509.severity = warning
+dotnet_diagnostic.CA1700.severity = warning
+dotnet_diagnostic.CA1708.severity = warning
+dotnet_diagnostic.CA1711.severity = warning
+dotnet_diagnostic.CA1725.severity = warning
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA2201.severity = warning
+dotnet_diagnostic.CS8019.severity = warning
+dotnet_diagnostic.CS8040.severity = none
+dotnet_diagnostic.IDE0046.severity = silent
+dotnet_diagnostic.IDE0067.severity = warning
+dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1305.severity = warning
+dotnet_diagnostic.SA1309.severity = none
+dotnet_diagnostic.SA1310.severity = none
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1601.severity = none
+dotnet_diagnostic.SA1602.severity = none
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SX1101.severity = warning
+dotnet_diagnostic.SX1309.severity = warning
+dotnet_diagnostic.VSTHRD111.severity = none
+
+# SA1629: Documentation text should end with a period
+dotnet_diagnostic.SA1629.severity = none
+
+
+# IDE0021: Use expression body for constructors
+dotnet_diagnostic.IDE0021.severity = silent
+
+csharp_style_expression_bodied_lambdas = when_on_single_line:silent
+csharp_style_expression_bodied_local_functions = false:warning
+dotnet_diagnostic.xUnit1004.severity = silent
+
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = silent
+
+# IDE0022: Use expression body for methods
+dotnet_diagnostic.IDE0022.severity = silent
+
+# IDE2000: C#
+dotnet_diagnostic.IDE2000.severity = warning
+
+# IDE2000: C#
+dotnet_style_allow_multiple_blank_lines_experimental = false
+
+# IDE2003: C#
+dotnet_style_allow_statement_immediately_after_block_experimental = false
+
+###############################
+# Roslynator                  #
+###############################
+# Max line length.
+roslynator.max_line_length = 145
+
+# Remove empty line between single-line accessors.
+roslynator.RCS0011.invert = true
+
+# Remove empty line between using directives with different root namespace.
+roslynator.RCS0015.invert = true
+
+# Add newline after binary operator instead of before it.
+roslynator.RCS0027.invert = true
+
+# Add newline after conditional operator instead of before it.
+roslynator.RCS0028.invert = true
+
+# Add newline after expression-body arrow instead of before it.
+roslynator.RCS0032.invert = true
+
+# Remove newline between closing brace and 'while' keyword.
+roslynator.RCS0051.invert = true
+
+# Add newline after equals sign instead of before it.
+roslynator.RCS0052.invert = true
+
+# Use implicitly typed array.
+roslynator.RCS1014.invert = true
+
+# Use implicitly typed array (when type is obvious).
+roslynator.RCS1014.use_implicit_type_when_obvious = true
+
+# Remove accessibility modifiers.
+roslynator.RCS1018.invert = false
+
+# Remove empty line between closing brace and switch section.
+roslynator.RCS1036.remove_empty_line_between_closing_brace_and_switch_section = true
+
+# Do not rename private static field to camel case with underscore.
+roslynator.RCS1045.suppress_when_field_is_static = true
+
+# Remove argument list from object creation expression.
+roslynator.RCS1050.invert = true
+
+# Remove parentheses from condition of conditional expression (when condition is a single token).
+roslynator.RCS1051.do_not_parenthesize_single_token = true
+
+# Use string.Empty instead of "".
+roslynator.RCS1078.invert = true
+
+# Remove call to 'ConfigureAwait'.
+roslynator.RCS1090.invert = true
+
+# Convert bitwise operation to 'HasFlag' call.
+roslynator.RCS1096.invert = true
+
+# Do not simplify conditional expression when condition is inverted.
+roslynator.RCS1104.suppress_when_condition_is_inverted = true
+
+# Convert method group to anonymous function.
+roslynator.RCS1207.invert = false
+
+# Suppress Unity script methods.
+roslynator.RCS1213.suppress_unity_script_methods = true
+
+# Do not use element access when expression is invocation.
+roslynator.RCS1246.suppress_when_expression_is_invocation = true
+
+# Use comparison instead of pattern matching to check for null.
+roslynator.RCS1248.invert = false
+
+
+# RCS1141: Add 'param' element to documentation comment.
+dotnet_diagnostic.RCS1141.severity = none
+
+# RCS1181: Convert comment to documentation comment.
+dotnet_diagnostic.RCS1181.severity = none
+
+# RCS1194: Implement exception constructors.
+dotnet_diagnostic.RCS1194.severity = none
+
+# RCS1079: Throwing of new _NotImplementedException.
+dotnet_diagnostic.RCS1079.severity = none
+
+# RCS1118: Mark local variable as const.
+dotnet_diagnostic.RCS1118.severity = none
+
+# RCS1102: Make class static.
+dotnet_diagnostic.RCS1102.severity = none
+
+# RCS1124: Inline local variable.
+dotnet_diagnostic.RCS1124.severity = silent
+
+# RCS1246: Use element access.
+dotnet_diagnostic.RCS1246.severity = none
+dotnet_diagnostic.RCS1241.severity = silent
+dotnet_diagnostic.RCS9009.severity = silent
+dotnet_diagnostic.RCS1060.severity = silent
+dotnet_diagnostic.RCS1138.severity = silent
+dotnet_diagnostic.RCS1139.severity = silent
+dotnet_diagnostic.RCS1140.severity = silent
+dotnet_diagnostic.RCS1142.severity = silent
+dotnet_diagnostic.RCS1045.severity = silent
+dotnet_diagnostic.RCS1046.severity = silent
+dotnet_diagnostic.RCS9004.severity = silent
+dotnet_diagnostic.RCS1008.severity = silent
+dotnet_diagnostic.RCS1009.severity = silent
+dotnet_diagnostic.RCS1012.severity = silent
+dotnet_diagnostic.RCS1010.severity = warning
+dotnet_diagnostic.RCS1176.severity = warning
+dotnet_diagnostic.RCS1177.severity = warning
+dotnet_diagnostic.RCS1207.severity = warning
+dotnet_diagnostic.RCS1100.severity = silent
+dotnet_diagnostic.RCS1101.severity = silent
+dotnet_diagnostic.RCS0046.severity = warning
+dotnet_diagnostic.RCS0020.severity = warning
+dotnet_diagnostic.RCS0021.severity = warning
+dotnet_diagnostic.RCS0024.severity = suggestion
+dotnet_diagnostic.RCS0023.severity = warning
+dotnet_diagnostic.RCS0056.severity = warning
+dotnet_diagnostic.RCS0045.severity = none
+dotnet_diagnostic.RCS0044.severity = warning
+
+
+dotnet_diagnostic.RCS1014.severity = none
+dotnet_diagnostic.RCS1090.severity = none
+dotnet_diagnostic.RCS0054.severity = none
+dotnet_diagnostic.RCS0016.severity = suggestion
+dotnet_diagnostic.RCS0053.severity = warning
+
+# RCS1123: Add parentheses when necessary.
+dotnet_diagnostic.RCS1123.severity = none
+
+[**/obj/**.cs]
+dotnet_diagnostic.CS8019.severity = none
