@@ -1,3 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿while (!(Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.F4))
+{
+    Console.Write("Hi");
+    await Task.Delay(1000);
+}
 
-Console.WriteLine("Hello, World!");
+return 0;
