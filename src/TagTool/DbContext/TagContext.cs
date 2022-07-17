@@ -34,4 +34,11 @@ public class TagContext : Microsoft.EntityFrameworkCore.DbContext
             .UseSqlite($"Data Source={DbPath}")
             .LogTo(Console.WriteLine, LogLevel.Information);
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Tag>()
+            .HasIndex(tag => tag.Name)
+            .IsUnique();
+    }
 }

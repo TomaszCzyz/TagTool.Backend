@@ -1,4 +1,4 @@
-﻿using TagTool.Commands;
+﻿using TagTool.Commands.TagOperations;
 using TagTool.DbContext;
 using TagTool.Models;
 
@@ -10,6 +10,8 @@ var app = builder.Build();
 app.Logger.LogInformation("Application created...");
 
 app.MapPost("/TagFolder", TagFolder);
+app.MapPost("/UntagFolder", UntagFolder);
+app.MapDelete("/DeleteTag", DeleteTag);
 app.MapPost("/AddTag", AddTag);
 app.MapGet("/PrintTags", PrintTags);
 
@@ -20,6 +22,19 @@ async Task TagFolder(string path, string tagName)
 {
     var tag = new Tag {Name = tagName};
     var command = new TagFolderCommand(path, tag);
+    await command.Execute();
+}
+
+async Task UntagFolder(string path, string tagName)
+{
+    var tag = new Tag {Name = tagName};
+    var command = new UntagFolderCommand(path, tag);
+    await command.Execute();
+}
+
+async Task DeleteTag(string tagName)
+{
+    var command = new DeleteTagCommand(tagName);
     await command.Execute();
 }
 

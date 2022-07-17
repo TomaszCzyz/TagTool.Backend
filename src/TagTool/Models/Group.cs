@@ -2,11 +2,11 @@
 
 public record Group
 {
-    public int Id { get; init; }
+    public int Id { get; set; }
 
-    public string Name { get; init; }
+    public string Name { get; set; }
 
-    public GroupType Type { get; init; }
+    public GroupType Type { get; set; }
 
-    public IList<Tag> Tags { get; init; }
+    public List<Tag> Tags { get; set; }
 }

@@ -1,14 +1,14 @@
 ﻿namespace TagTool.Models;
 
-public record Tag
+public class Tag
 {
-    public int Id { get; init; }
+    public int Id { get; set; }
 
-    public string Name { get; init; } = null!;
+    public string Name { get; set; } = null!;
 
-    public float HierarchyValue { get; init; }
+    public float HierarchyValue { get; set; }
 
-    public IList<Group>? Groups { get; init; }
+    public List<Group> Groups { get; set; } = null!;
 
-    public IList<File>? Files { get; init; }
+    public ICollection<File> Files { get; } = new List<File>();
 }
