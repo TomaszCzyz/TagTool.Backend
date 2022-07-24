@@ -10,9 +10,9 @@ public class TagFolderCommand : ICommand
 {
     public string Path { get; set; }
 
-    public Tag Tag { get; set; }
+    public string TagName { get; set; }
 
-    public TagFolderCommand(string path, Tag tag)
+    public TagFolderCommand(string path, string tagName)
     {
         if (!Directory.Exists(path))
         {
@@ -21,14 +21,14 @@ public class TagFolderCommand : ICommand
 
         // todo: normalize path to allow simple string comparision
         Path = path;
-        Tag = tag;
+        TagName = tagName;
     }
 
     public async Task Execute()
     {
         await using var db = new TagContext();
 
-        var newTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == Tag.Name) ?? Tag;
+        var newTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == TagName) ?? new Tag {Name = TagName};
 
         foreach (var fileInfo in Directory.EnumerateFiles(Path).Select(s => new FileInfo(s)))
         {

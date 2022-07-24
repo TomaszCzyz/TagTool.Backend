@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TagTool.DbContext;
-using TagTool.Models;
 
 namespace TagTool.Commands.TagOperations;
 
@@ -8,9 +7,9 @@ public class UntagFolderCommand : ICommand
 {
     public string Path { get; set; }
 
-    public Tag Tag { get; set; }
+    public string TagName { get; set; }
 
-    public UntagFolderCommand(string path, Tag tag)
+    public UntagFolderCommand(string path, string tagName)
     {
         if (!Directory.Exists(path))
         {
@@ -18,14 +17,14 @@ public class UntagFolderCommand : ICommand
         }
 
         Path = path;
-        Tag = tag;
+        TagName = tagName;
     }
 
     public async Task Execute()
     {
         await using var db = new TagContext();
 
-        var tag = db.Tags.Include(tag1 => tag1.Files).FirstOrDefault(t => t.Name == Tag.Name);
+        var tag = db.Tags.Include(tag1 => tag1.Files).FirstOrDefault(t => t.Name == TagName);
 
         if (tag?.Files is null) return;
 
