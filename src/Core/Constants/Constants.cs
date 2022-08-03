@@ -1,4 +1,4 @@
-﻿namespace TagTool.Constants;
+﻿namespace TagTool.Backend.Constants;
 
 public static class Constants
 {

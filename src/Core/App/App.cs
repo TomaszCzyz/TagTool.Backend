@@ -1,4 +1,4 @@
-﻿namespace TagTool.App;
+﻿namespace TagTool.Backend.App;
 
 public class App
 {

@@ -1,7 +1,7 @@
-﻿using TagTool.DbContext;
-using TagTool.Models;
+﻿using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
 
-namespace TagTool.Commands.TagOperations;
+namespace TagTool.Backend.Commands.TagOperations;
 
 public class CreateTagCommand : ICommand
 {

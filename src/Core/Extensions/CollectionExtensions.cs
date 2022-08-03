@@ -1,4 +1,4 @@
-﻿namespace TagTool.Extensions;
+﻿namespace TagTool.Backend.Extensions;
 
 public static class CollectionExtensions
 {

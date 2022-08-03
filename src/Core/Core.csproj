@@ -8,6 +8,8 @@
     <Nullable>enable</Nullable>
 
     <NoWarn>CA1848</NoWarn>
+    
+    <RootNamespace>TagTool.Backend</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

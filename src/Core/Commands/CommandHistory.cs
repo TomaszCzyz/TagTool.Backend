@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace TagTool.Commands;
+namespace TagTool.Backend.Commands;
 
 public class CommandHistory
 {

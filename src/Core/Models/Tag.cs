@@ -1,4 +1,4 @@
-﻿namespace TagTool.Models;
+﻿namespace TagTool.Backend.Models;
 
 public class Tag
 {

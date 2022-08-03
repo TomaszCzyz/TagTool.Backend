@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TagTool.Models;
-using File = TagTool.Models.File;
+using TagTool.Backend.Models;
+using File = TagTool.Backend.Models.File;
 
-namespace TagTool.DbContext;
+namespace TagTool.Backend.DbContext;
 
 public class TagEntityConfiguration : IEntityTypeConfiguration<Tag>
 {

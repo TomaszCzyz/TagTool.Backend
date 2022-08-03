@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TagTool.DbContext;
+using TagTool.Backend.DbContext;
 
-namespace TagTool.Commands.TagOperations;
+namespace TagTool.Backend.Commands.TagOperations;
 
 public class UntagFolderCommand : ICommand
 {

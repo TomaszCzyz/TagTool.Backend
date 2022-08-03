@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TagTool.Models;
-using File = TagTool.Models.File;
+using TagTool.Backend.Models;
+using File = TagTool.Backend.Models.File;
 
-namespace TagTool.DbContext;
+namespace TagTool.Backend.DbContext;
 
 public class TagContext : Microsoft.EntityFrameworkCore.DbContext
 {

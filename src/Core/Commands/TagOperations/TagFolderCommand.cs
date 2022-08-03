@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TagTool.DbContext;
-using TagTool.Extensions;
-using TagTool.Models;
-using File = TagTool.Models.File;
+using TagTool.Backend.DbContext;
+using TagTool.Backend.Extensions;
+using TagTool.Backend.Models;
+using File = TagTool.Backend.Models.File;
 
-namespace TagTool.Commands.TagOperations;
+namespace TagTool.Backend.Commands.TagOperations;
 
 public class TagFolderCommand : ICommand
 {

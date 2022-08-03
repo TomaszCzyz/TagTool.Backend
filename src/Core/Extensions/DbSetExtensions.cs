@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace TagTool.Extensions;
+namespace TagTool.Backend.Extensions;
 
 public static class DbSetExtensions
 {

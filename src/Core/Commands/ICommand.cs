@@ -1,4 +1,4 @@
-﻿namespace TagTool.Commands;
+﻿namespace TagTool.Backend.Commands;
 
 public interface ICommand
 {
