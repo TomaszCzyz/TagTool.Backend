@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "src\Core\Core.csproj", "{2692CCB4-8A4F-4C70-A4F5-26B4C8BED318}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend", "src\TagTool.Backend\TagTool.Backend.csproj", "{2692CCB4-8A4F-4C70-A4F5-26B4C8BED318}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{1D0144DC-0CA8-49D2-9AE7-CDD126465E5F}"
 	ProjectSection(SolutionItems) = preProject

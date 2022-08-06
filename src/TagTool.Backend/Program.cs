@@ -1,14 +1,20 @@
-﻿using TagTool.Backend.Commands;
+﻿using Microsoft.EntityFrameworkCore;
+using TagTool.Backend.Commands;
 using TagTool.Backend.Commands.TagOperations;
+using TagTool.Backend.DbContext;
+using TagTool.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddGrpc();
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created...");
 
 var commandInvoker = new CommandInvoker();
+
+app.MapGrpcService<TagToolService>();
 
 app.MapPost("/TagFolder", TagFolder);
 app.MapPut("/CreateTag", CreateTag);
@@ -16,6 +22,12 @@ app.MapPost("/UntagFolder", UntagFolder);
 app.MapDelete("/DeleteTag", DeleteTag);
 app.MapPost("/Undo", Undo);
 app.MapPost("/Redo", Redo);
+
+app.Logger.LogInformation("Executing EF migrations...");
+await using (var db = new TagContext())
+{
+    db.Database.Migrate();
+}
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();
