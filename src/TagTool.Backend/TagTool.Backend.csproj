@@ -16,16 +16,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\TagToolService.proto" GrpcServices="Server" />
+    <ProjectReference Include="..\TagTool.Backend.Contracts\TagTool.Backend.Contracts.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Roslynator.Analyzers" Version="4.1.1">
       <PrivateAssets>all</PrivateAssets>

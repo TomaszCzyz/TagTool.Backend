@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend", "src\TagTool.Backend\TagTool.Backend.csproj", "{2692CCB4-8A4F-4C70-A4F5-26B4C8BED318}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend.Contracts", "src\TagTool.Backend.Contracts\TagTool.Backend.Contracts.csproj", "{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{1D0144DC-0CA8-49D2-9AE7-CDD126465E5F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -20,5 +22,9 @@ Global
 		{2692CCB4-8A4F-4C70-A4F5-26B4C8BED318}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2692CCB4-8A4F-4C70-A4F5-26B4C8BED318}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2692CCB4-8A4F-4C70-A4F5-26B4C8BED318}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
