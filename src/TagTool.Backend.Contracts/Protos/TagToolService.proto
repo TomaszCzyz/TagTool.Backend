@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "TagTool.Backend";
+
+package TagToolBackend;
+
+service TagToolService {
+  rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
+}
+
+message CreateTagRequest {
+  string tagName = 1;
+}
+
+message CreateTagReply {
+  bool isSuccess = 1;
+}

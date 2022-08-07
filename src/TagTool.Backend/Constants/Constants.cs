@@ -2,5 +2,5 @@
 
 public static class Constants
 {
-    public const string ApplicationName = "TagTool.Backend";
+    public const string ApplicationName = "TagToolBackend";
 }
