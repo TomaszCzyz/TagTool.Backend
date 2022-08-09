@@ -1,13 +1,25 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.Commands;
 using TagTool.Backend.Commands.TagOperations;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Services;
 
+var socketPath = Path.Combine(Path.GetTempPath(), "socket.tmp");
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddGrpc();
+builder.WebHost.ConfigureKestrel(
+    options =>
+    {
+        if (File.Exists(socketPath))
+        {
+            File.Delete(socketPath);
+        }
+        options.ListenUnixSocket(socketPath, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+    });
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created...");
