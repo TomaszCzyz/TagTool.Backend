@@ -1,39 +1,40 @@
 ﻿using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Exceptions;
 using TagTool.Backend.Commands;
-using TagTool.Backend.Commands.TagOperations;
+using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Services;
 
-var socketPath = Path.Combine(Path.GetTempPath(), "socket.tmp");
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddGrpc();
+builder.Host.UseSerilog((_, configuration) =>
+    configuration
+        .ReadFrom.Configuration(builder.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithExceptionDetails()
+        .WriteTo.Console()
+        .WriteTo.SQLite(Constants.LogsDbPath));
+
 builder.WebHost.ConfigureKestrel(
     options =>
     {
-        if (File.Exists(socketPath))
+        if (File.Exists(Constants.SocketPath))
         {
-            File.Delete(socketPath);
+            File.Delete(Constants.SocketPath);
         }
-        options.ListenUnixSocket(socketPath, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+
+        options.ListenUnixSocket(Constants.SocketPath, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
     });
+
+builder.Services.AddSingleton<ICommandInvoker, CommandInvoker>();
+builder.Services.AddGrpc();
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created...");
 
-var commandInvoker = new CommandInvoker();
-
 app.MapGrpcService<TagToolService>();
-
-app.MapPost("/TagFolder", TagFolder);
-app.MapPut("/CreateTag", CreateTag);
-app.MapPost("/UntagFolder", UntagFolder);
-app.MapDelete("/DeleteTag", DeleteTag);
-app.MapPost("/Undo", Undo);
-app.MapPost("/Redo", Redo);
 
 app.Logger.LogInformation("Executing EF migrations...");
 await using (var db = new TagContext())
@@ -43,37 +44,3 @@ await using (var db = new TagContext())
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();
-
-async Task TagFolder(string path, string tagName)
-{
-    var command = new TagFolderCommand(path, tagName);
-    await commandInvoker.SetAndInvoke(command);
-}
-
-async Task CreateTag(string tagName)
-{
-    var command = new CreateTagCommand(tagName);
-    await commandInvoker.SetAndInvoke(command);
-}
-
-async Task UntagFolder(string path, string tagName)
-{
-    var command = new UntagFolderCommand(path, tagName);
-    await commandInvoker.SetAndInvoke(command);
-}
-
-async Task DeleteTag(string tagName)
-{
-    var command = new DeleteTagCommand(tagName);
-    await commandInvoker.SetAndInvoke(command);
-}
-
-async Task Undo()
-{
-    await commandInvoker.Undo();
-}
-
-async Task Redo()
-{
-    await commandInvoker.Redo();
-}
