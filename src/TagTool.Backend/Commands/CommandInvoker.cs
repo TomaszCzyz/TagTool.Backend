@@ -1,6 +1,15 @@
 ﻿namespace TagTool.Backend.Commands;
 
-public class CommandInvoker
+public interface ICommandInvoker
+{
+    void SetCommand(ICommand command);
+    Task SetAndInvoke(ICommand command);
+    Task Invoke();
+    Task Undo();
+    Task Redo();
+}
+
+public class CommandInvoker : ICommandInvoker
 {
     private readonly CommandHistory _commandHistory = new();
     private readonly CommandHistory _undoCommandHistory = new();
