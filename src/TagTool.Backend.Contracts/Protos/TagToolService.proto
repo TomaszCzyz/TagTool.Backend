@@ -4,7 +4,7 @@ option csharp_namespace = "TagTool.Backend";
 
 package TagToolBackend;
 
-service TagToolService {
+service TagToolService { // todo: rename to TagService
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
   rpc TagFolder (TagFolderRequest) returns (TagFolderReply);
   rpc UntagFolder (UntagFolderRequest) returns (UntagFolderReply);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Serilog.Extensions.Logging;
 using TagTool.Backend.Models;
 using File = TagTool.Backend.Models.File;
 
@@ -14,7 +15,7 @@ public class TagContext : Microsoft.EntityFrameworkCore.DbContext
 
     public TagContext()
     {
-        var path = Constants.Constants.DbDirPath;
+        var path = Constants.Constants.BasePath;
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
@@ -25,7 +26,7 @@ public class TagContext : Microsoft.EntityFrameworkCore.DbContext
     {
         optionsBuilder
             .UseSqlite($"Data Source={Constants.Constants.DbPath}")
-            .LogTo(Console.WriteLine, LogLevel.Information);
+            .UseLoggerFactory(new SerilogLoggerFactory());
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

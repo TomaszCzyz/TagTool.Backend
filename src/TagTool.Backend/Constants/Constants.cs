@@ -2,17 +2,15 @@
 
 public static class Constants
 {
-    private const Environment.SpecialFolder LocalApplicationData = Environment.SpecialFolder.LocalApplicationData;
+    private const string ApplicationName = "TagToolBackend";
 
-    public const string ApplicationName = "TagToolBackend";
+    private static readonly string _localAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+    public static readonly string BasePath = Path.Join(_localAppDataPath, ApplicationName);
 
     public static readonly string SocketPath = Path.Combine(Path.GetTempPath(), "socket.tmp");
 
-    public static readonly string LocalAppDataDir = Environment.GetFolderPath(LocalApplicationData);
+    public static readonly string DbPath = Path.Join(BasePath, "TagTool.db");
 
-    public static readonly string DbDirPath = Path.Join(LocalAppDataDir, ApplicationName);
-
-    public static readonly string DbPath = Path.Join(LocalAppDataDir, "TagTool.db");
-
-    public static readonly string LogsDbPath = Path.Join(LocalAppDataDir, @"Logs\log.db");
+    public static readonly string LogsDbPath = Path.Combine(BasePath, "Logs", "log.db");
 }

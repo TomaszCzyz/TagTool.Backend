@@ -17,24 +17,16 @@ builder.Host.UseSerilog((_, configuration) =>
         .WriteTo.Console()
         .WriteTo.SQLite(Constants.LogsDbPath));
 
-builder.WebHost.ConfigureKestrel(
-    options =>
-    {
-        if (File.Exists(Constants.SocketPath))
-        {
-            File.Delete(Constants.SocketPath);
-        }
-
-        options.ListenUnixSocket(Constants.SocketPath, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
-    });
+builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
 builder.Services.AddSingleton<ICommandInvoker, CommandInvoker>();
 builder.Services.AddGrpc();
 
 var app = builder.Build();
-app.Logger.LogInformation("Application created...");
+app.Logger.LogInformation("Application created");
 
 app.MapGrpcService<TagToolService>();
+app.MapGrpcService<TagSearchService>();
 
 app.Logger.LogInformation("Executing EF migrations...");
 await using (var db = new TagContext())
@@ -44,3 +36,20 @@ await using (var db = new TagContext())
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();
+
+void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
+{
+    if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "GrpcDevelopment")
+    {
+        if (File.Exists(Constants.SocketPath))
+        {
+            File.Delete(Constants.SocketPath);
+        }
+
+        kestrelServerOptions.ListenUnixSocket(Constants.SocketPath, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+    }
+    else
+    {
+        kestrelServerOptions.ListenLocalhost(5280, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+    }
+}
