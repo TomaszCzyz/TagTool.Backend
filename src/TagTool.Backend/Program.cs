@@ -15,7 +15,7 @@ builder.Host.UseSerilog((_, configuration) =>
         .Enrich.FromLogContext()
         .Enrich.WithExceptionDetails()
         .WriteTo.Console()
-        .WriteTo.SQLite(Constants.LogsDbPath));
+        .WriteTo.SQLite(Constants.LogsDbPath, storeTimestampInUtc: true, batchSize: 1));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 

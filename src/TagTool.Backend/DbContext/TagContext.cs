@@ -26,7 +26,9 @@ public class TagContext : Microsoft.EntityFrameworkCore.DbContext
     {
         optionsBuilder
             .UseSqlite($"Data Source={Constants.Constants.DbPath}")
-            .UseLoggerFactory(new SerilogLoggerFactory());
+            .UseLoggerFactory(new SerilogLoggerFactory())
+            .EnableDetailedErrors()
+            .EnableSensitiveDataLogging();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

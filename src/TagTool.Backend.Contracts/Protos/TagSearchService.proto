@@ -5,14 +5,14 @@ option csharp_namespace = "TagTool.Backend";
 package TagToolBackend;
 
 service TagSearchService {
-  rpc FindTags (stream FindTagsRequest) returns (stream FindTagsReply);
+  rpc FindTags (FindTagsRequest) returns (stream FindTagsReply);
 }
 
 message FindTagsRequest {
   string partialTagName = 1;
-  optional uint32 maxReturn = 2;
+  optional int32 maxReturn = 2;
 }
 
 message FindTagsReply {
-  repeated string tags = 1;
+  string tagName = 1;
 }
