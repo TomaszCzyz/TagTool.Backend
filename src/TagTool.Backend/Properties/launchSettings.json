@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "TagToolBackendGrpcTest": {
+    "TagToolBackendGrpcViaHttp": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,

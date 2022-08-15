@@ -19,7 +19,6 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
         {
             var tagName = enumerator.Current;
             await responseStream.WriteAsync(new FindTagsReply { TagName = tagName }, context.CancellationToken);
-            await Task.Delay(2000);
         }
     }
 

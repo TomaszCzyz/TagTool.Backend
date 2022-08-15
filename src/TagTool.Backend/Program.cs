@@ -7,7 +7,7 @@ using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder();
 
 builder.Host.UseSerilog((_, configuration) =>
     configuration
