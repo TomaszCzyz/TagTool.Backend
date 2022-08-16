@@ -6,6 +6,7 @@ package TagToolBackend;
 
 service TagSearchService {
   rpc FindTags (FindTagsRequest) returns (stream FindTagsReply);
+  rpc MatchTags (MatchTagsRequest) returns (stream MatchTagsReply);
 }
 
 message FindTagsRequest {
@@ -16,3 +17,20 @@ message FindTagsRequest {
 message FindTagsReply {
   string tagName = 1;
 }
+
+message MatchTagsRequest {
+  string partialTagName = 1;
+  optional int32 maxReturn = 2;
+}
+
+message MatchTagsReply {
+  string tagName = 1;
+  repeated MatchedPart matchedParts = 2;
+}
+
+message MatchedPart {
+  int32 startIndex = 1;
+  int32 length = 2;
+}
+
+

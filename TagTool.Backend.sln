@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend", "src\TagT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend.Contracts", "src\TagTool.Backend.Contracts\TagTool.Backend.Contracts.csproj", "{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend.Tests.Unit", "TagTool.Backend.Tests.Unit\TagTool.Backend.Tests.Unit.csproj", "{59F4987A-7047-4FF6-A2C9-B78166EC92C4}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{1D0144DC-0CA8-49D2-9AE7-CDD126465E5F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -26,5 +28,9 @@ Global
 		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A89CF9FC-CFF6-46C5-A545-9C70B530B18D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59F4987A-7047-4FF6-A2C9-B78166EC92C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59F4987A-7047-4FF6-A2C9-B78166EC92C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59F4987A-7047-4FF6-A2C9-B78166EC92C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59F4987A-7047-4FF6-A2C9-B78166EC92C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
