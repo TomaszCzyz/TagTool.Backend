@@ -2,6 +2,7 @@
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Extensions;
 
 namespace TagTool.Backend.Services;
 
@@ -9,7 +10,7 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
 {
     public override async Task FindTags(
         FindTagsRequest request,
-        IServerStreamWriter<FindTagsReply> responseStream,
+        IServerStreamWriter<FoundTagReply> responseStream,
         ServerCallContext context)
     {
         var tags = await GetTags(request.PartialTagName, request.MaxReturn, context.CancellationToken);
@@ -19,32 +20,42 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
         while (enumerator.MoveNext() && !context.CancellationToken.IsCancellationRequested)
         {
             var tagName = enumerator.Current;
-            await responseStream.WriteAsync(new FindTagsReply { TagName = tagName }, context.CancellationToken);
+            await responseStream.WriteAsync(new FoundTagReply { TagName = tagName }, context.CancellationToken);
         }
     }
 
+    /// <summary>
+    ///     Partially matching tags using Aho-corasick search algorithm.
+    ///     Even the simplest matches are streamed (for example one letter match only).
+    ///     Additional filtering/ordering is needed on a client side.
+    /// </summary>
     public override async Task MatchTags(
         MatchTagsRequest request,
-        IServerStreamWriter<MatchTagsReply> responseStream,
+        IServerStreamWriter<MatchedTagReply> responseStream,
         ServerCallContext context)
     {
-        var dict = request.PartialTagName.GetAllSubstrings();
+        var dict = request.PartialTagName.GetAllSubstrings().Distinct();
         var ahoCorasick = new AhoCorasick(dict);
 
-        var tagNames = await GetAllTags(ct: context.CancellationToken);
+        var tagNames = await GetAllTags(context.CancellationToken);
 
         foreach (var tagName in tagNames)
         {
-            var wordMatches = ahoCorasick.Search(tagName).ToList();
+            var matchedParts = ahoCorasick
+                .Search(tagName) // todo: safeguard for very long tagNames would be nice
+                .ExcludeOverlaying(tagName)
+                .Select(match => new MatchedPart { StartIndex = match.Index, Length = match.Word.Length })
+                .OrderByDescending(match => match.Length)
+                .ToList();
 
-            // todo: filter search results to exclude overlying substrings 
-            if (wordMatches.Count == 0) continue;
+            if (matchedParts.Count == 0) continue;
 
-            var matchTagsReply = new MatchTagsReply { TagName = tagName };
-            foreach (var match in wordMatches)
+            var matchTagsReply = new MatchedTagReply
             {
-                matchTagsReply.MatchedParts.Add(new MatchedPart { StartIndex = match.Index, Length = match.Word.Length });
-            }
+                MatchedTagName = tagName,
+                Score = matchedParts[0].Length * 10 - matchedParts[0].StartIndex,
+                MatchedParts = { matchedParts }
+            };
 
             await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
         }
@@ -76,25 +87,5 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
             .ToListAsync(ct);
 
         return query;
-    }
-}
-
-public static class StringExtensions // todo: optimize with span<char>
-{
-    public static string[] GetAllSubstrings(this string word)
-    {
-        var substrings = new string[((1 + word.Length) * word.Length) / 2];
-
-        var counter = 0;
-        for (var substringLength = 1; substringLength <= word.Length; ++substringLength)
-        {
-            for (var startIndex = 0; startIndex <= word.Length - substringLength; startIndex++)
-            {
-                substrings[counter] = word.Substring(startIndex, substringLength);
-                counter++;
-            }
-        }
-
-        return substrings;
     }
 }

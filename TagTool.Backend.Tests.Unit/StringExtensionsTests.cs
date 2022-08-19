@@ -1,5 +1,5 @@
 using FluentAssertions;
-using TagTool.Backend.Services;
+using TagTool.Backend.Extensions;
 using Xunit;
 
 namespace TagTool.Backend.Tests.Unit;
