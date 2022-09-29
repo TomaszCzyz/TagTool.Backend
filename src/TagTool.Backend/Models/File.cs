@@ -4,7 +4,7 @@ public class File
 {
     public int Id { get; set; }
 
-    //public ifExternalFolder
+    //public inExternalFolder
 
     public string Name { get; set; } = null!;
 
@@ -14,7 +14,7 @@ public class File
 
     public DateTime? DateModified { get; set; }
 
-    public string? Location { get; set; }
+    public string? Location { get; set; } // todo: it should not be nullable
 
     public ICollection<Tag> Tags { get; } = new List<Tag>();
 

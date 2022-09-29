@@ -4,7 +4,7 @@ option csharp_namespace = "TagTool.Backend";
 
 package TagToolBackend;
 
-service TagToolService { // todo: rename to TagService
+service TagService {
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
   rpc TagFolder (TagFolderRequest) returns (TagFolderReply);
   rpc UntagFolder (UntagFolderRequest) returns (UntagFolderReply);
@@ -47,16 +47,16 @@ message DeleteTagReply {
   bool isSuccess = 1;
 }
 
-message UndoRequest{
+message UndoRequest {
 }
 
-message UndoReply{
+message UndoReply {
   bool isSuccess = 1;
 }
 
-message RedoRequest{
+message RedoRequest {
 }
 
-message RedoReply{
+message RedoReply {
   bool isSuccess = 1;
 } 

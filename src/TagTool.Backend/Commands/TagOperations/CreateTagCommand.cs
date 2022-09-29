@@ -5,12 +5,7 @@ namespace TagTool.Backend.Commands.TagOperations;
 
 public class CreateTagCommand : ICommand
 {
-    public string TagName { get; set; }
-
-    public CreateTagCommand(string tagName)
-    {
-        TagName = tagName;
-    }
+    public required string TagName { get; set; }
 
     public async Task Execute()
     {
