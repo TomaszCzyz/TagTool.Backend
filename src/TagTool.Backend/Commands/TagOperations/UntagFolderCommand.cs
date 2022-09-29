@@ -5,20 +5,15 @@ namespace TagTool.Backend.Commands.TagOperations;
 
 public class UntagFolderCommand : ICommand
 {
-    public string Path { get; set; }
+    private readonly string _path = null!;
 
-    public string TagName { get; set; }
-
-    public UntagFolderCommand(string path, string tagName)
+    public required string Path
     {
-        if (!Directory.Exists(path))
-        {
-            throw new IOException($"The directory {path} does not exists");
-        }
-
-        Path = path;
-        TagName = tagName;
+        get => _path;
+        init => _path = Directory.Exists(value) ? value : throw new IOException($"The directory {value} does not exists");
     }
+
+    public required string TagName { get; init; }
 
     public async Task Execute()
     {

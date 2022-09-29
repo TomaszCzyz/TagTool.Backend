@@ -23,7 +23,7 @@ public class TagToolService : TagService.TagServiceBase
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        var command = new DeleteTagCommand(request.TagName);
+        var command = new DeleteTagCommand { TagName = request.TagName };
         await _commandInvoker.SetAndInvoke(command);
 
         return new DeleteTagReply { IsSuccess = true };
@@ -31,7 +31,7 @@ public class TagToolService : TagService.TagServiceBase
 
     public override async Task<TagFolderReply> TagFolder(TagFolderRequest request, ServerCallContext context)
     {
-        var command = new TagFolderCommand(request.Path, request.TagName);
+        var command = new TagFolderCommand { Path = request.Path, TagName = request.TagName };
         await _commandInvoker.SetAndInvoke(command);
 
         return new TagFolderReply { IsSuccess = true };
@@ -39,7 +39,7 @@ public class TagToolService : TagService.TagServiceBase
 
     public override async Task<UntagFolderReply> UntagFolder(UntagFolderRequest request, ServerCallContext context)
     {
-        var command = new UntagFolderCommand(request.Path, request.TagName);
+        var command = new UntagFolderCommand { Path = request.Path, TagName = request.TagName };
         await _commandInvoker.SetAndInvoke(command);
 
         return new UntagFolderReply { IsSuccess = true };

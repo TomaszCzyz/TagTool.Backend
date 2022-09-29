@@ -4,12 +4,7 @@ namespace TagTool.Backend.Commands.TagOperations;
 
 public class DeleteTagCommand : ICommand
 {
-    public string TagName { get; set; }
-
-    public DeleteTagCommand(string tagName)
-    {
-        TagName = tagName;
-    }
+    public required string TagName { get; init; }
 
     public async Task Execute()
     {

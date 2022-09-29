@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Server.Kestrel.Core;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
@@ -14,8 +15,8 @@ builder.Host.UseSerilog((_, configuration) =>
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
         .Enrich.WithExceptionDetails()
-        .WriteTo.Console()
-        .WriteTo.SQLite(Constants.LogsDbPath, storeTimestampInUtc: true, batchSize: 1));
+        .WriteTo.Console(formatProvider: CultureInfo.CurrentCulture)
+        .WriteTo.SQLite(Constants.LogsDbPath, storeTimestampInUtc: true, batchSize: 1, formatProvider: CultureInfo.CurrentCulture));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 

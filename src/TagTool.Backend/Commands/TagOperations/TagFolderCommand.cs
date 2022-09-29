@@ -8,27 +8,21 @@ namespace TagTool.Backend.Commands.TagOperations;
 
 public class TagFolderCommand : ICommand
 {
-    public string Path { get; set; }
+    private readonly string _path = null!;
 
-    public string TagName { get; set; }
-
-    public TagFolderCommand(string path, string tagName)
+    public required string Path
     {
-        if (!Directory.Exists(path))
-        {
-            throw new IOException($"The directory {path} does not exists");
-        }
-
-        // todo: normalize path to allow simple string comparision
-        Path = path;
-        TagName = tagName;
+        get => _path;
+        init => _path = Directory.Exists(value) ? value : throw new IOException($"The directory {value} does not exists");
     }
+
+    public required string TagName { get; init; }
 
     public async Task Execute()
     {
         await using var db = new TagContext();
 
-        var newTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == TagName) ?? new Tag {Name = TagName};
+        var newTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == TagName) ?? new Tag { Name = TagName };
 
         foreach (var fileInfo in Directory.EnumerateFiles(Path).Select(s => new FileInfo(s)))
         {
