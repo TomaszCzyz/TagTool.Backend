@@ -25,7 +25,7 @@ public class UntagFolderCommand : ICommand
 
         var filesByFolder = tag.Files.Where(file => file.Location == Path);
 
-        db.Files.RemoveRange(filesByFolder);
+        db.TrackedFiles.RemoveRange(filesByFolder);
 
         await db.SaveChangesAsync();
     }

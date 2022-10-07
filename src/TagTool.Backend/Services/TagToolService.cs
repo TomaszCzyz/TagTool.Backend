@@ -7,15 +7,18 @@ namespace TagTool.Backend.Services;
 public class TagToolService : TagService.TagServiceBase
 {
     private readonly ICommandInvoker _commandInvoker;
+    private readonly ILoggerFactory _loggerFactory;
 
-    public TagToolService(ICommandInvoker commandInvoker)
+    public TagToolService(ICommandInvoker commandInvoker, ILoggerFactory loggerFactory)
     {
         _commandInvoker = commandInvoker;
+        _loggerFactory = loggerFactory;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        var command = new CreateTagCommand { TagName = request.TagName };
+        var logger = (ILogger<CreateTagCommand>)_loggerFactory.CreateLogger(typeof(CreateTagCommand));
+        var command = new CreateTagCommand(logger) { TagName = request.TagName };
         await _commandInvoker.SetAndInvoke(command);
 
         return new CreateTagReply { IsSuccess = true };

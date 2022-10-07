@@ -6,11 +6,14 @@ package TagToolBackend;
 
 service TagService {
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
-  rpc TagFolder (TagFolderRequest) returns (TagFolderReply);
-  rpc UntagFolder (UntagFolderRequest) returns (UntagFolderReply);
   rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
-  rpc Undo (UndoRequest) returns (UndoReply);
-  rpc Redo (RedoRequest) returns (RedoReply);
+
+  rpc TagFilesInFolder (TagFilesInFolderRequest) returns (TagFilesInFolderReply);
+  rpc UntagFolder (UntagFolderRequest) returns (UntagFolderReply);
+  rpc TagAll(TagAllRequest) returns (TagAllReply); 
+
+  rpc Undo (UndoRequest) returns (UndoReply); // todo: move this responsibility to application side
+  rpc Redo (RedoRequest) returns (RedoReply); // todo: move this responsibility to application side
 }
 
 message CreateTagRequest {
@@ -21,12 +24,20 @@ message CreateTagReply {
   bool isSuccess = 1;
 }
 
-message TagFolderRequest {
+message DeleteTagRequest {
+  string tagName = 1;
+}
+
+message DeleteTagReply {
+  bool isSuccess = 1;
+}
+
+message TagFilesInFolderRequest {
   string tagName = 1;
   string path = 2;
 }
 
-message TagFolderReply {
+message TagFilesInFolderReply {
   bool isSuccess = 1;
 }
 
@@ -39,11 +50,11 @@ message UntagFolderReply {
   bool isSuccess = 1;
 }
 
-message DeleteTagRequest {
-  string tagName = 1;
+message TagAllRequest {
+  repeated string FileOrFolderName = 1;
 }
 
-message DeleteTagReply {
+message TagAllReply {
   bool isSuccess = 1;
 }
 

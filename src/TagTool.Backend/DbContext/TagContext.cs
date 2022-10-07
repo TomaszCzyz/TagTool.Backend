@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog.Extensions.Logging;
 using TagTool.Backend.Models;
-using File = TagTool.Backend.Models.File;
 
 namespace TagTool.Backend.DbContext;
 
@@ -11,7 +10,7 @@ public class TagContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<Group> Groups { get; set; } = null!;
 
-    public DbSet<File> Files { get; set; } = null!;
+    public DbSet<TrackedFile> TrackedFiles { get; set; } = null!;
 
     public TagContext()
     {

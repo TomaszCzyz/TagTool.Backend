@@ -1,17 +1,21 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace TagTool.Backend.Extensions;
 
 public static class DbSetExtensions
 {
-    public static EntityEntry<T>? AddIfNotExists<T>(
+    public static T AddIfNotExists<T>(
         this DbSet<T> dbSet,
         T entity,
-        Expression<Func<T, bool>>? predicate = null) where T : class, new()
+        Expression<Func<T, bool>>? predicate = null) where T : class
     {
-        var exists = predicate != null ? dbSet.Any(predicate) : dbSet.Any();
-        return !exists ? dbSet.Add(entity) : null;
+        T? entry = null;
+        if (predicate != null)
+        {
+            entry = dbSet.FirstOrDefault(predicate);
+        }
+
+        return entry ?? dbSet.Add(entity).Entity;
     }
 }

@@ -5,27 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TagTool.Backend.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Files",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Length = table.Column<long>(type: "INTEGER", nullable: false),
-                    DateCreated = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DateModified = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    Location = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Files", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Groups",
                 columns: table => new
@@ -55,27 +38,20 @@ namespace TagTool.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FileTag",
+                name: "TrackedFiles",
                 columns: table => new
                 {
-                    FilesId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TagsId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Length = table.Column<long>(type: "INTEGER", nullable: false),
+                    Location = table.Column<string>(type: "TEXT", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    DateModified = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FileTag", x => new { x.FilesId, x.TagsId });
-                    table.ForeignKey(
-                        name: "FK_FileTag_Files_FilesId",
-                        column: x => x.FilesId,
-                        principalTable: "Files",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_FileTag_Tags_TagsId",
-                        column: x => x.TagsId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_TrackedFiles", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -102,10 +78,29 @@ namespace TagTool.Backend.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_FileTag_TagsId",
-                table: "FileTag",
-                column: "TagsId");
+            migrationBuilder.CreateTable(
+                name: "TagTrackedFile",
+                columns: table => new
+                {
+                    FilesId = table.Column<int>(type: "INTEGER", nullable: false),
+                    TagsId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TagTrackedFile", x => new { x.FilesId, x.TagsId });
+                    table.ForeignKey(
+                        name: "FK_TagTrackedFile_Tags_TagsId",
+                        column: x => x.TagsId,
+                        principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TagTrackedFile_TrackedFiles_FilesId",
+                        column: x => x.FilesId,
+                        principalTable: "TrackedFiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_GroupTag_TagsId",
@@ -117,24 +112,29 @@ namespace TagTool.Backend.Migrations
                 table: "Tags",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TagTrackedFile_TagsId",
+                table: "TagTrackedFile",
+                column: "TagsId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "FileTag");
-
-            migrationBuilder.DropTable(
                 name: "GroupTag");
 
             migrationBuilder.DropTable(
-                name: "Files");
+                name: "TagTrackedFile");
 
             migrationBuilder.DropTable(
                 name: "Groups");
 
             migrationBuilder.DropTable(
                 name: "Tags");
+
+            migrationBuilder.DropTable(
+                name: "TrackedFiles");
         }
     }
 }

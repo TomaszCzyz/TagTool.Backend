@@ -17,21 +17,6 @@ namespace TagTool.Backend.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.6");
 
-            modelBuilder.Entity("FileTag", b =>
-                {
-                    b.Property<int>("FilesId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TagsId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("FilesId", "TagsId");
-
-                    b.HasIndex("TagsId");
-
-                    b.ToTable("FileTag");
-                });
-
             modelBuilder.Entity("GroupTag", b =>
                 {
                     b.Property<int>("GroupsId")
@@ -45,33 +30,6 @@ namespace TagTool.Backend.Migrations
                     b.HasIndex("TagsId");
 
                     b.ToTable("GroupTag");
-                });
-
-            modelBuilder.Entity("TagTool.Backend.Models.File", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("DateCreated")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("DateModified")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("Length")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("TagTool.Backend.Models.Group", b =>
@@ -113,11 +71,54 @@ namespace TagTool.Backend.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("FileTag", b =>
+            modelBuilder.Entity("TagTool.Backend.Models.TrackedFile", b =>
                 {
-                    b.HasOne("TagTool.Backend.Models.File", null)
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Length")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TrackedFiles");
+                });
+
+            modelBuilder.Entity("TagTrackedFile", b =>
+                {
+                    b.Property<int>("FilesId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TagsId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("FilesId", "TagsId");
+
+                    b.HasIndex("TagsId");
+
+                    b.ToTable("TagTrackedFile");
+                });
+
+            modelBuilder.Entity("GroupTag", b =>
+                {
+                    b.HasOne("TagTool.Backend.Models.Group", null)
                         .WithMany()
-                        .HasForeignKey("FilesId")
+                        .HasForeignKey("GroupsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -128,11 +129,11 @@ namespace TagTool.Backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("GroupTag", b =>
+            modelBuilder.Entity("TagTrackedFile", b =>
                 {
-                    b.HasOne("TagTool.Backend.Models.Group", null)
+                    b.HasOne("TagTool.Backend.Models.TrackedFile", null)
                         .WithMany()
-                        .HasForeignKey("GroupsId")
+                        .HasForeignKey("FilesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

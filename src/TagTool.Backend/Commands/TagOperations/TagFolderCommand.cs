@@ -2,7 +2,6 @@
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
-using File = TagTool.Backend.Models.File;
 
 namespace TagTool.Backend.Commands.TagOperations;
 
@@ -24,30 +23,13 @@ public class TagFolderCommand : ICommand
 
         var newTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == TagName) ?? new Tag { Name = TagName };
 
-        foreach (var fileInfo in Directory.EnumerateFiles(Path).Select(s => new FileInfo(s)))
+        foreach (var trackedFile in Directory.EnumerateFiles(Path).Select(s => new TrackedFile(s)))
         {
-            var fileName = fileInfo.Name;
-            var fileLength = fileInfo.Length;
+            var file = db.TrackedFiles.AddIfNotExists(trackedFile, file => file.Name == trackedFile.Name && file.Length == trackedFile.Length);
 
-            var fileInDb = await db.Files // todo: optimization - make process run in batches
-                .Include(file => file.Tags)
-                .FirstOrDefaultAsync(file => file.Name == fileName && file.Length == fileLength);
-
-            if (fileInDb is not null)
-            {
-                fileInDb.Tags.AddIfNotExists(newTag);
-
-                db.Files.Update(fileInDb);
-            }
-            else
-            {
-                var newFile = (File)fileInfo;
-                newFile.Tags.AddIfNotExists(newTag);
-
-                db.Files.Add(newFile);
-            }
-
-            await db.SaveChangesAsync();
+            file.Tags.AddIfNotExists(newTag);
         }
+
+        await db.SaveChangesAsync();
     }
 }

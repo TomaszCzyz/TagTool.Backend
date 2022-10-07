@@ -10,5 +10,5 @@ public class Tag
 
     public List<Group> Groups { get; set; } = null!;
 
-    public ICollection<File> Files { get; } = new List<File>();
+    public ICollection<TrackedFile> Files { get; } = new List<TrackedFile>();
 }
