@@ -25,7 +25,9 @@ public class TagFolderCommand : ICommand
 
         foreach (var trackedFile in Directory.EnumerateFiles(Path).Select(s => new TrackedFile(s)))
         {
-            var file = db.TrackedFiles.AddIfNotExists(trackedFile, file => file.Name == trackedFile.Name && file.Length == trackedFile.Length);
+            var file = db.TrackedFiles.AddIfNotExists(
+                trackedFile,
+                file => file.Name == trackedFile.Name && file.Length == trackedFile.Length);
 
             file.Tags.AddIfNotExists(newTag);
         }

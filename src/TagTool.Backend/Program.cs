@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿#pragma warning disable CA1852
+using System.Globalization;
+using MediatR;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -20,12 +22,15 @@ builder.Host.UseSerilog((_, configuration) =>
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
 builder.Services.AddSingleton<ICommandInvoker, CommandInvoker>();
 builder.Services.AddGrpc();
+builder.Services.AddMediatR(typeof(Program));
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
+app.MapGrpcService<TagServiceV2>();
 app.MapGrpcService<TagToolService>();
 app.MapGrpcService<TagSearchService>();
 

@@ -30,7 +30,9 @@ public class TrackedFile
     ///     Ctor for EF Core
     /// </summary>
     [UsedImplicitly]
-    private TrackedFile() { }
+    private TrackedFile()
+    {
+    }
 
     [SetsRequiredMembers]
     public TrackedFile(string path)

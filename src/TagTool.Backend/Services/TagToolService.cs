@@ -32,12 +32,12 @@ public class TagToolService : TagService.TagServiceBase
         return new DeleteTagReply { IsSuccess = true };
     }
 
-    public override async Task<TagFolderReply> TagFolder(TagFolderRequest request, ServerCallContext context)
+    public override async Task<TagFilesInFolderReply> TagFilesInFolder(TagFilesInFolderRequest request, ServerCallContext context)
     {
         var command = new TagFolderCommand { Path = request.Path, TagName = request.TagName };
         await _commandInvoker.SetAndInvoke(command);
 
-        return new TagFolderReply { IsSuccess = true };
+        return new TagFilesInFolderReply { IsSuccess = true };
     }
 
     public override async Task<UntagFolderReply> UntagFolder(UntagFolderRequest request, ServerCallContext context)

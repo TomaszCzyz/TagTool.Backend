@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option csharp_namespace = "TagTool.Backend";
+
+package TagToolBackend;
+
+service TagServiceV2 {
+  rpc CreateTags (CreateTagsRequest) returns (CreateTagsReply);
+  rpc DeleteTags (DeleteTagsRequest) returns (DeleteTagsReply);
+
+  rpc Tag(stream TagRequest) returns (stream TagReply);
+  rpc Untag(stream UntagRequest) returns (stream UntagReply); 
+}
+
+message CreateTagsRequest {
+  repeated string TagNames = 1;
+}
+
+message CreateTagsReply {
+  repeated Result results = 1;
+}
+
+message DeleteTagsRequest {
+  repeated string TagNames = 1;
+}
+
+message DeleteTagsReply {
+  repeated Result results = 1;
+}
+
+message TagRequest {
+  repeated string TagNames = 1;
+  bool waitForAll = 2;
+  oneof subject {
+    FileDescription fileInfo = 3;
+    FolderDescription folderInfo = 4;
+  }
+}
+
+message TagReply {
+  Result result = 1;
+}
+
+message UntagRequest {
+  repeated string TagNames = 1;
+  bool waitForAll = 2;
+  oneof subject {
+    FileDescription fileInfo = 3;
+    FolderDescription folderInfo = 4;
+  }
+}
+
+message UntagReply {
+  Result result = 1;
+}
+
+message FileDescription {
+  string path = 1;
+  int64 length = 2;
+}
+
+message FolderDescription {
+  string path = 1;
+  bool recursive = 2;
+}
+
+message Result {
+  bool isSuccess = 1;
+  repeated string messages = 2;
+}
