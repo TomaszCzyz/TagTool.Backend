@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
-using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
+using TagTool.Backend.Repositories;
 
 namespace TagTool.Backend.Commands.TagOperations;
 
@@ -15,24 +16,31 @@ public class DeleteTagsCommandHandler : IRequestHandler<DeleteTagsCommand, List<
     private readonly List<Result> _results = new();
 
     private readonly ILogger<DeleteTagsCommandHandler> _logger;
+    private readonly IConnectionsFactory _connectionsFactory;
 
-    public DeleteTagsCommandHandler(ILogger<DeleteTagsCommandHandler> logger)
+    public DeleteTagsCommandHandler(ILogger<DeleteTagsCommandHandler> logger, IConnectionsFactory connectionsFactory)
     {
         _logger = logger;
+        _connectionsFactory = connectionsFactory;
     }
 
-    public async Task<List<Result>> Handle(DeleteTagsCommand request, CancellationToken cancellationToken)
+    public Task<List<Result>> Handle(DeleteTagsCommand request, CancellationToken cancellationToken)
     {
-        await using var db = new TagContext();
+        using var db = _connectionsFactory.Create();
+        var tagsCollection = db.GetCollection<Tag>("Tags");
 
-        var existingTags = db.Tags
+        var existingTags = tagsCollection
+            .Query()
             .Where(tag => request.TagNames.Contains(tag.Name))
             .ToArray();
 
-        _logger.LogInformation("Removing tags {@TagNames} from database", existingTags.Select(tag => tag.Name));
-        db.Tags.RemoveRange(existingTags);
+        foreach (var existingTag in existingTags)
+        {
+            var isDeleted = tagsCollection.Delete(existingTag.Id);
+            if (!isDeleted) continue;
 
-        await db.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Removed tag {@TagName} from database", existingTag.Name);
+        }
 
         foreach (var existingTag in existingTags)
         {
@@ -44,6 +52,6 @@ public class DeleteTagsCommandHandler : IRequestHandler<DeleteTagsCommand, List<
             _results.Add(new Result { IsSuccess = false, Messages = { $"No tag {nonExistingTag} in a database" } });
         }
 
-        return _results;
+        return Task.FromResult(_results);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace TagTool.Backend.Models;
+﻿using TagTool.Backend.Models.Taggable;
+
+namespace TagTool.Backend.Models;
 
 public class Tag
 {
@@ -10,5 +12,5 @@ public class Tag
 
     public List<Group> Groups { get; set; } = null!;
 
-    public ICollection<TrackedFile> Files { get; } = new List<TrackedFile>();
+    public ICollection<ITaggable> TaggedItems { get; } = new List<ITaggable>();
 }

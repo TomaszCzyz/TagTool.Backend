@@ -13,9 +13,10 @@
     <PackageReference Include="AhoCorasick" Version="2.0.46" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+    <PackageReference Include="LiteDB" Version="5.0.12" />
     <PackageReference Include="MediatR" Version="11.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.6" />
+<!--    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.6" />-->
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Serilog.Exceptions" Version="8.3.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
@@ -27,12 +28,12 @@
     <ProjectReference Include="..\TagTool.Backend.Contracts\TagTool.Backend.Contracts.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.6">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+<!--  <ItemGroup>-->
+<!--    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.6">-->
+<!--      <PrivateAssets>all</PrivateAssets>-->
+<!--      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
+<!--    </PackageReference>-->
+<!--  </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="Roslynator.Analyzers" Version="4.1.1">

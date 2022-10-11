@@ -2,12 +2,11 @@
 using System.Globalization;
 using MediatR;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
 using TagTool.Backend.Commands;
 using TagTool.Backend.Constants;
-using TagTool.Backend.DbContext;
+using TagTool.Backend.Repositories;
 using TagTool.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder();
@@ -22,22 +21,16 @@ builder.Host.UseSerilog((_, configuration) =>
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
+builder.Services.AddSingleton<IConnectionsFactory, ConnectionsFactory>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
-builder.Services.AddSingleton<ICommandInvoker, CommandInvoker>();
 builder.Services.AddGrpc();
 builder.Services.AddMediatR(typeof(Program));
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
-app.MapGrpcService<TagServiceV2>();
-app.MapGrpcService<TagSearchService>();
-
-app.Logger.LogInformation("Executing EF migrations...");
-await using (var db = new TagContext())
-{
-    db.Database.Migrate();
-}
+app.MapGrpcService<TagService>();
+// app.MapGrpcService<TagSearchService>();
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();

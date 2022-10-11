@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
-using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
+using TagTool.Backend.Repositories;
 
 namespace TagTool.Backend.Commands.TagOperations;
 
@@ -16,17 +16,21 @@ public class CreateTagsCommandHandler : IRequestHandler<CreateTagsCommand, List<
     private readonly List<Result> _results = new();
 
     private readonly ILogger<CreateTagsCommandHandler> _logger;
+    private readonly IConnectionsFactory _connectionsFactory;
 
-    public CreateTagsCommandHandler(ILogger<CreateTagsCommandHandler> logger)
+    public CreateTagsCommandHandler(ILogger<CreateTagsCommandHandler> logger, IConnectionsFactory connectionsFactory)
     {
         _logger = logger;
+        _connectionsFactory = connectionsFactory;
     }
 
-    public async Task<List<Result>> Handle(CreateTagsCommand request, CancellationToken cancellationToken)
+    public Task<List<Result>> Handle(CreateTagsCommand request, CancellationToken cancellationToken)
     {
-        await using var db = new TagContext();
+        using var db = _connectionsFactory.Create();
+        var tagsCollection = db.GetCollection<Tag>("Tags");
 
-        var existingTags = db.Tags
+        var existingTags = tagsCollection
+            .Query()
             .Where(tag => request.TagNames.Contains(tag.Name))
             .Select(tag => tag.Name)
             .ToArray();
@@ -37,9 +41,7 @@ public class CreateTagsCommandHandler : IRequestHandler<CreateTagsCommand, List<
             .ToList();
 
         _logger.LogDebug("Inserting new tags {@TagNames}", newTags);
-        db.Tags.AddRange(newTags);
-
-        await db.SaveChangesAsync(cancellationToken);
+        tagsCollection.Insert(newTags);
 
         foreach (var existingTag in existingTags)
         {
@@ -51,6 +53,6 @@ public class CreateTagsCommandHandler : IRequestHandler<CreateTagsCommand, List<
             _results.Add(new Result { IsSuccess = true, Messages = { $"Tag {newTag} successfully created" } });
         }
 
-        return _results;
+        return Task.FromResult(_results);
     }
 }
