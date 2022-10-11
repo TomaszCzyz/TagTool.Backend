@@ -4,7 +4,7 @@ using TagTool.Backend.Commands.TagOperations;
 
 namespace TagTool.Backend.Services;
 
-public class TagServiceV2 : Backend.TagServiceV2.TagServiceV2Base
+public class TagServiceV2 : TagService.TagServiceBase
 {
     private readonly IMediator _mediator;
 

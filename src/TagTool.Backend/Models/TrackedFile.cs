@@ -18,11 +18,7 @@ public class TrackedFile
 
     public required long Length { get; set; }
 
-    public required string Location { get; set; }
-
-    public DateTime? DateCreated { get; set; }
-
-    public DateTime? DateModified { get; set; }
+    public required string Path { get; set; }
 
     public ICollection<Tag> Tags { get; } = new List<Tag>();
 
@@ -46,8 +42,6 @@ public class TrackedFile
 
         Name = fileInfo.Name;
         Length = fileInfo.Length;
-        Location = fileInfo.DirectoryName!;
-        DateCreated = fileInfo.CreationTime;
-        DateModified = fileInfo.LastWriteTime;
+        Path = fileInfo.DirectoryName!;
     }
 }

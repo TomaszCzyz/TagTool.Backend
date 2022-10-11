@@ -31,7 +31,6 @@ var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
 app.MapGrpcService<TagServiceV2>();
-app.MapGrpcService<TagToolService>();
 app.MapGrpcService<TagSearchService>();
 
 app.Logger.LogInformation("Executing EF migrations...");

@@ -19,9 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\TagSearchService.proto" GrpcServices="Both" />
-    <Protobuf Include="Protos\TagToolService.proto" GrpcServices="Both" />
-    <Protobuf Include="Protos\TagServiceV2.proto" GrpcService="Server" />
+    <Protobuf Include="Protos\TagSearchService.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\TagService.proto" GrpcService="Server" />
   </ItemGroup>
 
   <Target Name="CopyPackage" AfterTargets="Pack">

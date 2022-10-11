@@ -4,7 +4,7 @@ option csharp_namespace = "TagTool.Backend";
 
 package TagToolBackend;
 
-service TagServiceV2 {
+service TagService {
   rpc CreateTags (CreateTagsRequest) returns (CreateTagsReply);
   rpc DeleteTags (DeleteTagsRequest) returns (DeleteTagsReply);
 

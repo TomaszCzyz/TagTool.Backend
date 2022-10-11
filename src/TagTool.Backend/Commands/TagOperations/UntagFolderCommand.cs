@@ -23,7 +23,7 @@ public class UntagFolderCommand : ICommand
 
         if (tag?.Files is null) return;
 
-        var filesByFolder = tag.Files.Where(file => file.Location == Path);
+        var filesByFolder = tag.Files.Where(file => file.Path == Path);
 
         db.TrackedFiles.RemoveRange(filesByFolder);
 
