@@ -1,30 +1,39 @@
 ﻿using LiteDB;
-using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Repositories;
 
-public interface IConnectionsFactory
+public class TagsCollection : IDisposable
 {
-    LiteDatabase Create();
-}
+    private readonly LiteDatabase _db;
 
-public class ConnectionsFactory : IConnectionsFactory
-{
-    private readonly string _connectionString;
+    public ILiteCollection<TagDto> Collection { get; }
 
-    public ConnectionsFactory()
+    public TagsCollection()
     {
-        // Open database (or create if doesn't exist)
-        _connectionString = Constants.Constants.DbPath;
-        using var db = new LiteDatabase(_connectionString);
-
-        db.UtcDate = true;
-        var taggedItems = db.GetCollection<TaggableItemDto>("TaggedItems");
-        var tags = db.GetCollection<Tag>("Tags");
-
-        taggedItems.EnsureIndex(x => x.Id, true);
-        tags.EnsureIndex(tag => tag.Name);
+        _db = new LiteDatabase(Constants.Constants.DbPath);
+        Collection = _db.GetCollection<TagDto>("Tags");
     }
 
-    public LiteDatabase Create() => new(_connectionString);
+    public void Dispose()
+    {
+        _db.Dispose();
+    }
+}
+
+public class TaggedItemsCollection : IDisposable
+{
+    private readonly LiteDatabase _db;
+
+    public ILiteCollection<TaggedItemDto> Collection { get; }
+
+    public TaggedItemsCollection()
+    {
+        _db = new LiteDatabase(Constants.Constants.DbPath);
+        Collection = _db.GetCollection<TaggedItemDto>("TaggedItems");
+    }
+
+    public void Dispose()
+    {
+        _db.Dispose();
+    }
 }
