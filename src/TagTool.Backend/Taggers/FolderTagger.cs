@@ -1,6 +1,7 @@
 ﻿using TagTool.Backend.Models;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
+using TagTool.Backend.Repositories.Dtos;
 
 namespace TagTool.Backend.Taggers;
 
@@ -18,7 +19,7 @@ public class FolderTagger : ITagger<Folder>
     public Tagged<Folder>? Tag(Folder item, string[] tagNames, TagOptions? options = null)
     {
         var tags = _tagsRepo.AddIfNotExist(tagNames);
-        var folderDto = _taggedItemsRepo.FindFolder(item);
+        var folderDto = _taggedItemsRepo.FindOne(new FolderDto { FullPath = item.FullPath });
 
         var isSuccess = false;
 
@@ -50,7 +51,7 @@ public class FolderTagger : ITagger<Folder>
 
     public Tagged<Folder>? Untag(Folder item, string[] tagNames, TagOptions? options = null)
     {
-        var folderDto = _taggedItemsRepo.FindFolder(item);
+        var folderDto = _taggedItemsRepo.FindOne(new FolderDto { FullPath = item.FullPath });
 
         if (folderDto is null) return null;
 

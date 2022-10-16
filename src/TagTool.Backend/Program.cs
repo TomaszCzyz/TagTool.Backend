@@ -9,6 +9,7 @@ using TagTool.Backend.Commands;
 using TagTool.Backend.Constants;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
+using TagTool.Backend.Repositories.Dtos;
 using TagTool.Backend.Services;
 using TagTool.Backend.Taggers;
 using File = TagTool.Backend.Models.Taggable.File;

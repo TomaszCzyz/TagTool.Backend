@@ -1,14 +1,11 @@
 ﻿using LiteDB;
-using TagTool.Backend.Models.Taggable;
-using File = TagTool.Backend.Models.Taggable.File;
+using TagTool.Backend.Repositories.Dtos;
 
 namespace TagTool.Backend.Repositories;
 
 public interface ITaggedItemsRepo
 {
-    FileDto? FindFile(File file);
-
-    FolderDto? FindFolder(Folder folder);
+    T? FindOne<T>(T item) where T : TaggedItemDto;
 
     bool Insert(TaggedItemDto folderDto);
 
@@ -24,28 +21,15 @@ public class TaggedItemsRepo : ITaggedItemsRepo
         _logger = logger;
     }
 
-    public FileDto? FindFile(File file)
+    public T? FindOne<T>(T item) where T : TaggedItemDto
     {
         using var taggedItems = new TaggedItemsCollection();
 
-        var fileDto = (FileDto?)taggedItems.Collection
-            .Include(fileDto => fileDto.Tags)
-            .FindOne("$._type = 'TagTool.Backend.Repositories.FileDto, TagTool.Backend'" +
-                     $"AND $.FullPath = '{file.FullPath.Replace(@"\", @"\\")}'");
+        var taggedItem = (T?)taggedItems.Collection
+            .Include(taggedItemDto => taggedItemDto.Tags)
+            .FindOne($"$._type = '{typeof(T)}, TagTool.Backend' AND $.FullPath = '{item.UniqueKey.Replace(@"\", @"\\")}'");
 
-        return fileDto;
-    }
-
-    public FolderDto? FindFolder(Folder folder)
-    {
-        using var taggedItems = new TaggedItemsCollection();
-
-        var folderDto = (FolderDto?)taggedItems.Collection
-            .Include(fileDto => fileDto.Tags)
-            .FindOne("$._type = 'TagTool.Backend.Repositories.FolderDto, TagTool.Backend'" +
-                     $"AND $.FullPath = '{folder.FullPath.Replace(@"\", @"\\")}'");
-
-        return folderDto;
+        return taggedItem;
     }
 
     public bool Insert(TaggedItemDto taggedItemDto)

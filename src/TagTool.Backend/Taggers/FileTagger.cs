@@ -1,6 +1,7 @@
 ﻿using TagTool.Backend.Models;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
+using TagTool.Backend.Repositories.Dtos;
 using File = TagTool.Backend.Models.Taggable.File;
 
 namespace TagTool.Backend.Taggers;
@@ -19,7 +20,7 @@ public class FileTagger : ITagger<File>
     public Tagged<File>? Tag(File item, string[] tagNames, TagOptions? options = null)
     {
         var tags = _tagsRepo.AddIfNotExist(tagNames);
-        var fileDto = _taggedItemsRepo.FindFile(item);
+        var fileDto = _taggedItemsRepo.FindOne(new FileDto { FullPath = item.FullPath });
 
         var isSuccess = false;
 
@@ -51,7 +52,7 @@ public class FileTagger : ITagger<File>
 
     public Tagged<File>? Untag(File item, string[] tagNames, TagOptions? options = null)
     {
-        var fileDto = _taggedItemsRepo.FindFile(item);
+        var fileDto = _taggedItemsRepo.FindOne(new FileDto { FullPath = item.FullPath });
 
         if (fileDto is null) return null;
 
@@ -63,7 +64,7 @@ public class FileTagger : ITagger<File>
         }
 
         var isSuccess = _taggedItemsRepo.Update(fileDto);
-        
+
         return isSuccess
             ? new Tagged<File> { Item = item, Tags = fileDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
             : null;

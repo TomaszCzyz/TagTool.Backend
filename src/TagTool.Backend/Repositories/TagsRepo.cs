@@ -1,3 +1,5 @@
+using TagTool.Backend.Repositories.Dtos;
+
 namespace TagTool.Backend.Repositories;
 
 public interface ITagsRepo

@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using TagTool.Backend.Repositories.Dtos;
 
 namespace TagTool.Backend.Repositories;
 
