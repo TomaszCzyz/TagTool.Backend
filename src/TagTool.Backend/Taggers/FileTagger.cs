@@ -32,7 +32,7 @@ public class FileTagger : ITagger<File>
                 {
                     Id = fileDto.Id,
                     FullPath = fileDto.FullPath,
-                    Tags = fileDto.Tags.Concat(newTags).ToArray()
+                    Tags = fileDto.Tags.Concat(newTags).ToList()
                 };
 
                 isSuccess = _taggedItemsRepo.Update(updatedDto);
@@ -40,7 +40,7 @@ public class FileTagger : ITagger<File>
         }
         else
         {
-            fileDto = new FileDto { FullPath = item.FullPath, Tags = tags.ToArray() };
+            fileDto = new FileDto { FullPath = item.FullPath, Tags = tags.ToList() };
             isSuccess = _taggedItemsRepo.Insert(fileDto);
         }
 
@@ -51,6 +51,21 @@ public class FileTagger : ITagger<File>
 
     public Tagged<File>? Untag(File item, string[] tagNames)
     {
-        throw new NotImplementedException();
+        var fileDto = _taggedItemsRepo.FindFile(item);
+
+        if (fileDto is null) return null;
+
+        foreach (var tagDto in fileDto.Tags.ToArray())
+        {
+            if (!tagNames.Contains(tagDto.Name)) continue;
+
+            fileDto.Tags.Remove(tagDto);
+        }
+
+        var isSuccess = _taggedItemsRepo.Update(fileDto);
+        
+        return isSuccess
+            ? new Tagged<File> { Item = item, Tags = fileDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
+            : null;
     }
 }

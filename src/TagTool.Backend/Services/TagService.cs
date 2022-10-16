@@ -48,9 +48,20 @@ public class TagService : Backend.TagService.TagServiceBase
         }
     }
 
-    public override Task Untag(IAsyncStreamReader<UntagRequest> requestStream, IServerStreamWriter<UntagReply> responseStream,
+    public override async Task Untag(IAsyncStreamReader<UntagRequest> requestStream, IServerStreamWriter<UntagReply> responseStream,
         ServerCallContext context)
     {
-        return base.Untag(requestStream, responseStream, context);
+        while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+        {
+            var tagRequest = requestStream.Current;
+            if (tagRequest.FileInfo is not { } fileInfo) continue;
+
+            var file = new File { FullPath = fileInfo.Path };
+            var isSuccess = _fileTagger.Untag(file, tagRequest.TagNames.ToArray());
+
+            var untagReply = new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } };
+
+            await responseStream.WriteAsync(untagReply, context.CancellationToken);
+        }
     }
 }

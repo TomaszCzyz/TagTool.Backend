@@ -7,9 +7,9 @@ public interface ITaggedItemsRepo
 {
     FileDto? FindFile(File file);
 
-    bool Insert(FileDto taggedFile);
+    bool Insert(FileDto fileDto);
 
-    bool Update(FileDto taggedFile);
+    bool Update(FileDto fileDto);
 }
 
 public class TaggedItemsRepo : ITaggedItemsRepo
@@ -27,8 +27,8 @@ public class TaggedItemsRepo : ITaggedItemsRepo
 
         var fileDto = (FileDto?)taggedItems.Collection
             .Include(fileDto => fileDto.Tags)
-            .FindOne(
-                $"$._type = 'TagTool.Backend.Repositories.FileDto, TagTool.Backend' AND $.FullPath = '{file.FullPath.Replace(@"\", @"\\")}'");
+            .FindOne("$._type = 'TagTool.Backend.Repositories.FileDto, TagTool.Backend'" +
+                     $"AND $.FullPath = '{file.FullPath.Replace(@"\", @"\\")}'");
 
         return fileDto;
     }

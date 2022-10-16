@@ -5,10 +5,10 @@ namespace TagTool.Backend.Repositories;
 
 public abstract class TaggedItemDto
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 
     [BsonRef("Tags")]
-    public TagDto[] Tags { get; init; }
+    public List<TagDto> Tags { get; init; } = new();
 }
 
 public class FileDto : TaggedItemDto
