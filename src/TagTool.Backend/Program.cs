@@ -7,6 +7,7 @@ using Serilog;
 using Serilog.Exceptions;
 using TagTool.Backend.Commands;
 using TagTool.Backend.Constants;
+using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
 using TagTool.Backend.Services;
 using TagTool.Backend.Taggers;
@@ -31,6 +32,7 @@ builder.Services.AddTransient<ITagsRepo, TagsRepo>();
 builder.Services.AddTransient<ITaggedItemsRepo, TaggedItemsRepo>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
 builder.Services.AddTransient(typeof(ITagger<File>), typeof(FileTagger));
+builder.Services.AddTransient(typeof(ITagger<Folder>), typeof(FolderTagger));
 builder.Services.AddGrpc();
 builder.Services.AddMediatR(typeof(Program));
 

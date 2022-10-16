@@ -17,6 +17,4 @@ public class Folder : ITaggable
             _fullPath = Path.GetFullPath(value);
         }
     }
-
-    public ISet<Tag>? Tags { get; set; }
 }

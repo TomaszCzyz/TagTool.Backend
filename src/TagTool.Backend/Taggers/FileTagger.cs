@@ -16,7 +16,7 @@ public class FileTagger : ITagger<File>
         _taggedItemsRepo = taggedItemsRepo;
     }
 
-    public Tagged<File>? Tag(File item, string[] tagNames)
+    public Tagged<File>? Tag(File item, string[] tagNames, TagOptions? options = null)
     {
         var tags = _tagsRepo.AddIfNotExist(tagNames);
         var fileDto = _taggedItemsRepo.FindFile(item);
@@ -49,7 +49,7 @@ public class FileTagger : ITagger<File>
             : null;
     }
 
-    public Tagged<File>? Untag(File item, string[] tagNames)
+    public Tagged<File>? Untag(File item, string[] tagNames, TagOptions? options = null)
     {
         var fileDto = _taggedItemsRepo.FindFile(item);
 
