@@ -1,11 +1,9 @@
 ﻿#pragma warning disable CA1852
 using System.Globalization;
 using LiteDB;
-using MediatR;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Serilog;
 using Serilog.Exceptions;
-using TagTool.Backend.Commands;
 using TagTool.Backend.Constants;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
@@ -31,11 +29,9 @@ builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
 builder.Services.AddTransient<ITagsRepo, TagsRepo>();
 builder.Services.AddTransient<ITaggedItemsRepo, TaggedItemsRepo>();
-builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
 builder.Services.AddTransient(typeof(ITagger<File>), typeof(FileTagger));
 builder.Services.AddTransient(typeof(ITagger<Folder>), typeof(FolderTagger));
 builder.Services.AddGrpc();
-builder.Services.AddMediatR(typeof(Program));
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
