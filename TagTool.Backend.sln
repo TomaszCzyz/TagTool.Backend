@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		.gitignore = .gitignore
 		global.json = global.json
 		README.md = README.md
+		Directory.packages.props = Directory.packages.props
 	EndProjectSection
 EndProject
 Global

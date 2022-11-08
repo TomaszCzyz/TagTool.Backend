@@ -21,8 +21,8 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override Task<CreateTagsReply> CreateTags(CreateTagsRequest request, ServerCallContext context)
     {
-        var numInserted = _tagsRepo.AddIfNotExist(request.TagNames);
-        var result = new Result { Messages = { $"Inserted {numInserted} tags" }, IsSuccess = true };
+        var numInserted = _tagsRepo.AddIfNotExist(request.TagNames).Count;
+        var result = new Result { Messages = { $"Inserted {numInserted} tag(s)" }, IsSuccess = true };
 
         return Task.FromResult(new CreateTagsReply { Results = { result } });
     }
