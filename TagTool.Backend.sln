@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		global.json = global.json
 		README.md = README.md
 		Directory.packages.props = Directory.packages.props
+		nuget.config = nuget.config
 	EndProjectSection
 EndProject
 Global
