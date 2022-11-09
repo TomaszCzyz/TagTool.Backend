@@ -4,9 +4,9 @@ namespace TagTool.Backend.Repositories;
 
 public interface ITagsRepo
 {
-    ISet<TagDto> AddIfNotExist(IEnumerable<string> tags);
+    ISet<TagDto> AddIfNotExist(IEnumerable<string> tagNames);
 
-    void DeleteTags(IEnumerable<string> tags);
+    void DeleteTags(IEnumerable<string> tagNames);
 }
 
 public class TagsRepo : ITagsRepo
@@ -20,7 +20,7 @@ public class TagsRepo : ITagsRepo
 
     public ISet<TagDto> AddIfNotExist(IEnumerable<string> tagNames)
     {
-        using var tags = new TagsCollection();
+        using var tags = new Tags();
 
         _logger.LogInformation("Trying to upsert tags {@TagNames} to tags collection...", tagNames);
 
@@ -45,7 +45,7 @@ public class TagsRepo : ITagsRepo
 
     public void DeleteTags(IEnumerable<string> tagNames)
     {
-        using var tags = new TagsCollection();
+        using var tags = new Tags();
 
         var existingTags = tags.Collection
             .Find(tag => tagNames.Contains(tag.Name))

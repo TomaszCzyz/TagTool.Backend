@@ -34,7 +34,9 @@ public class TagService : Backend.TagService.TagServiceBase
         return Task.FromResult(new DeleteTagsReply());
     }
 
-    public override async Task Tag(IAsyncStreamReader<TagRequest> requestStream, IServerStreamWriter<TagReply> responseStream,
+    public override async Task Tag(
+        IAsyncStreamReader<TagRequest> requestStream,
+        IServerStreamWriter<TagReply> responseStream,
         ServerCallContext context)
     {
         while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
@@ -62,7 +64,9 @@ public class TagService : Backend.TagService.TagServiceBase
         }
     }
 
-    public override async Task Untag(IAsyncStreamReader<UntagRequest> requestStream, IServerStreamWriter<UntagReply> responseStream,
+    public override async Task Untag(
+        IAsyncStreamReader<UntagRequest> requestStream,
+        IServerStreamWriter<UntagReply> responseStream,
         ServerCallContext context)
     {
         while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)

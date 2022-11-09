@@ -9,13 +9,10 @@ public class FileDto : TaggedItemDto
     public required string FullPath { get; init; }
 
     public override string ToString()
-    {
-        var stringBuilder = new StringBuilder();
-        stringBuilder.Append(nameof(FileDto));
-        stringBuilder.Append(" { ");
-        stringBuilder.Append("FullPath = ");
-        stringBuilder.Append(FullPath);
-        stringBuilder.Append('}');
-        return stringBuilder.ToString();
-    }
+        => new StringBuilder()
+            .Append(nameof(FileDto))
+            .Append(" { ")
+            .Append("FullPath = ")
+            .Append(FullPath)
+            .Append('}').ToString();
 }

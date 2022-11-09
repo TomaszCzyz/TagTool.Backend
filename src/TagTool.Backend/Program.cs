@@ -21,9 +21,9 @@ builder.Host.UseSerilog((_, configuration) =>
         .Enrich.FromLogContext()
         .Enrich.WithExceptionDetails()
         .WriteTo.Console(
-            formatProvider: CultureInfo.CurrentCulture,
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}]{NewLine} {Message:lj}{NewLine}{Exception}")
-        .WriteTo.SQLite(Constants.LogsDbPath, storeTimestampInUtc: true, batchSize: 1, formatProvider: CultureInfo.CurrentCulture));
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}]{NewLine} {Message:lj}{NewLine}{Exception}",
+            formatProvider: CultureInfo.CurrentCulture)
+        .WriteTo.SQLite(Constants.LogsDbPath, formatProvider: CultureInfo.CurrentCulture, storeTimestampInUtc: true, batchSize: 1));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 

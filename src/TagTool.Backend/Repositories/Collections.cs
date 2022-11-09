@@ -3,13 +3,13 @@ using TagTool.Backend.Repositories.Dtos;
 
 namespace TagTool.Backend.Repositories;
 
-public class TagsCollection : IDisposable
+public class Tags : IDisposable
 {
     private readonly LiteDatabase _db;
 
     public ILiteCollection<TagDto> Collection { get; }
 
-    public TagsCollection()
+    public Tags()
     {
         _db = new LiteDatabase(Constants.Constants.DbPath);
         Collection = _db.GetCollection<TagDto>("Tags");
@@ -18,16 +18,17 @@ public class TagsCollection : IDisposable
     public void Dispose()
     {
         _db.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 
-public class TaggedItemsCollection : IDisposable
+public class TaggedItems : IDisposable
 {
     private readonly LiteDatabase _db;
 
     public ILiteCollection<TaggedItemDto> Collection { get; }
 
-    public TaggedItemsCollection()
+    public TaggedItems()
     {
         _db = new LiteDatabase(Constants.Constants.DbPath);
         Collection = _db.GetCollection<TaggedItemDto>("TaggedItems");
@@ -36,5 +37,6 @@ public class TaggedItemsCollection : IDisposable
     public void Dispose()
     {
         _db.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

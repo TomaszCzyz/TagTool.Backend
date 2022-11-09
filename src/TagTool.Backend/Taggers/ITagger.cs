@@ -16,7 +16,7 @@ public class TagOptions
 
 public enum FolderTaggingDepth
 {
-    None,
-    One,
-    All
+    None = 0,
+    One = 1,
+    All = 2
 }
