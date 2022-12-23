@@ -7,6 +7,8 @@ public interface ITagsRepo
     ISet<TagDto> AddIfNotExist(IEnumerable<string> tagNames);
 
     void DeleteTags(IEnumerable<string> tagNames);
+
+    IEnumerable<string> GetAllTagNames();
 }
 
 public class TagsRepo : ITagsRepo
@@ -20,7 +22,7 @@ public class TagsRepo : ITagsRepo
 
     public ISet<TagDto> AddIfNotExist(IEnumerable<string> tagNames)
     {
-        using var tags = new Tags();
+        var tags = new Tags();
 
         _logger.LogInformation("Trying to upsert tags {@TagNames} to tags collection...", tagNames);
 
@@ -45,7 +47,7 @@ public class TagsRepo : ITagsRepo
 
     public void DeleteTags(IEnumerable<string> tagNames)
     {
-        using var tags = new Tags();
+        var tags = new Tags();
 
         var existingTags = tags.Collection
             .Find(tag => tagNames.Contains(tag.Name))
@@ -58,5 +60,12 @@ public class TagsRepo : ITagsRepo
 
             _logger.LogInformation("Removed tag {@TagName} from database", existingTag.Name);
         }
+    }
+
+    public IEnumerable<string> GetAllTagNames()
+    {
+        var tags = new Tags();
+
+        return tags.Collection.Query().Select(dto => dto.Name).ToArray();
     }
 }

@@ -37,7 +37,7 @@ var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
 app.MapGrpcService<TagService>();
-// app.MapGrpcService<TagSearchService>();
+app.MapGrpcService<TagSearchService>();
 
 InitializeDatabase();
 

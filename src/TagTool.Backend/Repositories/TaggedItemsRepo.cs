@@ -23,7 +23,7 @@ public class TaggedItemsRepo : ITaggedItemsRepo
 
     public T? FindOne<T>(T item) where T : TaggedItemDto
     {
-        using var taggedItems = new TaggedItems();
+        var taggedItems = new TaggedItems();
 
         var taggedItem = (T?)taggedItems.Collection
             .Include(taggedItemDto => taggedItemDto.Tags)
@@ -34,7 +34,7 @@ public class TaggedItemsRepo : ITaggedItemsRepo
 
     public bool Insert(TaggedItemDto taggedItemDto)
     {
-        using var taggedItems = new TaggedItems();
+        var taggedItems = new TaggedItems();
 
         var bsonValue = taggedItems.Collection.Insert(taggedItemDto);
         var isSuccess = bsonValue.Type != BsonType.Null;
@@ -53,7 +53,7 @@ public class TaggedItemsRepo : ITaggedItemsRepo
 
     public bool Update(TaggedItemDto taggedItemDto)
     {
-        using var taggedItems = new TaggedItems();
+        var taggedItems = new TaggedItems();
 
         var isUpdated = taggedItems.Collection.Update(taggedItemDto);
         if (isUpdated)
