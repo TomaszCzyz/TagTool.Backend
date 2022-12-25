@@ -1,6 +1,8 @@
-﻿using Grpc.Core;
+﻿using System.Diagnostics;
+using Grpc.Core;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
+using TagTool.Backend.Repositories.Dtos;
 using TagTool.Backend.Taggers;
 using File = TagTool.Backend.Models.Taggable.File;
 
@@ -11,12 +13,14 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ITagger<File> _fileTagger;
     private readonly ITagger<Folder> _folderTagger;
     private readonly ITagsRepo _tagsRepo;
+    private readonly ITaggedItemsRepo _taggedItemsRepo;
 
-    public TagService(ITagger<File> fileTagger, ITagger<Folder> folderTagger, ITagsRepo tagsRepo)
+    public TagService(ITagger<File> fileTagger, ITagger<Folder> folderTagger, ITagsRepo tagsRepo, ITaggedItemsRepo taggedItemsRepo)
     {
         _fileTagger = fileTagger;
         _folderTagger = folderTagger;
         _tagsRepo = tagsRepo;
+        _taggedItemsRepo = taggedItemsRepo;
     }
 
     public override Task<CreateTagsReply> CreateTags(CreateTagsRequest request, ServerCallContext context)
@@ -91,6 +95,27 @@ public class TagService : Backend.TagService.TagServiceBase
 
                 await responseStream.WriteAsync(untagReply, context.CancellationToken);
             }
+        }
+    }
+
+    public override async Task GetItems(
+        GetItemsRequest request,
+        IServerStreamWriter<GetItemsResponse> responseStream,
+        ServerCallContext context)
+    {
+        var tags = request.TagNames.ToArray();
+        var taggedItems = _taggedItemsRepo.FindByTags(tags);
+
+        foreach (var item in taggedItems)
+        {
+            var getItemsResponse = item switch
+            {
+                FileDto fileDto => new GetItemsResponse { FileInfo = new FileDescription { Path = fileDto.FullPath } },
+                FolderDto folderDto => new GetItemsResponse { FolderInfo = new FolderDescription { Path = folderDto.FullPath } },
+                _ => throw new UnreachableException()
+            };
+
+             await responseStream.WriteAsync(getItemsResponse);
         }
     }
 }

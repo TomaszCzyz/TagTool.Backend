@@ -9,7 +9,20 @@ service TagService {
   rpc DeleteTags (DeleteTagsRequest) returns (DeleteTagsReply);
 
   rpc Tag(stream TagRequest) returns (stream TagReply);
-  rpc Untag(stream UntagRequest) returns (stream UntagReply); 
+  rpc Untag(stream UntagRequest) returns (stream UntagReply);
+  
+  rpc GetItems(GetItemsRequest) returns (stream GetItemsResponse); 
+}
+
+message GetItemsRequest {
+  repeated string TagNames = 1;
+}
+
+message GetItemsResponse {
+  oneof subject {
+    FileDescription fileInfo = 1;
+    FolderDescription folderInfo = 2;
+  } 
 }
 
 message CreateTagsRequest {
@@ -56,7 +69,6 @@ message UntagReply {
 
 message FileDescription {
   string path = 1;
-  int64 length = 2;
 }
 
 message FolderDescription {

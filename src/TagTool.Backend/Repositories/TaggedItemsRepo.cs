@@ -1,4 +1,5 @@
 ﻿using LiteDB;
+using TagTool.Backend.Models;
 using TagTool.Backend.Repositories.Dtos;
 
 namespace TagTool.Backend.Repositories;
@@ -10,6 +11,8 @@ public interface ITaggedItemsRepo
     bool Insert(TaggedItemDto taggedItemDto);
 
     bool Update(TaggedItemDto taggedItemDto);
+
+    IEnumerable<TaggedItemDto> FindByTags(string[] tagNames);
 }
 
 public class TaggedItemsRepo : ITaggedItemsRepo
@@ -66,5 +69,19 @@ public class TaggedItemsRepo : ITaggedItemsRepo
         }
 
         return isUpdated;
+    }
+
+    public IEnumerable<TaggedItemDto> FindByTags(string[] tagNames)
+    {
+        var taggedItems = new TaggedItems();
+
+        // todo: optimize, to not download all collation
+        return taggedItems.Collection
+            .Include(dto => dto.Tags)
+            .FindAll()
+            .Where(dto => dto.Tags
+                .Select(tagDto => tagDto.Name)
+                .Intersect(tagNames)
+                .Any());
     }
 }
