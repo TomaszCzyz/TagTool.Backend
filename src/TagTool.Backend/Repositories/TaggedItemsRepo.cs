@@ -1,5 +1,4 @@
 ﻿using LiteDB;
-using TagTool.Backend.Models;
 using TagTool.Backend.Repositories.Dtos;
 
 namespace TagTool.Backend.Repositories;
@@ -74,6 +73,11 @@ public class TaggedItemsRepo : ITaggedItemsRepo
     public IEnumerable<TaggedItemDto> FindByTags(string[] tagNames)
     {
         var taggedItems = new TaggedItems();
+
+        if (tagNames.Length == 0)
+        {
+            return taggedItems.Collection.Include(dto => dto.Tags).FindAll();
+        }
 
         // todo: optimize, to not download all collation
         return taggedItems.Collection

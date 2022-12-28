@@ -23,6 +23,7 @@ message GetItemsResponse {
     FileDescription fileInfo = 1;
     FolderDescription folderInfo = 2;
   } 
+  repeated string tagNames = 3;
 }
 
 message CreateTagsRequest {

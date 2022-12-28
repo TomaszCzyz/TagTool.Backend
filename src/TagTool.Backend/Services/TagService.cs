@@ -108,14 +108,17 @@ public class TagService : Backend.TagService.TagServiceBase
 
         foreach (var item in taggedItems)
         {
+            var tagNames = item.Tags.Select(dto => dto.Name);
             var getItemsResponse = item switch
             {
-                FileDto fileDto => new GetItemsResponse { FileInfo = new FileDescription { Path = fileDto.FullPath } },
-                FolderDto folderDto => new GetItemsResponse { FolderInfo = new FolderDescription { Path = folderDto.FullPath } },
+                FileDto fileDto
+                    => new GetItemsResponse { FileInfo = new FileDescription { Path = fileDto.FullPath }, TagNames = { tagNames } },
+                FolderDto folderDto
+                    => new GetItemsResponse { FolderInfo = new FolderDescription { Path = folderDto.FullPath }, TagNames = { tagNames } },
                 _ => throw new UnreachableException()
             };
 
-             await responseStream.WriteAsync(getItemsResponse);
+            await responseStream.WriteAsync(getItemsResponse);
         }
     }
 }

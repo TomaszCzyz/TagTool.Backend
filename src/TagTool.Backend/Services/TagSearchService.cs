@@ -14,6 +14,15 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
         _tagsRepo = tagsRepo;
     }
 
+    public override Task<GetAllReply> GetAll(Empty request, ServerCallContext context)
+    {
+        var tagNames = _tagsRepo.GetAllTagNames().ToArray();
+
+        var getAllReply = new GetAllReply { TagName = { tagNames } };
+
+        return Task.FromResult(getAllReply);
+    }
+
     public override async Task FindTags(
         FindTagsRequest request,
         IServerStreamWriter<FoundTagReply> responseStream,
@@ -26,7 +35,7 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
         while (enumerator.MoveNext() && !context.CancellationToken.IsCancellationRequested)
         {
             var tagName = enumerator.Current;
-            await responseStream.WriteAsync(new FoundTagReply { TagName = tagName }, context.CancellationToken);
+            await responseStream.WriteAsync(new FoundTagReply { TagNames = tagName }, context.CancellationToken);
         }
     }
 
