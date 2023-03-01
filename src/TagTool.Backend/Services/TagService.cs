@@ -38,64 +38,106 @@ public class TagService : Backend.TagService.TagServiceBase
         return Task.FromResult(new DeleteTagsReply());
     }
 
-    public override async Task Tag(
-        IAsyncStreamReader<TagRequest> requestStream,
-        IServerStreamWriter<TagReply> responseStream,
-        ServerCallContext context)
+    // public override async Task Tag(
+    //     IAsyncStreamReader<TagRequest> requestStream,
+    //     IServerStreamWriter<TagReply> responseStream,
+    //     ServerCallContext context)
+    // {
+    //     while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+    //     {
+    //         var tagRequest = requestStream.Current;
+    //         if (tagRequest.FileInfo is { } fileInfo)
+    //         {
+    //             var file = new File { FullPath = fileInfo.Path };
+    //             var isSuccess = _fileTagger.Tag(file, tagRequest.TagNames.ToArray());
+    //
+    //             var untagReply = new TagReply { Result = new Result { IsSuccess = isSuccess is not null } };
+    //
+    //             await responseStream.WriteAsync(untagReply, context.CancellationToken);
+    //         }
+    //
+    //         if (tagRequest.FolderInfo is { } folderInfo)
+    //         {
+    //             var folder = new Folder { FullPath = folderInfo.Path };
+    //             var isSuccess = _folderTagger.Tag(folder, tagRequest.TagNames.ToArray());
+    //
+    //             var untagReply = new TagReply { Result = new Result { IsSuccess = isSuccess is not null } };
+    //
+    //             await responseStream.WriteAsync(untagReply, context.CancellationToken);
+    //         }
+    //     }
+    // }
+
+    public override Task<TagReply> Tag(TagRequest request, ServerCallContext context)
     {
-        while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+        if (request.FileInfo is { } fileInfo)
         {
-            var tagRequest = requestStream.Current;
-            if (tagRequest.FileInfo is { } fileInfo)
-            {
-                var file = new File { FullPath = fileInfo.Path };
-                var isSuccess = _fileTagger.Tag(file, tagRequest.TagNames.ToArray());
+            var file = new File { FullPath = fileInfo.Path };
+            var isSuccess = _fileTagger.Tag(file, request.TagNames.ToArray());
 
-                var untagReply = new TagReply { Result = new Result { IsSuccess = isSuccess is not null } };
-
-                await responseStream.WriteAsync(untagReply, context.CancellationToken);
-            }
-
-            if (tagRequest.FolderInfo is { } folderInfo)
-            {
-                var folder = new Folder { FullPath = folderInfo.Path };
-                var isSuccess = _folderTagger.Tag(folder, tagRequest.TagNames.ToArray());
-
-                var untagReply = new TagReply { Result = new Result { IsSuccess = isSuccess is not null } };
-
-                await responseStream.WriteAsync(untagReply, context.CancellationToken);
-            }
+            return Task.FromResult(new TagReply { Result = new Result { IsSuccess = isSuccess is not null } });
         }
+
+        if (request.FolderInfo is { } folderInfo)
+        {
+            var folder = new Folder { FullPath = folderInfo.Path };
+            var isSuccess = _folderTagger.Tag(folder, request.TagNames.ToArray());
+
+            return Task.FromResult(new TagReply { Result = new Result { IsSuccess = isSuccess is not null } });
+        }
+
+        return Task.FromResult(new TagReply { Result = new Result { IsSuccess = false } });
     }
 
-    public override async Task Untag(
-        IAsyncStreamReader<UntagRequest> requestStream,
-        IServerStreamWriter<UntagReply> responseStream,
-        ServerCallContext context)
+    // public override async Task Untag(
+    //     IAsyncStreamReader<UntagRequest> requestStream,
+    //     IServerStreamWriter<UntagReply> responseStream,
+    //     ServerCallContext context)
+    // {
+    //     while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+    //     {
+    //         var tagRequest = requestStream.Current;
+    //         if (tagRequest.FileInfo is { } fileInfo)
+    //         {
+    //             var file = new File { FullPath = fileInfo.Path };
+    //             var isSuccess = _fileTagger.Untag(file, tagRequest.TagNames.ToArray());
+    //
+    //             var untagReply = new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } };
+    //
+    //             await responseStream.WriteAsync(untagReply, context.CancellationToken);
+    //         }
+    //
+    //         if (tagRequest.FolderInfo is { } folderInfo)
+    //         {
+    //             var folder = new Folder { FullPath = folderInfo.Path };
+    //             var isSuccess = _folderTagger.Untag(folder, tagRequest.TagNames.ToArray());
+    //
+    //             var untagReply = new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } };
+    //
+    //             await responseStream.WriteAsync(untagReply, context.CancellationToken);
+    //         }
+    //     }
+    // }
+
+    public override Task<UntagReply> Untag(UntagRequest request, ServerCallContext context)
     {
-        while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+        if (request.FileInfo is { } fileInfo)
         {
-            var tagRequest = requestStream.Current;
-            if (tagRequest.FileInfo is { } fileInfo)
-            {
-                var file = new File { FullPath = fileInfo.Path };
-                var isSuccess = _fileTagger.Untag(file, tagRequest.TagNames.ToArray());
+            var file = new File { FullPath = fileInfo.Path };
+            var isSuccess = _fileTagger.Untag(file, request.TagNames.ToArray());
 
-                var untagReply = new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } };
-
-                await responseStream.WriteAsync(untagReply, context.CancellationToken);
-            }
-
-            if (tagRequest.FolderInfo is { } folderInfo)
-            {
-                var folder = new Folder { FullPath = folderInfo.Path };
-                var isSuccess = _folderTagger.Untag(folder, tagRequest.TagNames.ToArray());
-
-                var untagReply = new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } };
-
-                await responseStream.WriteAsync(untagReply, context.CancellationToken);
-            }
+            return Task.FromResult(new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } });
         }
+
+        if (request.FolderInfo is { } folderInfo)
+        {
+            var folder = new Folder { FullPath = folderInfo.Path };
+            var isSuccess = _folderTagger.Untag(folder, request.TagNames.ToArray());
+
+            return Task.FromResult(new UntagReply { Result = new Result { IsSuccess = isSuccess is not null } });
+        }
+
+        return Task.FromResult(new UntagReply { Result = new Result { IsSuccess = false } });
     }
 
     public override async Task GetItems(
@@ -120,5 +162,32 @@ public class TagService : Backend.TagService.TagServiceBase
 
             await responseStream.WriteAsync(getItemsResponse);
         }
+    }
+
+    public override Task<GetItemInfoReply> GetItemInfo(GetItemInfoRequest request, ServerCallContext context)
+    {
+        TaggedItemDto? item;
+        switch (request.Type)
+        {
+            case "file":
+                var fileDto = new FileDto { FullPath = request.ItemIdentifier };
+                item = _taggedItemsRepo.FindOne(fileDto);
+                break;
+            case "folder":
+                var folderDto = new FolderDto { FullPath = request.ItemIdentifier };
+                item = _taggedItemsRepo.FindOne(folderDto);
+                break;
+            default:
+                throw new UnreachableException();
+        }
+
+        if (item is null || item.Tags.Count == 0)
+        {
+            return Task.FromResult(new GetItemInfoReply());
+        }
+
+        var tagNames = item.Tags.Select(dto => dto.Name).ToArray();
+
+        return Task.FromResult(new GetItemInfoReply { Tags = { tagNames } });
     }
 }

@@ -8,10 +8,20 @@ service TagService {
   rpc CreateTags (CreateTagsRequest) returns (CreateTagsReply);
   rpc DeleteTags (DeleteTagsRequest) returns (DeleteTagsReply);
 
-  rpc Tag(stream TagRequest) returns (stream TagReply);
-  rpc Untag(stream UntagRequest) returns (stream UntagReply);
+  rpc Tag(TagRequest) returns (TagReply);
+  rpc Untag(UntagRequest) returns (UntagReply);
   
-  rpc GetItems(GetItemsRequest) returns (stream GetItemsResponse); 
+  rpc GetItems(GetItemsRequest) returns (stream GetItemsResponse);
+  rpc GetItemInfo(GetItemInfoRequest) returns (GetItemInfoReply);
+}
+
+message GetItemInfoRequest {
+  string type = 1;
+  string itemIdentifier = 2;
+}
+
+message GetItemInfoReply {
+  repeated string tags = 1;
 }
 
 message GetItemsRequest {
