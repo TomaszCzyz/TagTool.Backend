@@ -1,0 +1,202 @@
+syntax = "proto3";
+
+option csharp_namespace = "TagTool.Backend.New";
+
+package TagToolBackend;
+
+service NewTagService {
+  // Creates a new Tag. If tag cannot be created returns error message.
+  rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
+  // Deletes a Tag if tag exists and is unused, otherwise return error message.
+  // Used tags can be deleted be setting 'deleteUsedToo' flag .
+  rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
+
+  // Tags an item.
+  rpc TagItem(TagItemRequest) returns (TagItemReply);
+  // Untags an item if one exists.
+  rpc UntagItem(UntagItemRequest) returns (UntagItemReply);
+
+  // Returns info about an item if one exists.
+  rpc GetItem(GetItemRequest) returns (GetItemReply);
+  // Returns items which are tagged with one or more of supplied tags.
+  rpc GetItemsByTags(GetItemsRequest) returns (stream GetItemsReply);
+
+  // Checks if given items exists in tagged items database. 
+  // The purpose of this endpoint is to avoid transfer and allocation Item information just to check existence.  
+  rpc DoesItemExists(DoesItemExistsRequest) returns (DoesItemExistsReply);
+  // Checks if given Tags already exists.
+  rpc DoesTagExists(DoesTagExistsRequest) returns (DoesTagExistsReply);
+
+  // Searches existing tags for matches or partial matches.
+  rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
+}
+
+// message that unambiguously represents taggable item.
+message Item {
+  // represents taggable item type, e.g. File, Folder.
+  string itemType = 1;
+  // value that unambiguously identifies a tagged item, e.g. full file path for File item type.
+  string identifier = 2;
+}
+
+// message that unambiguously represents taggable item with associated tags.
+message TaggedItem {
+  Item item = 1;
+  repeated string tagNames = 2;
+}
+
+// common return type represents.
+message Result {
+  bool isSuccess = 1;
+  repeated string messages = 2;
+}
+
+
+// The request to create a new tag.
+message CreateTagRequest {
+  // The Tag's name.
+  string TagName = 1;
+}
+
+// The reply indicating whether tag creation was successful or not.
+message CreateTagReply {
+  oneof result {
+    // The newly created Tag's name.
+    string createdTagName = 1;
+    // The Error message.
+    string errorMessage = 2;
+  };
+}
+
+// The request to delete a tag.
+message DeleteTagRequest {
+  // The name of a tag to delete.
+  string TagName = 1;
+  // The flag that allows to delete tag that is associated with an item(s).
+  // All items will be untagged from the given tag.
+  bool deleteUsedToo = 2;
+}
+
+// The reply indicating whether tag deletion was successful or not .
+message DeleteTagReply {
+  oneof result {
+    // The deleted Tag's name.
+    string deletedTagName = 1;
+    // The Error message in case of a failure.
+    string errorMessage = 2;
+  };
+}
+
+// The request to tag a given item.
+message TagItemRequest {
+  // The Tag's name. If the tag not exists, it will be created.
+  string tagName = 1;
+  // The Item to tag.
+  Item item = 2;
+}
+
+// The reply indicating whether tagging was successful or not.
+message TagItemReply {
+  oneof result {
+    // The item with all its tags.
+    TaggedItem taggedItem = 1;
+    // The Error message in case of a failure.
+    string errorMessage = 2;
+  };
+}
+
+// The request to untag a given item.
+message UntagItemRequest {
+  // The Tag's name to untag.
+  string tagName = 1;
+  // The item to untag
+  Item item = 2;
+}
+
+// The reply indicating whether untagging was successful or not.
+message UntagItemReply {
+  oneof result {
+    // The item with all its tags.
+    TaggedItem taggedItem = 1;
+    // The Error message in case of a failure.
+    string errorMessage = 2;
+  }
+}
+
+// The request to get information about an specified Item
+message GetItemRequest {
+  // The item for which we want to retrieve information.
+  Item item = 1;
+}
+
+// The reply with information about an item or error message 
+message GetItemReply {
+  oneof result {
+    // The item associated tags.
+    TaggedItem taggedItem = 1;
+    // The Error message in case of a failure.
+    string errorMessage = 2;
+  }
+}
+
+// The request to retrieve all tags that are tagged with given tags.
+message GetItemsRequest {
+  // The tag's names
+  repeated string tagNames = 1;
+}
+
+// The reply containing an item with associated tags.
+message GetItemsReply {
+  TaggedItem taggedItem = 1;
+}
+
+// The request to check if given Item exists.
+message DoesItemExistsRequest {
+  // The item to check.
+  Item item = 1;
+}
+
+// The reply indicating if item exists.
+message DoesItemExistsReply {
+  // True, if Item exists; false if not.
+  bool exists = 1;
+}
+
+// The request to check if given Tag exists.
+message DoesTagExistsRequest {
+  // The Tag's name
+  string tagName = 1;
+}
+
+// The reply indicating if given tag exists.
+message DoesTagExistsReply {
+  // The Tag's name.
+  string tagName = 1;
+}
+
+// The request to find tags, which match or partially match 'name'.
+// The most relevant matches are at the beginning of the reply.
+message SearchTagsRequest {
+  // The name or partial name of the searched Tag 
+  string name = 1;
+  // The limit of returned tag names.
+  int32 resultsLimit = 2;
+}
+
+// Stream of the replies containing Tag's names and information about matching type.  
+message SearchTagsReply {
+  // The Tag's name. 
+  string tagName = 1;
+  // The flag indicating if request name fully matched found Tag.
+  bool isExactMatch = 2;
+  // The information about partial match. Set only when 'isExactMatch' flag is false. 
+  repeated MatchedPart matchedPart = 3;
+
+  // The component representing substring.
+  message MatchedPart {
+    // The start index.
+    int32 startIndex = 1;
+    // The length of a substring.
+    int32 length = 2;
+  }
+}
