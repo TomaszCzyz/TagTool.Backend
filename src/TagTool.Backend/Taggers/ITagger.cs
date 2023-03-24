@@ -4,19 +4,7 @@ namespace TagTool.Backend.Taggers;
 
 public interface ITagger<T> where T : ITaggable
 {
-    Tagged<T>? Tag(T item, string[] tagNames, TagOptions? options = null);
+    TaggedItem<T>? Tag(T item, string[] tagNames);
 
-    Tagged<T>? Untag(T item, string[] tagNames, TagOptions? options = null);
-}
-
-public class TagOptions
-{
-    public FolderTaggingDepth FolderTaggingDepth { get; init; }
-}
-
-public enum FolderTaggingDepth
-{
-    None = 0,
-    One = 1,
-    All = 2
+    TaggedItem<T>? Untag(T item, string[] tagNames);
 }

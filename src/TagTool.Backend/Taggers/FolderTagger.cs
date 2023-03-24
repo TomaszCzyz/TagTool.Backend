@@ -16,7 +16,7 @@ public class FolderTagger : ITagger<Folder>
         _taggedItemsRepo = taggedItemsRepo;
     }
 
-    public Tagged<Folder>? Tag(Folder item, string[] tagNames, TagOptions? options = null)
+    public TaggedItem<Folder>? Tag(Folder item, string[] tagNames)
     {
         var tags = _tagsRepo.AddIfNotExist(tagNames);
         var folderDto = _taggedItemsRepo.FindOne(new FolderDto { FullPath = item.FullPath });
@@ -45,11 +45,11 @@ public class FolderTagger : ITagger<Folder>
         }
 
         return isSuccess
-            ? new Tagged<Folder> { Item = item, Tags = folderDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
+            ? new TaggedItem<Folder> { Item = item, Tags = folderDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
             : null;
     }
 
-    public Tagged<Folder>? Untag(Folder item, string[] tagNames, TagOptions? options = null)
+    public TaggedItem<Folder>? Untag(Folder item, string[] tagNames)
     {
         var folderDto = _taggedItemsRepo.FindOne(new FolderDto { FullPath = item.FullPath });
 
@@ -65,7 +65,7 @@ public class FolderTagger : ITagger<Folder>
         var isSuccess = _taggedItemsRepo.Update(folderDto);
 
         return isSuccess
-            ? new Tagged<Folder> { Item = item, Tags = folderDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
+            ? new TaggedItem<Folder> { Item = item, Tags = folderDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
             : null;
     }
 }

@@ -1,12 +1,5 @@
 ﻿namespace TagTool.Backend.Models.Taggable;
 
-public class Tagged<T> where T : ITaggable
-{
-    public required T Item { get; init; }
-
-    public required ISet<Tag> Tags { get; init; }
-}
-
 public class File : ITaggable
 {
     private readonly string _fullPath = null!;
