@@ -4,8 +4,15 @@ namespace TagTool.Backend.Repositories;
 
 public interface ITagsRepo
 {
+    bool Exists(string tagName);
+
+    TagDto Insert(string tagName);
+
     ISet<TagDto> AddIfNotExist(IEnumerable<string> tagNames);
 
+    bool DeleteTag(string tagName);
+
+    // todo: it should return bool depending if deletion was successful
     void DeleteTags(IEnumerable<string> tagNames);
 
     IEnumerable<string> GetAllTagNames();
@@ -18,6 +25,22 @@ public class TagsRepo : ITagsRepo
     public TagsRepo(ILogger<TagsRepo> logger)
     {
         _logger = logger;
+    }
+
+    public bool Exists(string tagName)
+    {
+        var tags = new Tags();
+        return tags.Collection.Exists(dto => dto.Name == tagName);
+    }
+
+    public TagDto Insert(string tagName)
+    {
+        var tagDto = new TagDto { Name = tagName };
+
+        var tags = new Tags();
+        tags.Collection.Insert(tagDto);
+
+        return tagDto;
     }
 
     public ISet<TagDto> AddIfNotExist(IEnumerable<string> tagNames)
@@ -45,8 +68,19 @@ public class TagsRepo : ITagsRepo
         return existingTags.Concat(newTags).ToHashSet();
     }
 
+    public bool DeleteTag(string tagName)
+    {
+        var tags = new Tags();
+
+        var existingTag = tags.Collection.Find(tag => tag.Name == tagName).Single();
+
+        // todo: is it removing tag also from taggedItem?
+        return tags.Collection.Delete(existingTag.Id);
+    }
+
     public void DeleteTags(IEnumerable<string> tagNames)
     {
+        // todo: is it removing tag also from taggedItem?
         var tags = new Tags();
 
         var existingTags = tags.Collection

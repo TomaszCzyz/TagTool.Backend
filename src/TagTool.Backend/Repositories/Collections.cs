@@ -5,7 +5,7 @@ namespace TagTool.Backend.Repositories;
 
 public static class Lite
 {
-    public static readonly LiteDatabase Db = new LiteDatabase(Constants.Constants.DbPath);
+    public static readonly LiteDatabase Db = new(Constants.Constants.DbPath);
 }
 
 public class Tags
