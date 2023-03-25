@@ -2,24 +2,24 @@
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.New;
 using TagTool.Backend.Repositories;
-using TagTool.Backend.Taggers;
 using File = TagTool.Backend.Models.Taggable.File;
 
 namespace TagTool.Backend.Services;
 
 public class NewTagService : New.NewTagService.NewTagServiceBase
 {
-    private readonly ITagger<File> _fileTagger;
-    private readonly ITagger<Folder> _folderTagger;
     private readonly ITagsRepo _tagsRepo;
     private readonly ITaggedItemsRepo _taggedItemsRepo;
+    private readonly ITaggersManager _taggersManager;
 
-    public NewTagService(ITagger<File> fileTagger, ITagger<Folder> folderTagger, ITagsRepo tagsRepo, ITaggedItemsRepo taggedItemsRepo)
+    public NewTagService(
+        ITagsRepo tagsRepo,
+        ITaggedItemsRepo taggedItemsRepo,
+        ITaggersManager taggersManager)
     {
-        _fileTagger = fileTagger;
-        _folderTagger = folderTagger;
         _tagsRepo = tagsRepo;
         _taggedItemsRepo = taggedItemsRepo;
+        _taggersManager = taggersManager;
     }
 
     public override Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -63,21 +63,32 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
 
     public override Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
-        // var taggable = request.Item.ItemType switch
+        // switch (request.Item.ItemType)
         // {
-        //     "file" => (ITaggable)new File { FullPath = request.Item.Identifier },
-        //     "folder" => (ITaggable)new Folder { FullPath = request.Item.Identifier },
-        //     _ => null
-        // };
-        //
-        // if (taggable is null)
-        // {
-        //     return Task.FromResult(new TagItemReply { ErrorMessage = "Unrecognized ItemType." });
+        //     case "file":
+        //         new File { FullPath = request.Item.Identifier };
         // }
-        //
-        // var isSuccess = _fileTagger.Tag(taggable, request.TagName);
+        var taggable = request.Item.ItemType switch
+        {
+            "file" => (ITaggable)new File { FullPath = request.Item.Identifier },
+            "folder" => new Folder { FullPath = request.Item.Identifier },
+            _ => null
+        };
 
-        return Task.FromResult(new TagItemReply());
+        if (taggable is null)
+        {
+            return Task.FromResult(new TagItemReply { ErrorMessage = "Unrecognized ItemType." });
+        }
+
+        var taggedItem = _taggersManager.Tag(taggable, request.TagName);
+
+        if (taggedItem is null)
+        {
+            return Task.FromResult(new TagItemReply { ErrorMessage = $"Unable to tag item{request.Item} with tag {request.TagName}." });
+        }
+
+        var tagNames = taggedItem.Tags.Select(tag => tag.Name).ToArray();
+        return Task.FromResult(new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { tagNames } } });
     }
 
     public override Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)

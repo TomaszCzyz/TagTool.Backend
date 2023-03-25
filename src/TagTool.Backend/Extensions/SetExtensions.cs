@@ -1,4 +1,4 @@
-﻿namespace TagTool.Backend.Taggers;
+﻿namespace TagTool.Backend.Extensions;
 
 public static class SetExtensions
 {

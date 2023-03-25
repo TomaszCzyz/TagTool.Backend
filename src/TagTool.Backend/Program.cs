@@ -29,8 +29,9 @@ builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
 builder.Services.AddTransient<ITagsRepo, TagsRepo>();
 builder.Services.AddTransient<ITaggedItemsRepo, TaggedItemsRepo>();
-builder.Services.AddTransient(typeof(ITagger<File>), typeof(FileTagger));
-builder.Services.AddTransient(typeof(ITagger<Folder>), typeof(FolderTagger));
+builder.Services.AddTransient<ITagger<File>, FileTagger>();
+builder.Services.AddTransient<ITagger<Folder>, FolderTagger>();
+builder.Services.AddSingleton<ITaggersManager, TaggersManager>();
 builder.Services.AddGrpc();
 
 var app = builder.Build();
@@ -38,6 +39,7 @@ app.Logger.LogInformation("Application created");
 
 app.MapGrpcService<TagService>();
 app.MapGrpcService<TagSearchService>();
+app.MapGrpcService<NewTagService>();
 
 InitializeDatabase();
 
