@@ -6,7 +6,7 @@ package TagToolBackend;
 
 service TagService {
   rpc CreateTags (CreateTagsRequest) returns (CreateTagsReply);
-  rpc DeleteTags (DeleteTagsRequest) returns (DeleteTagsReply);
+  rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
 
   rpc Tag(TagRequest) returns (TagReply);
   rpc Untag(UntagRequest) returns (UntagReply);
@@ -44,12 +44,13 @@ message CreateTagsReply {
   repeated Result results = 1;
 }
 
-message DeleteTagsRequest {
-  repeated string TagNames = 1;
+message DeleteTagRequest {
+  string TagName = 1;
+  bool deleteIfInUse = 2;
 }
 
-message DeleteTagsReply {
-  repeated Result results = 1;
+message DeleteTagReply {
+  Result result = 1;
 }
 
 message TagRequest {

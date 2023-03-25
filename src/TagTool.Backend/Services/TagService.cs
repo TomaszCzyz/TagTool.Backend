@@ -31,11 +31,23 @@ public class TagService : Backend.TagService.TagServiceBase
         return Task.FromResult(new CreateTagsReply { Results = { result } });
     }
 
-    public override Task<DeleteTagsReply> DeleteTags(DeleteTagsRequest request, ServerCallContext context)
+    public override Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        _tagsRepo.DeleteTags(request.TagNames);
+        // todo: optimize by checking existence to avoid allocating dto
+        // todo: IsSuccess should depend on DeleteTags() result
+        if (request.DeleteIfInUse)
+        {
+            _tagsRepo.DeleteTags(new[] { request.TagName });
+            return Task.FromResult(new DeleteTagReply { Result = new Result { IsSuccess = true } });
+        }
 
-        return Task.FromResult(new DeleteTagsReply());
+        if (!_taggedItemsRepo.FindByTags(new[] { request.TagName }).Any())
+        {
+            _tagsRepo.DeleteTags(new[] { request.TagName });
+            return Task.FromResult(new DeleteTagReply { Result = new Result { IsSuccess = true } });
+        }
+
+        return Task.FromResult(new DeleteTagReply { Result = new Result { IsSuccess = false } });
     }
 
     public override Task<TagReply> Tag(TagRequest request, ServerCallContext context)
