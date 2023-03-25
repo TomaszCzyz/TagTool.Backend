@@ -17,7 +17,7 @@ public class FileTagger : ITagger<File>
         _taggedItemsRepo = taggedItemsRepo;
     }
 
-    public TaggedItem<File>? Tag(File item, string[] tagNames)
+    public TaggedItem? Tag(File item, string[] tagNames)
     {
         var tags = _tagsRepo.AddIfNotExist(tagNames);
         var fileDto = _taggedItemsRepo.FindOne(new FileDto { FullPath = item.FullPath });
@@ -46,11 +46,21 @@ public class FileTagger : ITagger<File>
         }
 
         return isSuccess
-            ? new TaggedItem<File> { Item = item, Tags = fileDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
+            ? new TaggedItem
+            {
+                Tags = fileDto.Tags.Select(dto => new Tag
+                    {
+                        Name = dto.Name,
+                        TaggedItems = null
+                    })
+                    .ToHashSet(),
+                ItemType = default,
+                UniqueIdentifier = null
+            }
             : null;
     }
 
-    public TaggedItem<File>? Untag(File item, string[] tagNames)
+    public TaggedItem? Untag(File item, string[] tagNames)
     {
         var fileDto = _taggedItemsRepo.FindOne(new FileDto { FullPath = item.FullPath });
 
@@ -66,7 +76,17 @@ public class FileTagger : ITagger<File>
         var isSuccess = _taggedItemsRepo.Update(fileDto);
 
         return isSuccess
-            ? new TaggedItem<File> { Item = item, Tags = fileDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
+            ? new TaggedItem
+            {
+                Tags = fileDto.Tags.Select(dto => new Tag
+                    {
+                        Name = dto.Name,
+                        TaggedItems = null
+                    })
+                    .ToHashSet(),
+                ItemType = default,
+                UniqueIdentifier = null
+            }
             : null;
     }
 }

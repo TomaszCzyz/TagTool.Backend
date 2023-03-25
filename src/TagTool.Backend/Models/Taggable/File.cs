@@ -17,4 +17,6 @@ public class File : ITaggable
             _fullPath = Path.GetFullPath(value);
         }
     }
+
+    public string UniqueIdentifier => _fullPath;
 }

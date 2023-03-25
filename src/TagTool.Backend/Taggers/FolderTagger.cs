@@ -16,7 +16,7 @@ public class FolderTagger : ITagger<Folder>
         _taggedItemsRepo = taggedItemsRepo;
     }
 
-    public TaggedItem<Folder>? Tag(Folder item, string[] tagNames)
+    public TaggedItem? Tag(Folder item, string[] tagNames)
     {
         var tags = _tagsRepo.AddIfNotExist(tagNames);
         var folderDto = _taggedItemsRepo.FindOne(new FolderDto { FullPath = item.FullPath });
@@ -44,12 +44,22 @@ public class FolderTagger : ITagger<Folder>
             isSuccess = _taggedItemsRepo.Insert(folderDto);
         }
 
-        return isSuccess
-            ? new TaggedItem<Folder> { Item = item, Tags = folderDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
-            : null;
+        return !isSuccess
+            ? null
+            : new TaggedItem
+            {
+                Tags = folderDto.Tags.Select(dto => new Tag
+                    {
+                        Name = dto.Name,
+                        TaggedItems = null
+                    })
+                    .ToHashSet(),
+                ItemType = default,
+                UniqueIdentifier = null
+            };
     }
 
-    public TaggedItem<Folder>? Untag(Folder item, string[] tagNames)
+    public TaggedItem? Untag(Folder item, string[] tagNames)
     {
         var folderDto = _taggedItemsRepo.FindOne(new FolderDto { FullPath = item.FullPath });
 
@@ -65,7 +75,17 @@ public class FolderTagger : ITagger<Folder>
         var isSuccess = _taggedItemsRepo.Update(folderDto);
 
         return isSuccess
-            ? new TaggedItem<Folder> { Item = item, Tags = folderDto.Tags.Select(dto => new Tag { Name = dto.Name }).ToHashSet() }
+            ? new TaggedItem
+            {
+                Tags = folderDto.Tags.Select(dto => new Tag
+                    {
+                        Name = dto.Name,
+                        TaggedItems = null
+                    })
+                    .ToHashSet(),
+                ItemType = default,
+                UniqueIdentifier = null
+            }
             : null;
     }
 }

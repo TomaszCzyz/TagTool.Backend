@@ -2,9 +2,11 @@
 using System.Globalization;
 using LiteDB;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
 using TagTool.Backend.Constants;
+using TagTool.Backend.DbContext;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Repositories;
 using TagTool.Backend.Repositories.Dtos;
@@ -41,7 +43,13 @@ app.MapGrpcService<TagService>();
 app.MapGrpcService<TagSearchService>();
 app.MapGrpcService<NewTagService>();
 
-InitializeDatabase();
+// InitializeDatabase();
+
+app.Logger.LogInformation("Executing EF migrations...");
+await using (var db = new TagContext())
+{
+    db.Database.Migrate();
+}
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();

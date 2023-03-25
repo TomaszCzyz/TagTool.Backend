@@ -1,10 +1,11 @@
-﻿using TagTool.Backend.Models.Taggable;
+﻿using TagTool.Backend.Models;
+using TagTool.Backend.Models.Taggable;
 
 namespace TagTool.Backend.Taggers;
 
-public interface ITagger<T> where T : ITaggable
+public interface ITagger<in T> where T : ITaggable
 {
-    TaggedItem<T>? Tag(T item, string[] tagNames);
+    TaggedItem? Tag(T item, string[] tagNames);
 
-    TaggedItem<T>? Untag(T item, string[] tagNames);
+    TaggedItem? Untag(T item, string[] tagNames);
 }

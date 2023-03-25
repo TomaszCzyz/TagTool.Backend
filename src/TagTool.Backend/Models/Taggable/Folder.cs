@@ -17,4 +17,6 @@ public class Folder : ITaggable
             _fullPath = Path.GetFullPath(value);
         }
     }
+
+    public string UniqueIdentifier => _fullPath;
 }

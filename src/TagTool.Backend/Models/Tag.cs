@@ -2,9 +2,9 @@
 
 public class Tag
 {
-    public string Name { get; set; } = null!;
+    public int Id { get; set; }
 
-    public float HierarchyValue { get; set; }
+    public required string Name { get; set; } = null!;
 
-    public List<Group> Groups { get; set; } = null!;
+    public ICollection<TaggedItem>? TaggedItems { get; set; }  = new List<TaggedItem>();
 }

@@ -1,4 +1,5 @@
-﻿using TagTool.Backend.Models.Taggable;
+﻿using TagTool.Backend.Models;
+using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.Taggers;
 
 namespace TagTool.Backend.Services;
@@ -10,7 +11,7 @@ public interface ITaggerProvider
 
 public interface ITaggersManager
 {
-    TaggedItem<T>? Tag<T>(T item, string tagName) where T : ITaggable;
+    TaggedItem? Tag<T>(T item, string tagName) where T : ITaggable;
 }
 
 public class TaggersManager : ITaggersManager
@@ -22,7 +23,7 @@ public class TaggersManager : ITaggersManager
         _serviceProvider = serviceProvider;
     }
 
-    public TaggedItem<T>? Tag<T>(T item, string tagName) where T : ITaggable
+    public TaggedItem? Tag<T>(T item, string tagName) where T : ITaggable
     {
         var itemType = item.GetType();
         var taggerType = typeof(ITagger<>).MakeGenericType(itemType);

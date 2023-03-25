@@ -1,8 +1,12 @@
 ﻿using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
+using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
 using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.New;
 using TagTool.Backend.Repositories;
 using File = TagTool.Backend.Models.Taggable.File;
+using TaggedItem = TagTool.Backend.Models.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
@@ -11,84 +15,105 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
     private readonly ITagsRepo _tagsRepo;
     private readonly ITaggedItemsRepo _taggedItemsRepo;
     private readonly ITaggersManager _taggersManager;
+    private readonly ILogger<NewTagService> _logger;
 
     public NewTagService(
         ITagsRepo tagsRepo,
         ITaggedItemsRepo taggedItemsRepo,
-        ITaggersManager taggersManager)
+        ITaggersManager taggersManager,
+        ILogger<NewTagService> logger)
     {
         _tagsRepo = tagsRepo;
         _taggedItemsRepo = taggedItemsRepo;
         _taggersManager = taggersManager;
+        _logger = logger;
     }
 
-    public override Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
+    public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        var exists = _tagsRepo.Exists(request.TagName);
-        if (exists)
+        await using var db = new TagContext();
+
+        var newTagName = request.TagName;
+        var first = db.Tags.FirstOrDefault(tag => tag.Name == newTagName);
+
+        if (first is not null)
         {
-            return Task.FromResult(new CreateTagReply { ErrorMessage = $"Tag {request.TagName} already exists." });
+            return new CreateTagReply { ErrorMessage = $"Tag {newTagName} already exists." };
         }
 
-        var tagDto = _tagsRepo.Insert(request.TagName);
+        _logger.LogInformation("Creating new tag {@TagName}", newTagName);
 
-        return Task.FromResult(new CreateTagReply { CreatedTagName = tagDto.Name });
+        db.Tags.Add(new Tag { Name = newTagName });
+
+        await db.SaveChangesAsync(context.CancellationToken);
+
+        return new CreateTagReply { CreatedTagName = newTagName };
     }
 
-    public override Task<New.DeleteTagReply> DeleteTag(New.DeleteTagRequest request, ServerCallContext context)
+    public override async Task<New.DeleteTagReply> DeleteTag(New.DeleteTagRequest request, ServerCallContext context)
     {
-        var exists = _tagsRepo.Exists(request.TagName);
-        if (!exists)
+        await using var db = new TagContext();
+
+        var newTagName = request.TagName;
+        var existingTag = db.Tags
+            .Include(tag => tag.TaggedItems)
+            .FirstOrDefault(tag => tag.Name == newTagName);
+
+        if (existingTag is null)
         {
-            return Task.FromResult(new New.DeleteTagReply { ErrorMessage = $"Tag {request.TagName} does not exists." });
+            return new New.DeleteTagReply { ErrorMessage = $"Tag {request.TagName} does not exists." };
         }
 
-        if (!request.DeleteUsedToo && _taggedItemsRepo.FindByTags(new[] { request.TagName }).Any())
+        if (!request.DeleteUsedToo && existingTag.TaggedItems.Count != 0)
         {
-            return Task.FromResult(
-                new New.DeleteTagReply
-                {
-                    ErrorMessage = $"Tag {request.TagName} is in use and it was not deleted. " +
-                                   $"If you want to delete this tag use {nameof(request.DeleteUsedToo)} flag."
-                });
+            var message = $"Tag {request.TagName} is in use and it was not deleted. " +
+                          $"If you want to delete this tag use {nameof(request.DeleteUsedToo)} flag.";
+
+            return new New.DeleteTagReply { ErrorMessage = message };
         }
 
-        var isDeleted = _tagsRepo.DeleteTag(request.TagName);
-        var replay = isDeleted
-            ? new New.DeleteTagReply { DeletedTagName = request.TagName }
-            : new New.DeleteTagReply { ErrorMessage = $"Unable to delete tag {request.TagName}" };
+        _logger.LogInformation("Removing tag {@TagName} and all its occurrences in TaggedItems table", existingTag);
+        db.Tags.Remove(existingTag);
 
-        return Task.FromResult(replay);
+        return new New.DeleteTagReply { DeletedTagName = request.TagName };
     }
 
-    public override Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
+    public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
-        // switch (request.Item.ItemType)
-        // {
-        //     case "file":
-        //         new File { FullPath = request.Item.Identifier };
-        // }
-        var taggable = request.Item.ItemType switch
-        {
-            "file" => (ITaggable)new File { FullPath = request.Item.Identifier },
-            "folder" => new Folder { FullPath = request.Item.Identifier },
-            _ => null
-        };
+        await using var db = new TagContext();
+        var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
 
-        if (taggable is null)
+        var existingTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == tagName);
+        var tag = existingTag ?? db.Tags.Add(new Tag { Name = tagName }).Entity;
+        var existingItem = await db.TaggedItems
+            .Include(item => item.Tags)
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+
+        if (existingItem is not null)
         {
-            return Task.FromResult(new TagItemReply { ErrorMessage = "Unrecognized ItemType." });
+            if (existingItem.Tags.Contains(tag))
+            {
+                return new TagItemReply { ErrorMessage = $"Item {request.Item} already exists and it is tagged with a tag {tagName}" };
+            }
+
+            _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
+            existingItem.Tags.Add(tag);
+
+            return new TagItemReply { TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
         }
 
-        var taggedItem = _taggersManager.Tag(taggable, request.TagName);
+        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
+        db.TaggedItems.Add(
+            new TaggedItem
+            {
+                ItemType = itemType,
+                UniqueIdentifier = identifier,
+                Tags = new List<Tag> { tag }
+            });
 
-        if (taggedItem is null)
-        {
-            return Task.FromResult(new TagItemReply { ErrorMessage = $"Unable to tag item{request.Item} with tag {request.TagName}." });
-        }
+        await db.SaveChangesAsync(context.CancellationToken);
 
-        var tagNames = taggedItem.Tags.Select(tag => tag.Name).ToArray();
-        return Task.FromResult(new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { tagNames } } });
+        return new TagItemReply { TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
     }
 
     public override Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
