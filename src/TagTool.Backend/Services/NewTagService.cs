@@ -116,9 +116,36 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
         return new TagItemReply { TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
     }
 
-    public override Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
+    public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-        return base.UntagItem(request, context);
+        await using var db = new TagContext();
+        var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
+
+        var existingItem = await db.TaggedItems
+            .Include(item => item.Tags)
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+
+        if (existingItem is null)
+        {
+            return new UntagItemReply { ErrorMessage = $"There is no item {request.Item} in database." };
+        }
+
+        if (!existingItem.Tags.Select(tag => tag.Name).Contains(tagName))
+        {
+            return new UntagItemReply { ErrorMessage = $"There is no item {request.Item} in database." };
+        }
+
+        var tag = await db.Tags.FirstAsync(tag => tag.Name == tagName);
+
+        _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
+        var isRemoved = existingItem.Tags.Remove(tag);
+
+        return !isRemoved
+            ? new UntagItemReply { ErrorMessage = $"Unable to remove tag {tag} from item {existingItem}." }
+            : new UntagItemReply
+            {
+                TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(t => t.Name) } }
+            };
     }
 
     public override Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
