@@ -4,6 +4,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.DbContext;
 
+// todo: rename to "TagToolContext" 
 public class TagContext : Microsoft.EntityFrameworkCore.DbContext
 {
     public DbSet<Tag> Tags { get; set; } = null!;

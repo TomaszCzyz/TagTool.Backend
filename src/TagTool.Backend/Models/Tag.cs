@@ -6,5 +6,5 @@ public class Tag
 
     public required string Name { get; set; } = null!;
 
-    public ICollection<TaggedItem>? TaggedItems { get; set; }  = new List<TaggedItem>();
+    public ICollection<TaggedItem> TaggedItems { get; set; }  = new List<TaggedItem>();
 }

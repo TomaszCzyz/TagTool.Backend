@@ -2,11 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
-using TagTool.Backend.Models.Taggable;
 using TagTool.Backend.New;
 using TagTool.Backend.Repositories;
-using File = TagTool.Backend.Models.Taggable.File;
-using TaggedItem = TagTool.Backend.Models.TaggedItem;
+using TaggedItem = TagTool.Backend.New.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
@@ -99,12 +97,12 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
             _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
             existingItem.Tags.Add(tag);
 
-            return new TagItemReply { TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
+            return new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
         }
 
         _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
         db.TaggedItems.Add(
-            new TaggedItem
+            new Models.TaggedItem
             {
                 ItemType = itemType,
                 UniqueIdentifier = identifier,
@@ -113,7 +111,7 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
 
         await db.SaveChangesAsync(context.CancellationToken);
 
-        return new TagItemReply { TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
+        return new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
@@ -142,21 +140,41 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
 
         return !isRemoved
             ? new UntagItemReply { ErrorMessage = $"Unable to remove tag {tag} from item {existingItem}." }
-            : new UntagItemReply
+            : new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(t => t.Name) } } };
+    }
+
+    public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
+    {
+        await using var db = new TagContext();
+
+        var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
+        var existingItem = await db.TaggedItems
+            .Include(item => item.Tags)
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+
+        return existingItem is null
+            ? new GetItemReply { ErrorMessage = $"Requested item {request.Item} does not exists." }
+            : new GetItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(tag => tag.Name) } } };
+    }
+
+    public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
+    {
+        await using var db = new TagContext();
+
+        var queryable = db.Tags
+            .Where(tag => request.TagNames.Contains(tag.Name))
+            .SelectMany(tag => tag.TaggedItems)
+            .Select(item => new { Item = item, CommonTagsCount = item.Tags.Select(tag => tag.Name).Intersect(request.TagNames).Count() })
+            .OrderByDescending(arg => arg.CommonTagsCount);
+
+        var results = queryable.Select(arg =>
+            new TaggedItem
             {
-                TaggedItem = new New.TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(t => t.Name) } }
-            };
-    }
+                Item = new Item { ItemType = arg.Item.ItemType, Identifier = arg.Item.UniqueIdentifier },
+                TagNames = { arg.Item.Tags.Select(tag => tag.Name) }
+            });
 
-    public override Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
-    {
-        return base.GetItem(request, context);
-    }
-
-    public override Task GetItemsByTags(New.GetItemsRequest request, IServerStreamWriter<GetItemsReply> responseStream,
-        ServerCallContext context)
-    {
-        return base.GetItemsByTags(request, responseStream, context);
+        return new GetItemsByTagsReply { TaggedItem = { results } };
     }
 
     public override Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)

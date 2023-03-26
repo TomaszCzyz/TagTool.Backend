@@ -19,7 +19,7 @@ service NewTagService {
   // Returns info about an item if one exists.
   rpc GetItem(GetItemRequest) returns (GetItemReply);
   // Returns items which are tagged with one or more of supplied tags.
-  rpc GetItemsByTags(GetItemsRequest) returns (stream GetItemsReply);
+  rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
 
   // Checks if given items exists in tagged items database. 
   // The purpose of this endpoint is to avoid transfer and allocation Item information just to check existence.  
@@ -140,14 +140,14 @@ message GetItemReply {
 }
 
 // The request to retrieve all tags that are tagged with given tags.
-message GetItemsRequest {
+message GetItemsByTagsRequest {
   // The tag's names
   repeated string tagNames = 1;
 }
 
 // The reply containing an item with associated tags.
-message GetItemsReply {
-  TaggedItem taggedItem = 1;
+message GetItemsByTagsReply {
+  repeated TaggedItem taggedItem = 1;
 }
 
 // The request to check if given Item exists.
