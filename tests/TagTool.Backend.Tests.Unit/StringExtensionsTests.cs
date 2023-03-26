@@ -13,7 +13,7 @@ public class StringExtensionsTests
         var expectedSubstrings = new[] { "w", "o", "r", "d", "wo", "or", "rd", "wor", "ord", "word" };
 
         // Act
-        var allSubstrings = "word".GetAllSubstrings();
+        var allSubstrings = "word".Substrings();
 
         // Assert
         allSubstrings.Should().HaveCount(10);

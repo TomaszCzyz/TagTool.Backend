@@ -1,29 +1,20 @@
-﻿using Grpc.Core;
+﻿using Ganss.Text;
+using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.New;
-using TagTool.Backend.Repositories;
 using TaggedItem = TagTool.Backend.New.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
 public class NewTagService : New.NewTagService.NewTagServiceBase
 {
-    private readonly ITagsRepo _tagsRepo;
-    private readonly ITaggedItemsRepo _taggedItemsRepo;
-    private readonly ITaggersManager _taggersManager;
     private readonly ILogger<NewTagService> _logger;
 
-    public NewTagService(
-        ITagsRepo tagsRepo,
-        ITaggedItemsRepo taggedItemsRepo,
-        ITaggersManager taggersManager,
-        ILogger<NewTagService> logger)
+    public NewTagService(ILogger<NewTagService> logger)
     {
-        _tagsRepo = tagsRepo;
-        _taggedItemsRepo = taggedItemsRepo;
-        _taggersManager = taggersManager;
         _logger = logger;
     }
 
@@ -177,18 +168,78 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
         return new GetItemsByTagsReply { TaggedItem = { results } };
     }
 
-    public override Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
+    public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
     {
-        return base.DoesItemExists(request, context);
+        await using var db = new TagContext();
+
+        var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
+        var existingItem = await db.TaggedItems.FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+
+        return new DoesItemExistsReply { Exists = existingItem is not null };
     }
 
-    public override Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
+    public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
-        return base.DoesTagExists(request, context);
+        await using var db = new TagContext();
+
+        var existingItem = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == request.TagName);
+
+        return new DoesTagExistsReply { Exists = existingItem is not null };
     }
 
-    public override Task SearchTags(SearchTagsRequest request, IServerStreamWriter<SearchTagsReply> responseStream, ServerCallContext context)
+    public override async Task SearchTags(
+        SearchTagsRequest request,
+        IServerStreamWriter<SearchTagsReply> responseStream,
+        ServerCallContext context)
     {
-        return base.SearchTags(request, responseStream, context);
+        var dict = request.Name.Substrings().Distinct();
+        var ahoCorasick = new AhoCorasick(dict);
+
+        await using var db = new TagContext();
+
+        switch (request.SearchType)
+        {
+            case SearchTagsRequest.Types.SearchType.StartsWith:
+                var queryable = db.Tags.Where(tag => tag.Name.StartsWith(request.Name)).Select(tag => tag.Name).Take(request.ResultsLimit);
+                foreach (var tagName in queryable)
+                {
+                    var matchedPart = new SearchTagsReply.Types.MatchedPart { StartIndex = 0, Length = tagName.IndexOf(request.Name.Last()) };
+                    var matchTagsReply = new SearchTagsReply
+                    {
+                        TagName = tagName,
+                        MatchedPart = { matchedPart },
+                        IsExactMatch = matchedPart.Length == tagName.Length
+                    };
+
+                    await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
+                }
+
+                return;
+            case SearchTagsRequest.Types.SearchType.Partial:
+                await foreach (var tag in db.Tags)
+                {
+                    var tagName = tag.Name;
+
+                    var matchedParts = ahoCorasick
+                        .Search(tagName) // todo: safeguard for very long tagNames would be nice
+                        .ExcludeOverlaying(tagName)
+                        .Select(match => new SearchTagsReply.Types.MatchedPart { StartIndex = match.Index, Length = match.Word.Length })
+                        .OrderByDescending(match => match.Length)
+                        .ToList();
+
+                    if (matchedParts.Count == 0) continue;
+
+                    var matchTagsReply = new SearchTagsReply
+                    {
+                        TagName = tagName,
+                        MatchedPart = { matchedParts },
+                        IsExactMatch = matchedParts[0].Length == tagName.Length
+                    };
+
+                    await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
+                }
+
+                return;
+        }
     }
 }

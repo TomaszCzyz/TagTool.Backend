@@ -171,7 +171,7 @@ message DoesTagExistsRequest {
 // The reply indicating if given tag exists.
 message DoesTagExistsReply {
   // The Tag's name.
-  string tagName = 1;
+  bool exists = 1;
 }
 
 // The request to find tags, which match or partially match 'name'.
@@ -181,6 +181,13 @@ message SearchTagsRequest {
   string name = 1;
   // The limit of returned tag names.
   int32 resultsLimit = 2;
+  // The flag allowing to force searching only exact matches.
+  SearchType searchType = 3;
+
+  enum SearchType {
+    StartsWith = 0;
+    Partial = 1;
+  }
 }
 
 // Stream of the replies containing Tag's names and information about matching type.  

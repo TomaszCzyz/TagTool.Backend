@@ -2,7 +2,7 @@
 
 public static class StringExtensions // todo: optimize with span<char>
 {
-    public static string[] GetAllSubstrings(this string word)
+    public static string[] Substrings(this string word)
     {
         var substrings = new string[((1 + word.Length) * word.Length) / 2];
 

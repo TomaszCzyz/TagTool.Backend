@@ -49,7 +49,7 @@ public class TagSearchService : Backend.TagSearchService.TagSearchServiceBase
         IServerStreamWriter<MatchedTagReply> responseStream,
         ServerCallContext context)
     {
-        var dict = request.PartialTagName.GetAllSubstrings().Distinct();
+        var dict = request.PartialTagName.Substrings().Distinct();
         var ahoCorasick = new AhoCorasick(dict);
 
         var tagNames = _tagsRepo.GetAllTagNames();
