@@ -281,7 +281,7 @@ dotnet_style_allow_statement_immediately_after_block_experimental = false
 # Roslynator                  #
 ###############################
 # Max line length.
-roslynator.max_line_length = 145
+roslynator_max_line_length = 145
 
 # Remove empty line between single-line accessors.
 roslynator.RCS0011.invert = true
