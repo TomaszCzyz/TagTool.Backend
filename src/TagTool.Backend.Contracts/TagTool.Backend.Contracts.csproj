@@ -22,6 +22,8 @@
     <Protobuf Include="Protos\TagSearchService.proto" GrpcServices="Server"/>
     <Protobuf Include="Protos\TagService.proto" GrpcService="Server"/>
     <Protobuf Include="Protos\NewTagService.proto" GrpcService="Server"/>
+    <Protobuf Include="Protos\ItemsActionsMessages.proto" GrpcService="Server"/>
+    <Protobuf Include="Protos\DomainTypes.proto" GrpcService="Server"/>
   </ItemGroup>
 
   <Target Name="CopyPackage" AfterTargets="Pack">

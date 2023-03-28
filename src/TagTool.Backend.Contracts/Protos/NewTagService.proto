@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
+import "Protos/ItemsActionsMessages.proto";
+import "Protos/DomainTypes.proto";
+
 option csharp_namespace = "TagTool.Backend.New";
 
 package TagToolBackend;
@@ -29,28 +33,9 @@ service NewTagService {
 
   // Searches existing tags for matches or partial matches.
   rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
-}
 
-// message that unambiguously represents taggable item.
-message Item {
-  // represents taggable item type, e.g. File, Folder.
-  string itemType = 1;
-  // value that unambiguously identifies a tagged item, e.g. full file path for File item type.
-  string identifier = 2;
+  rpc InvokeAction(InvokeItemActionRequest) returns (InvokeItemActionReply);
 }
-
-// message that unambiguously represents taggable item with associated tags.
-message TaggedItem {
-  Item item = 1;
-  repeated string tagNames = 2;
-}
-
-// common return type represents.
-message Result {
-  bool isSuccess = 1;
-  repeated string messages = 2;
-}
-
 
 // The request to create a new tag.
 message CreateTagRequest {
@@ -205,5 +190,21 @@ message SearchTagsReply {
     int32 startIndex = 1;
     // The length of a substring.
     int32 length = 2;
+  }
+}
+
+// The request to invoke an 'Action' on a given 'Item'.
+message InvokeItemActionRequest {
+  // The element on which the action is to be invoked
+  Item item = 1;
+  // The Action message, e.g. MoveAction, OpenAction
+  google.protobuf.Any action = 2;
+}
+
+// The reply contains either success message or error message.
+message InvokeItemActionReply {
+  oneof result {
+    string successMessage = 1;
+    string ErrorMessage = 2;
   }
 }

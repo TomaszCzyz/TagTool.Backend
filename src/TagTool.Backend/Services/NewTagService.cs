@@ -1,11 +1,14 @@
 ﻿using Ganss.Text;
+using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.New;
-using TaggedItem = TagTool.Backend.New.TaggedItem;
+using TagTool.Backend.New.DomainTypes;
+using TagTool.Backend.New.ItemsActions;
+using TaggedItem = TagTool.Backend.New.DomainTypes.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
@@ -241,5 +244,37 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
 
                 return;
         }
+    }
+
+    public override async Task<InvokeItemActionReply> InvokeAction(InvokeItemActionRequest request, ServerCallContext context)
+    {
+        await using var db = new TagContext();
+        var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
+
+        var taggedItem = await db.TaggedItems.FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+
+        if (taggedItem is null)
+        {
+            return new InvokeItemActionReply { ErrorMessage = "Requested item does not exists in database." };
+        }
+
+        var actionMessage = request.Action.Unpack(TypeRegistry.FromMessages(ItemsActionsMessagesReflection.Descriptor.MessageTypes));
+
+        if (actionMessage is null)
+        {
+            return new InvokeItemActionReply { ErrorMessage = "Could not match any action message." };
+        }
+
+        switch (actionMessage)
+        {
+            case MoveAction:
+                Console.WriteLine("Move Action!!!");
+                break;
+            default:
+                Console.WriteLine("Unknown action!!!");
+                break;
+        }
+
+        return new InvokeItemActionReply { SuccessMessage = "" };
     }
 }

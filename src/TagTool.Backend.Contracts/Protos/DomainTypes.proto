@@ -1,0 +1,25 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "TagTool.Backend.New.DomainTypes";
+
+package TagToolBackend;
+
+// message that unambiguously represents taggable item.
+message Item {
+  // represents taggable item type, e.g. File, Folder.
+  string itemType = 1;
+  // value that unambiguously identifies a tagged item, e.g. full file path for File item type.
+  string identifier = 2;
+}
+
+// message that unambiguously represents taggable item with associated tags.
+message TaggedItem {
+  Item item = 1;
+  repeated string tagNames = 2;
+}
+
+// common return type representing success or failure
+message Result {
+  bool isSuccess = 1;
+  repeated string messages = 2;
+}

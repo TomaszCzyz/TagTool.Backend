@@ -1,0 +1,34 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "TagTool.Backend.New.ItemsActions";
+
+package TagToolBackend;
+
+message MoveAction {
+  string from = 1;
+  string to = 2;
+}
+
+message DeleteAction {
+  string what = 1;
+}
+
+message RenameAction {
+  string what = 1;
+}
+
+message CutAction {
+  string what = 1;
+}
+
+message PasteAction {
+  string what = 1;
+}
+
+message OpenAction {
+  string what = 1;
+}
+
+message TagChildren {
+  string tagName = 1;
+}
