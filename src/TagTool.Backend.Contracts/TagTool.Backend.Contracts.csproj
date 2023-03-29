@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf"/>
-    <PackageReference Include="Grpc.Net.Client"/>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Net.Client" />
     <PackageReference Include="Grpc.Tools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -19,14 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\TagSearchService.proto" GrpcServices="Server"/>
-    <Protobuf Include="Protos\TagService.proto" GrpcService="Server"/>
-    <Protobuf Include="Protos\NewTagService.proto" GrpcService="Server"/>
-    <Protobuf Include="Protos\ItemsActionsMessages.proto" GrpcService="Server"/>
-    <Protobuf Include="Protos\DomainTypes.proto" GrpcService="Server"/>
+    <Protobuf Include="Protos\NewTagService.proto" GrpcService="Server" />
+    <Protobuf Include="Protos\ItemsActionsMessages.proto" GrpcService="Server" />
+    <Protobuf Include="Protos\DomainTypes.proto" GrpcService="Server" />
   </ItemGroup>
 
   <Target Name="CopyPackage" AfterTargets="Pack">
-    <Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="c:\temp\"/>
+    <Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="c:\temp\" />
   </Target>
 </Project>

@@ -91,6 +91,8 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
             _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
             existingItem.Tags.Add(tag);
 
+            await db.SaveChangesAsync(context.CancellationToken);
+
             return new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
         }
 
