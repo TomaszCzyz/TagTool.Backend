@@ -28,7 +28,7 @@ builder.Services.AddGrpc();
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
-app.MapGrpcService<NewTagService>();
+app.MapGrpcService<TagToolBackend>();
 
 app.Logger.LogInformation("Executing EF migrations...");
 await using (var db = new TagContext())

@@ -4,11 +4,11 @@ import "google/protobuf/any.proto";
 import "Protos/ItemsActionsMessages.proto";
 import "Protos/DomainTypes.proto";
 
-option csharp_namespace = "TagTool.Backend.New";
+option csharp_namespace = "TagTool.Backend";
 
 package TagToolBackend;
 
-service NewTagService {
+service TagToolBackendService {
   // Creates a new Tag. If tag cannot be created returns error message.
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
   // Deletes a Tag if tag exists and is unused, otherwise return error message.
@@ -34,6 +34,7 @@ service NewTagService {
   // Searches existing tags for matches or partial matches.
   rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
 
+  // Invokes item-specific action, e.g. 'move folder', 'open file'
   rpc InvokeAction(InvokeItemActionRequest) returns (InvokeItemActionReply);
 }
 

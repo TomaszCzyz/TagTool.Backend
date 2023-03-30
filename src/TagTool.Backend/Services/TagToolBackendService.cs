@@ -1,22 +1,22 @@
 ﻿using Ganss.Text;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
-using TagTool.Backend.New;
 using TagTool.Backend.New.DomainTypes;
 using TagTool.Backend.New.ItemsActions;
 using TaggedItem = TagTool.Backend.New.DomainTypes.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
-public class NewTagService : New.NewTagService.NewTagServiceBase
+public class TagToolBackend : TagToolBackendService.TagToolBackendServiceBase
 {
-    private readonly ILogger<NewTagService> _logger;
+    private readonly ILogger<TagToolBackend> _logger;
 
-    public NewTagService(ILogger<NewTagService> logger)
+    public TagToolBackend(ILogger<TagToolBackend> logger)
     {
         _logger = logger;
     }
@@ -42,7 +42,7 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
         return new CreateTagReply { CreatedTagName = newTagName };
     }
 
-    public override async Task<New.DeleteTagReply> DeleteTag(New.DeleteTagRequest request, ServerCallContext context)
+    public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
         await using var db = new TagContext();
 
@@ -53,7 +53,7 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
 
         if (existingTag is null)
         {
-            return new New.DeleteTagReply { ErrorMessage = $"Tag {request.TagName} does not exists." };
+            return new DeleteTagReply { ErrorMessage = $"Tag {request.TagName} does not exists." };
         }
 
         if (!request.DeleteUsedToo && existingTag.TaggedItems.Count != 0)
@@ -61,13 +61,13 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
             var message = $"Tag {request.TagName} is in use and it was not deleted. " +
                           $"If you want to delete this tag use {nameof(request.DeleteUsedToo)} flag.";
 
-            return new New.DeleteTagReply { ErrorMessage = message };
+            return new DeleteTagReply { ErrorMessage = message };
         }
 
         _logger.LogInformation("Removing tag {@TagName} and all its occurrences in TaggedItems table", existingTag);
         db.Tags.Remove(existingTag);
 
-        return new New.DeleteTagReply { DeletedTagName = request.TagName };
+        return new DeleteTagReply { DeletedTagName = request.TagName };
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
@@ -260,7 +260,7 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
             return new InvokeItemActionReply { ErrorMessage = "Requested item does not exists in database." };
         }
 
-        var actionMessage = request.Action.Unpack(TypeRegistry.FromMessages(ItemsActionsMessagesReflection.Descriptor.MessageTypes));
+        var actionMessage = UnpackActionMessage(request);
 
         if (actionMessage is null)
         {
@@ -279,4 +279,7 @@ public class NewTagService : New.NewTagService.NewTagServiceBase
 
         return new InvokeItemActionReply { SuccessMessage = "" };
     }
+
+    private static IMessage? UnpackActionMessage(InvokeItemActionRequest request)
+        => request.Action.Unpack(TypeRegistry.FromMessages(ItemsActionsMessagesReflection.Descriptor.MessageTypes));
 }
