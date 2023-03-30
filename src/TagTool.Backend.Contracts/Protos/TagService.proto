@@ -1,14 +1,13 @@
 syntax = "proto3";
 
 import "google/protobuf/any.proto";
-import "Protos/ItemsActionsMessages.proto";
 import "Protos/DomainTypes.proto";
 
 option csharp_namespace = "TagTool.Backend";
 
 package TagToolBackend;
 
-service TagToolBackendService {
+service TagService {
   // Creates a new Tag. If tag cannot be created returns error message.
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
   // Deletes a Tag if tag exists and is unused, otherwise return error message.

@@ -1,0 +1,55 @@
+﻿syntax = "proto3";
+
+import "Protos/DomainTypes.proto";
+
+option csharp_namespace = "TagTool.Backend";
+
+package TagToolBackend;
+
+service FileActionsService {
+  rpc CanRenameFile (stream CanRenameFileRequest) returns (stream CanRenameFileReply);
+}
+
+message CanRenameFileRequest {
+  Item item = 1;
+  string newFileName = 2;
+}
+
+message CanRenameFileReply {
+  Result result = 2;
+}
+
+message MoveFile {
+  Item item = 1;
+  string from = 2;
+  string to = 3;
+}
+
+message MoveAction {
+  string from = 1;
+  string to = 2;
+}
+
+message DeleteAction {
+  string what = 1;
+}
+
+message RenameAction {
+  string what = 1;
+}
+
+message CutAction {
+  string what = 1;
+}
+
+message PasteAction {
+  string what = 1;
+}
+
+message OpenAction {
+  string what = 1;
+}
+
+message TagChildren {
+  string tagName = 1;
+}

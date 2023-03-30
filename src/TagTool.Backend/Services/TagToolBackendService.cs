@@ -1,22 +1,19 @@
 ﻿using Ganss.Text;
-using Google.Protobuf;
-using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
-using TagTool.Backend.New.DomainTypes;
-using TagTool.Backend.New.ItemsActions;
-using TaggedItem = TagTool.Backend.New.DomainTypes.TaggedItem;
+using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
-public class TagToolBackend : TagToolBackendService.TagToolBackendServiceBase
+public class TagService : Backend.TagService.TagServiceBase
 {
-    private readonly ILogger<TagToolBackend> _logger;
+    private readonly ILogger<TagService> _logger;
 
-    public TagToolBackend(ILogger<TagToolBackend> logger)
+    public TagService(ILogger<TagService> logger)
     {
         _logger = logger;
     }
@@ -247,39 +244,4 @@ public class TagToolBackend : TagToolBackendService.TagToolBackendServiceBase
                 return;
         }
     }
-
-    public override async Task<InvokeItemActionReply> InvokeAction(InvokeItemActionRequest request, ServerCallContext context)
-    {
-        await using var db = new TagContext();
-        var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
-
-        var taggedItem = await db.TaggedItems.FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
-
-        if (taggedItem is null)
-        {
-            return new InvokeItemActionReply { ErrorMessage = "Requested item does not exists in database." };
-        }
-
-        var actionMessage = UnpackActionMessage(request);
-
-        if (actionMessage is null)
-        {
-            return new InvokeItemActionReply { ErrorMessage = "Could not match any action message." };
-        }
-
-        switch (actionMessage)
-        {
-            case MoveAction:
-                Console.WriteLine("Move Action!!!");
-                break;
-            default:
-                Console.WriteLine("Unknown action!!!");
-                break;
-        }
-
-        return new InvokeItemActionReply { SuccessMessage = "" };
-    }
-
-    private static IMessage? UnpackActionMessage(InvokeItemActionRequest request)
-        => request.Action.Unpack(TypeRegistry.FromMessages(ItemsActionsMessagesReflection.Descriptor.MessageTypes));
 }

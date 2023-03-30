@@ -1,6 +1,6 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "TagTool.Backend.New.DomainTypes";
+option csharp_namespace = "TagTool.Backend.DomainTypes";
 
 package TagToolBackend;
 

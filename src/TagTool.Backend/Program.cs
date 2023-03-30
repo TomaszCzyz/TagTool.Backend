@@ -23,12 +23,14 @@ builder.Host.UseSerilog((_, configuration) =>
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddGrpc();
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
-app.MapGrpcService<TagToolBackend>();
+app.MapGrpcService<TagService>();
+app.MapGrpcService<FileActionsService>();
 
 app.Logger.LogInformation("Executing EF migrations...");
 await using (var db = new TagContext())

@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\TagToolBackendService.proto" GrpcService="Server" />
-    <Protobuf Include="Protos\ItemsActionsMessages.proto" GrpcService="Server" />
+    <Protobuf Include="Protos\TagService.proto" GrpcService="Server" />
+    <Protobuf Include="Protos\FileActionsService.proto" GrpcService="Server" />
     <Protobuf Include="Protos\DomainTypes.proto" GrpcService="Server" />
   </ItemGroup>
 
