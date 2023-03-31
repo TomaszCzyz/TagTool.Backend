@@ -49,4 +49,17 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
         return reply;
     }
+
+    public override async Task<MoveFileReply> MoveFile(MoveFileRequest request, ServerCallContext context)
+    {
+        var command = new Commands.MoveFileRequest { OldFullPath = request.Item.Identifier, NewFullPath = request.Destination };
+
+        var response = await _mediator.Send(command);
+
+        var reply = response.IsMoved
+            ? new MoveFileReply { NewLocation = request.Destination }
+            : new MoveFileReply { ErrorMessage = response.ErrorMessage };
+
+        return reply;
+    }
 }
