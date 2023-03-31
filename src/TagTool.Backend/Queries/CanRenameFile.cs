@@ -47,13 +47,11 @@ public class CanRenameFile : IRequestHandler<CanRenameFileRequest, CanRenameFile
         }
         catch (PathTooLongException)
         {
-            return Task.FromResult(
-                new CanRenameFileResponse { Message = "Path is too long." });
+            return Task.FromResult(new CanRenameFileResponse { Message = "Path is too long." });
         }
         catch (NotSupportedException)
         {
-            return Task.FromResult(
-                new CanRenameFileResponse { Message = "Filename cannot contain a colon (:)." });
+            return Task.FromResult(new CanRenameFileResponse { Message = "Filename cannot contain a colon (:)." });
         }
 
         if (fileInfo.Exists)

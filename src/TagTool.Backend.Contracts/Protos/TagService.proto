@@ -32,9 +32,6 @@ service TagService {
 
   // Searches existing tags for matches or partial matches.
   rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
-
-  // Invokes item-specific action, e.g. 'move folder', 'open file'
-  rpc InvokeAction(InvokeItemActionRequest) returns (InvokeItemActionReply);
 }
 
 // The request to create a new tag.
@@ -172,6 +169,7 @@ message SearchTagsRequest {
   enum SearchType {
     StartsWith = 0;
     Partial = 1;
+    Wildcard = 2;
   }
 }
 
@@ -190,21 +188,5 @@ message SearchTagsReply {
     int32 startIndex = 1;
     // The length of a substring.
     int32 length = 2;
-  }
-}
-
-// The request to invoke an 'Action' on a given 'Item'.
-message InvokeItemActionRequest {
-  // The element on which the action is to be invoked
-  Item item = 1;
-  // The Action message, e.g. MoveAction, OpenAction
-  google.protobuf.Any action = 2;
-}
-
-// The reply contains either success message or error message.
-message InvokeItemActionReply {
-  oneof result {
-    string successMessage = 1;
-    string ErrorMessage = 2;
   }
 }

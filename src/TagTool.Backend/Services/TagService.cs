@@ -90,7 +90,10 @@ public class TagService : Backend.TagService.TagServiceBase
 
             await db.SaveChangesAsync(context.CancellationToken);
 
-            return new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
+            return new TagItemReply
+            {
+                TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(tag1 => tag1.Name) } }
+            };
         }
 
         _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
@@ -109,7 +112,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
+    await using var db = new TagContext();
         var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
 
         var existingItem = await db.TaggedItems
@@ -131,6 +134,7 @@ public class TagService : Backend.TagService.TagServiceBase
         _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
         var isRemoved = existingItem.Tags.Remove(tag);
 
+        await db.SaveChangesAsync(context.CancellationToken);
         return !isRemoved
             ? new UntagItemReply { ErrorMessage = $"Unable to remove tag {tag} from item {existingItem}." }
             : new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(t => t.Name) } } };
@@ -154,17 +158,19 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         await using var db = new TagContext();
 
-        var queryable = db.Tags
-            .Where(tag => request.TagNames.Contains(tag.Name))
-            .SelectMany(tag => tag.TaggedItems)
-            .Select(item => new { Item = item, CommonTagsCount = item.Tags.Select(tag => tag.Name).Intersect(request.TagNames).Count() })
-            .OrderByDescending(arg => arg.CommonTagsCount);
+        var queryResults = db.TaggedItems
+            .Include(item => item.Tags)
+            .Where(item => item.Tags.Any(tag => request.TagNames.Contains(tag.Name)))
+            .Select(item => new { Item = item, CommonTagsCount = item.Tags.Count(tag => request.TagNames.Contains(tag.Name)) })
+            .OrderByDescending(arg => arg.CommonTagsCount)
+            .Select(arg => arg.Item)
+            .ToArray();
 
-        var results = queryable.Select(arg =>
+        var results = queryResults.Select(item =>
             new TaggedItem
             {
-                Item = new Item { ItemType = arg.Item.ItemType, Identifier = arg.Item.UniqueIdentifier },
-                TagNames = { arg.Item.Tags.Select(tag => tag.Name) }
+                Item = new Item { ItemType = item.ItemType, Identifier = item.UniqueIdentifier },
+                TagNames = { item.Tags.Select(tag => tag.Name) }
             });
 
         return new GetItemsByTagsReply { TaggedItem = { results } };
@@ -194,15 +200,30 @@ public class TagService : Backend.TagService.TagServiceBase
         IServerStreamWriter<SearchTagsReply> responseStream,
         ServerCallContext context)
     {
-        var dict = request.Name.Substrings().Distinct();
-        var ahoCorasick = new AhoCorasick(dict);
-
         await using var db = new TagContext();
 
         switch (request.SearchType)
         {
+            case SearchTagsRequest.Types.SearchType.Wildcard:
+                if (request.Name != "*") throw new NotImplementedException();
+
+                await foreach (var tag in db.Tags)
+                {
+                    var matchTagsReply = new SearchTagsReply
+                    {
+                        TagName = tag.Name,
+                        MatchedPart = { new SearchTagsReply.Types.MatchedPart { StartIndex = 0, Length = tag.Name.Length } },
+                        IsExactMatch = true
+                    };
+
+                    await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
+                }
+
+                return;
+
             case SearchTagsRequest.Types.SearchType.StartsWith:
                 var queryable = db.Tags.Where(tag => tag.Name.StartsWith(request.Name)).Select(tag => tag.Name).Take(request.ResultsLimit);
+
                 foreach (var tagName in queryable)
                 {
                     var matchedPart = new SearchTagsReply.Types.MatchedPart { StartIndex = 0, Length = tagName.IndexOf(request.Name.Last()) };
@@ -221,6 +242,7 @@ public class TagService : Backend.TagService.TagServiceBase
                 await foreach (var tag in db.Tags)
                 {
                     var tagName = tag.Name;
+                    var ahoCorasick = new AhoCorasick(request.Name.Substrings().Distinct());
 
                     var matchedParts = ahoCorasick
                         .Search(tagName) // todo: safeguard for very long tagNames would be nice

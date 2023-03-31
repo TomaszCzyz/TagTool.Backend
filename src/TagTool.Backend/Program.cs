@@ -6,12 +6,15 @@ using Serilog;
 using Serilog.Exceptions;
 using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
 using TagTool.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder();
 
 builder.Host.UseSerilog((_, configuration) =>
     configuration
+        .Destructure.ByTransforming<TaggedItem>(
+            item => new { item.ItemType, item.UniqueIdentifier, Tags = item.Tags.Select(tag => tag.Name).ToArray() })
         .MinimumLevel.Information()
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
