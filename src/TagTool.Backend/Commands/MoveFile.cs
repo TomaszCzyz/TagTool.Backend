@@ -12,7 +12,6 @@ public class MoveFileResponse
     public bool IsMoved => ErrorMessage is null;
 }
 
-[UsedImplicitly]
 public class MoveFileRequest : IRequest<MoveFileResponse>
 {
     public required string OldFullPath { get; init; }

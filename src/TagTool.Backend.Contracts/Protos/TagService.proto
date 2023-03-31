@@ -19,9 +19,9 @@ service TagService {
   // Untags an item if one exists.
   rpc UntagItem(UntagItemRequest) returns (UntagItemReply);
 
-  // Returns info about an item if one exists.
+  // Gets an info about an item if one exists.
   rpc GetItem(GetItemRequest) returns (GetItemReply);
-  // Returns items which are tagged with one or more of supplied tags.
+  // Gets items which are tagged with one or more of supplied tags.
   rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
 
   // Checks if given items exists in tagged items database. 

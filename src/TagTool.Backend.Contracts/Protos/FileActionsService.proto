@@ -7,33 +7,46 @@ option csharp_namespace = "TagTool.Backend";
 package TagToolBackend;
 
 service FileActionsService {
+  // This bi-directional call allows to check correctness of a new filename as it is changing.
   rpc CanRenameFile (stream CanRenameFileRequest) returns (stream CanRenameFileReply);
+  // Renames a given file name.
   rpc RenameFile (RenameFileRequest) returns (RenameFileReply);
+  // Moves a file to specified location.
   rpc MoveFile (MoveFileRequest) returns (MoveFileReply);
+  // Deletes a specified file.
   rpc DeleteFile (DeleteFileRequest) returns (DeleteFileReply);
+  // Opens a file with default system application using shell. 
   rpc OpenFile (OpenFileRequest) returns (OpenFileReply);
 }
 
 message CanRenameFileRequest {
+  // The item to rename.
   Item item = 1;
+  // The new filename to check.
   string newFileName = 2;
 }
 
 message CanRenameFileReply {
+  // The result indicating if file can be renamed to provided filename.
   Result result = 2;
 }
 
 message RenameFileRequest {
+  // The item to rename.
   Item item = 1;
+  // New filename.
   string newFileName = 2;
 }
 
 message RenameFileReply {
+  // The result indicating if renaming was successful.
   Result result = 2;
 }
 
 message MoveFileRequest {
+  // The file to move. 
   Item item = 1;
+  // The destination as full path, i.e. with filename.
   string destination = 2;
 }
 
@@ -41,29 +54,32 @@ message MoveFileReply {
   oneof result {
     // New location of a moved file.
     string newLocation = 1;
-    // The Error message.
+    // The error message.
     string errorMessage = 2;
   };
 }
 
 message DeleteFileRequest {
+  // The item to be deleted.
   Item item = 1;
 }
 
 message DeleteFileReply {
   oneof result {
-    // New location of a moved file.
+    // The location from where file was deleted.
     string deletedFileFullName = 1;
-    // The Error message.
+    // The error message.
     string errorMessage = 2;
   };
 }
 
 message OpenFileRequest {
+  // The full file name if file to be open
   string fullFileName = 1;
 }
 
 message OpenFileReply {
+  // The result indicating opening was successful.
   Result result = 1;
 }
 

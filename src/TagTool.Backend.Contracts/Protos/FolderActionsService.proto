@@ -1,0 +1,85 @@
+﻿syntax = "proto3";
+
+import "Protos/DomainTypes.proto";
+
+option csharp_namespace = "TagTool.Backend";
+
+package TagToolBackend;
+
+service FolderActionsService {
+  // This bi-directional call allows to check correctness of a new folder name as it is changing.
+  rpc CanRenameFolder (stream CanRenameFolderRequest) returns (stream CanRenameFolderReply);
+  // Renames a given folder.
+  rpc RenameFolder (RenameFolderRequest) returns (RenameFolderReply);
+  // Moves a folder to specified location.
+  rpc MoveFolder (MoveFolderRequest) returns (MoveFolderReply);
+  // Deletes a specified folder and its content.
+  rpc DeleteFolder (DeleteFolderRequest) returns (DeleteFolderReply);
+  // Add given tag of children of a folder.
+  rpc TagChildren (TagChildrenRequest) returns (TagChildrenReply);
+}
+
+message CanRenameFolderRequest {
+  // The item to rename.
+  string fullName = 1;
+  // The new filename to check.
+  string newFolderName = 2;
+}
+
+message CanRenameFolderReply {
+  // The result indicating if folder can be renamed to provided value.
+  Result result = 1;
+}
+
+message RenameFolderRequest {
+  // The item to rename.
+  string fullName = 1;
+  // New filename.
+  string newFolderName = 2;
+}
+
+message RenameFolderReply {
+  // The result indicating if renaming was successful.
+  Result result = 1;
+}
+
+message MoveFolderRequest {
+  // The file to move. 
+  string fullName = 1;
+  // The destination path.
+  string destination = 2;
+}
+
+message MoveFolderReply {
+  oneof result {
+    // New location of a moved folder.
+    string newLocation = 1;
+    // The error message.
+    string errorMessage = 2;
+  };
+}
+
+message DeleteFolderRequest {
+  // The folder to be deleted.
+  Item item = 1;
+}
+
+message DeleteFolderReply {
+  oneof result {
+    // The location from where folder was deleted.
+    string deletedFolderFullName = 1;
+    // The error message.
+    string errorMessage = 2;
+  };
+}
+
+message TagChildrenRequest {
+  string tagName = 1;
+  string fullName = 2;
+  int32 depth = 3;
+  bool tagOnlyFiles = 4;
+}
+
+message TagChildrenReply {
+  Result result = 1;
+}

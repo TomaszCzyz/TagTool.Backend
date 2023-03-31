@@ -52,6 +52,7 @@ app.Logger.LogInformation("Application created");
 
 app.MapGrpcService<TagService>();
 app.MapGrpcService<FileActionsService>();
+app.MapGrpcService<FolderActionsService>();
 
 using var scope = app.Services.CreateScope();
 await using (var db = scope.ServiceProvider.GetRequiredService<TagToolDbContext>())
