@@ -36,4 +36,17 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             await responseStream.WriteAsync(canRenameFileReply);
         }
     }
+
+    public override async Task<RenameFileReply> RenameFile(RenameFileRequest request, ServerCallContext context)
+    {
+        var command = new Commands.RenameFileRequest { FullPath = request.Item.Identifier, NewFileName = request.NewFileName };
+
+        var response = await _mediator.Send(command);
+
+        var reply = response.IsRenamed
+            ? new RenameFileReply { Result = new Result { IsSuccess = true } }
+            : new RenameFileReply { Result = new Result { IsSuccess = false, Messages = { response.ErrorMessage } } };
+
+        return reply;
+    }
 }

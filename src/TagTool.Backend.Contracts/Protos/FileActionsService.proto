@@ -8,6 +8,7 @@ package TagToolBackend;
 
 service FileActionsService {
   rpc CanRenameFile (stream CanRenameFileRequest) returns (stream CanRenameFileReply);
+  rpc RenameFile (RenameFileRequest) returns (RenameFileReply);
 }
 
 message CanRenameFileRequest {
@@ -16,6 +17,15 @@ message CanRenameFileRequest {
 }
 
 message CanRenameFileReply {
+  Result result = 2;
+}
+
+message RenameFileRequest {
+  Item item = 1;
+  string newFileName = 2;
+}
+
+message RenameFileReply {
   Result result = 2;
 }
 
