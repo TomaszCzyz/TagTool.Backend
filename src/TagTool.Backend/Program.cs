@@ -53,10 +53,10 @@ app.Logger.LogInformation("Application created");
 app.MapGrpcService<TagService>();
 app.MapGrpcService<FileActionsService>();
 
-app.Logger.LogInformation("Executing EF migrations...");
-
-await using (var db = app.Services.GetRequiredService<TagToolDbContext>())
+using var scope = app.Services.CreateScope();
+await using (var db = scope.ServiceProvider.GetRequiredService<TagToolDbContext>())
 {
+    app.Logger.LogInformation("Executing EF migrations...");
     db.Database.Migrate();
 }
 
