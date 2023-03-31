@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using System.Diagnostics;
+using Grpc.Core;
 using MediatR;
 using TagTool.Backend.DomainTypes;
 
@@ -61,5 +62,28 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             : new MoveFileReply { ErrorMessage = response.ErrorMessage };
 
         return reply;
+    }
+
+    public override Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override async Task<OpenFileReply> OpenFile(OpenFileRequest request, ServerCallContext context)
+    {
+        if (!File.Exists(request.FullFileName))
+        {
+            return await Task.FromResult(
+                new OpenFileReply { Result = new Result { IsSuccess = false, Messages = { "Specified file does not exists." } } });
+        }
+
+        using var process = new Process();
+
+        process.StartInfo.FileName = request.FullFileName;
+        process.StartInfo.UseShellExecute = true;
+
+        process.Start();
+
+        return await Task.FromResult(new OpenFileReply { Result = new Result { IsSuccess = true } });
     }
 }
