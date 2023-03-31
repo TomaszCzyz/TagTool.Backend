@@ -24,10 +24,12 @@ public class MoveFileRequest : IRequest<MoveFileResponse>
 public class MoveFile : IRequestHandler<MoveFileRequest, MoveFileResponse>
 {
     private readonly ILogger<MoveFile> _logger;
+    private readonly TagToolDbContext _dbContext;
 
-    public MoveFile(ILogger<MoveFile> logger)
+    public MoveFile(ILogger<MoveFile> logger, TagToolDbContext dbContext)
     {
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     public async Task<MoveFileResponse> Handle(MoveFileRequest request, CancellationToken cancellationToken)
@@ -42,9 +44,7 @@ public class MoveFile : IRequestHandler<MoveFileRequest, MoveFileResponse>
             return new MoveFileResponse { ErrorMessage = "File with the same filename already exists in the destination location." };
         }
 
-        await using var db = new TagContext();
-
-        var taggedItem = await db.TaggedItems.FirstOrDefaultAsync(
+        var taggedItem = await _dbContext.TaggedItems.FirstOrDefaultAsync(
             item => item.ItemType == "file" && item.UniqueIdentifier == request.OldFullPath,
             cancellationToken: cancellationToken);
 
@@ -55,7 +55,7 @@ public class MoveFile : IRequestHandler<MoveFileRequest, MoveFileResponse>
 
         taggedItem.UniqueIdentifier = request.NewFullPath;
 
-        var entityEntry = db.TaggedItems.Update(taggedItem);
+        var entityEntry = _dbContext.TaggedItems.Update(taggedItem);
 
         try
         {
@@ -72,11 +72,11 @@ public class MoveFile : IRequestHandler<MoveFileRequest, MoveFileResponse>
 
             entityEntry.Entity.UniqueIdentifier = request.OldFullPath;
 
-            await db.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return new MoveFileResponse { ErrorMessage = $"Unable to move a file from \"{request.OldFullPath}\" to \"{request.NewFullPath}\"." };
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
         return new MoveFileResponse();
     }
 

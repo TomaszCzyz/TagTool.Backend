@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Exceptions;
+using Serilog.Extensions.Logging;
 using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
@@ -14,7 +15,12 @@ var builder = WebApplication.CreateBuilder(args); // todo: check if this would n
 builder.Host.UseSerilog((_, configuration) =>
     configuration
         .Destructure.ByTransforming<TaggedItem>(
-            item => new { item.ItemType, item.UniqueIdentifier, Tags = item.Tags.Select(tag => tag.Name).ToArray() })
+            item => new
+            {
+                item.ItemType,
+                item.UniqueIdentifier,
+                Tags = item.Tags.Select(tag => tag.Name).ToArray()
+            })
         .MinimumLevel.Information()
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
@@ -26,8 +32,20 @@ builder.Host.UseSerilog((_, configuration) =>
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+var path = Constants.BasePath;
+if (!Directory.Exists(path))
+{
+    Directory.CreateDirectory(path);
+}
+
 builder.Services.AddGrpc();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+builder.Services.AddDbContext<TagToolDbContext>(options
+    => options
+        .UseSqlite($"Data Source={Constants.DbPath}")
+        .UseLoggerFactory(new SerilogLoggerFactory())
+        .EnableDetailedErrors()
+        .EnableSensitiveDataLogging());
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
@@ -36,7 +54,8 @@ app.MapGrpcService<TagService>();
 app.MapGrpcService<FileActionsService>();
 
 app.Logger.LogInformation("Executing EF migrations...");
-await using (var db = new TagContext())
+
+await using (var db = app.Services.GetRequiredService<TagToolDbContext>())
 {
     db.Database.Migrate();
 }

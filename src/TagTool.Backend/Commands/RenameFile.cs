@@ -24,10 +24,12 @@ public class RenameFileRequest : IRequest<RenameFileResponse>
 public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
 {
     private readonly ILogger<RenameFile> _logger;
+    private readonly TagToolDbContext _dbContext;
 
-    public RenameFile(ILogger<RenameFile> logger)
+    public RenameFile(ILogger<RenameFile> logger, TagToolDbContext dbContext)
     {
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     public async Task<RenameFileResponse> Handle(RenameFileRequest request, CancellationToken cancellationToken)
@@ -36,9 +38,7 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
         var parentDir = Path.GetDirectoryName(oldFullPath)!;
         var newFullPath = Path.Combine(parentDir, request.NewFileName);
 
-        await using var db = new TagContext();
-
-        var taggedItem = await db.TaggedItems.FirstOrDefaultAsync(
+        var taggedItem = await _dbContext.TaggedItems.FirstOrDefaultAsync(
             item => item.ItemType == "file" && item.UniqueIdentifier == oldFullPath,
             cancellationToken: cancellationToken);
 
@@ -49,7 +49,7 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
 
         taggedItem.UniqueIdentifier = newFullPath;
 
-        var entityEntry = db.TaggedItems.Update(taggedItem);
+        var entityEntry = _dbContext.TaggedItems.Update(taggedItem);
 
         try
         {
@@ -66,11 +66,11 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
 
             entityEntry.Entity.UniqueIdentifier = oldFullPath;
 
-            await db.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return new RenameFileResponse { ErrorMessage = $"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\"." };
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
         return new RenameFileResponse();
     }
 

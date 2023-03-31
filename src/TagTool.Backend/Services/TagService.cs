@@ -12,18 +12,18 @@ namespace TagTool.Backend.Services;
 public class TagService : Backend.TagService.TagServiceBase
 {
     private readonly ILogger<TagService> _logger;
+    private readonly TagToolDbContext _dbContext;
 
-    public TagService(ILogger<TagService> logger)
+    public TagService(ILogger<TagService> logger, TagToolDbContext dbContext)
     {
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
-
         var newTagName = request.TagName;
-        var first = db.Tags.FirstOrDefault(tag => tag.Name == newTagName);
+        var first = _dbContext.Tags.FirstOrDefault(tag => tag.Name == newTagName);
 
         if (first is not null)
         {
@@ -32,21 +32,18 @@ public class TagService : Backend.TagService.TagServiceBase
 
         _logger.LogInformation("Creating new tag {@TagName}", newTagName);
 
-        db.Tags.Add(new Tag { Name = newTagName });
-
-        await db.SaveChangesAsync(context.CancellationToken);
+        await _dbContext.Tags.AddAsync(new Tag { Name = newTagName });
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
 
         return new CreateTagReply { CreatedTagName = newTagName };
     }
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
-
         var newTagName = request.TagName;
-        var existingTag = db.Tags
+        var existingTag = await _dbContext.Tags
             .Include(tag => tag.TaggedItems)
-            .FirstOrDefault(tag => tag.Name == newTagName);
+            .FirstOrDefaultAsync(tag => tag.Name == newTagName);
 
         if (existingTag is null)
         {
@@ -62,19 +59,18 @@ public class TagService : Backend.TagService.TagServiceBase
         }
 
         _logger.LogInformation("Removing tag {@TagName} and all its occurrences in TaggedItems table", existingTag);
-        db.Tags.Remove(existingTag);
+        _dbContext.Tags.Remove(existingTag);
 
         return new DeleteTagReply { DeletedTagName = request.TagName };
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
         var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
 
-        var existingTag = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == tagName);
-        var tag = existingTag ?? db.Tags.Add(new Tag { Name = tagName }).Entity;
-        var existingItem = await db.TaggedItems
+        var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == tagName);
+        var tag = existingTag ?? _dbContext.Tags.Add(new Tag { Name = tagName }).Entity;
+        var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
 
@@ -88,7 +84,7 @@ public class TagService : Backend.TagService.TagServiceBase
             _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
             existingItem.Tags.Add(tag);
 
-            await db.SaveChangesAsync(context.CancellationToken);
+            await _dbContext.SaveChangesAsync(context.CancellationToken);
 
             return new TagItemReply
             {
@@ -97,7 +93,7 @@ public class TagService : Backend.TagService.TagServiceBase
         }
 
         _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
-        db.TaggedItems.Add(
+        _dbContext.TaggedItems.Add(
             new Models.TaggedItem
             {
                 ItemType = itemType,
@@ -105,17 +101,16 @@ public class TagService : Backend.TagService.TagServiceBase
                 Tags = new List<Tag> { tag }
             });
 
-        await db.SaveChangesAsync(context.CancellationToken);
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
 
         return new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-    await using var db = new TagContext();
         var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
 
-        var existingItem = await db.TaggedItems
+        var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
 
@@ -129,12 +124,12 @@ public class TagService : Backend.TagService.TagServiceBase
             return new UntagItemReply { ErrorMessage = $"There is no item {request.Item} in database." };
         }
 
-        var tag = await db.Tags.FirstAsync(tag => tag.Name == tagName);
+        var tag = await _dbContext.Tags.FirstAsync(tag => tag.Name == tagName);
 
         _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
         var isRemoved = existingItem.Tags.Remove(tag);
 
-        await db.SaveChangesAsync(context.CancellationToken);
+        await _dbContext.SaveChangesAsync(context.CancellationToken);
         return !isRemoved
             ? new UntagItemReply { ErrorMessage = $"Unable to remove tag {tag} from item {existingItem}." }
             : new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(t => t.Name) } } };
@@ -142,10 +137,8 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
-
         var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
-        var existingItem = await db.TaggedItems
+        var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
 
@@ -156,15 +149,13 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
-
-        var queryResults = db.TaggedItems
+        var queryResults = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .Where(item => item.Tags.Any(tag => request.TagNames.Contains(tag.Name)))
             .Select(item => new { Item = item, CommonTagsCount = item.Tags.Count(tag => request.TagNames.Contains(tag.Name)) })
             .OrderByDescending(arg => arg.CommonTagsCount)
             .Select(arg => arg.Item)
-            .ToArray();
+            .ToArrayAsync(context.CancellationToken);
 
         var results = queryResults.Select(item =>
             new TaggedItem
@@ -178,19 +169,16 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
-
         var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
-        var existingItem = await db.TaggedItems.FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+        var existingItem = await _dbContext.TaggedItems
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
 
         return new DoesItemExistsReply { Exists = existingItem is not null };
     }
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
-        await using var db = new TagContext();
-
-        var existingItem = await db.Tags.FirstOrDefaultAsync(tag => tag.Name == request.TagName);
+        var existingItem = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == request.TagName);
 
         return new DoesTagExistsReply { Exists = existingItem is not null };
     }
@@ -200,14 +188,12 @@ public class TagService : Backend.TagService.TagServiceBase
         IServerStreamWriter<SearchTagsReply> responseStream,
         ServerCallContext context)
     {
-        await using var db = new TagContext();
-
         switch (request.SearchType)
         {
             case SearchTagsRequest.Types.SearchType.Wildcard:
                 if (request.Name != "*") throw new NotImplementedException();
 
-                await foreach (var tag in db.Tags)
+                await foreach (var tag in _dbContext.Tags)
                 {
                     var matchTagsReply = new SearchTagsReply
                     {
@@ -222,7 +208,10 @@ public class TagService : Backend.TagService.TagServiceBase
                 return;
 
             case SearchTagsRequest.Types.SearchType.StartsWith:
-                var queryable = db.Tags.Where(tag => tag.Name.StartsWith(request.Name)).Select(tag => tag.Name).Take(request.ResultsLimit);
+                var queryable = _dbContext.Tags
+                    .Where(tag => tag.Name.StartsWith(request.Name))
+                    .Select(tag => tag.Name)
+                    .Take(request.ResultsLimit);
 
                 foreach (var tagName in queryable)
                 {
@@ -239,7 +228,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
                 return;
             case SearchTagsRequest.Types.SearchType.Partial:
-                await foreach (var tag in db.Tags)
+                await foreach (var tag in _dbContext.Tags)
                 {
                     var tagName = tag.Name;
                     var ahoCorasick = new AhoCorasick(request.Name.Substrings().Distinct());
