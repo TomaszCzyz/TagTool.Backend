@@ -23,18 +23,14 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
         {
             var canRenameFileRequest = requestStream.Current;
 
-            var query = new Queries.CanRenameFileRequest
-            {
-                NewFullPath = Path.Join(Path.GetDirectoryName(canRenameFileRequest.Item.Identifier), canRenameFileRequest.NewFileName)
-            };
+            var directoryName = Path.GetDirectoryName(canRenameFileRequest.Item.Identifier);
+            var query = new Queries.CanRenameFileRequest { NewFullPath = Path.Join(directoryName, canRenameFileRequest.NewFileName) };
 
-            var result = await _mediator.Send(query);
+            var response = await _mediator.Send(query);
 
-            var canRenameFileReply = result.CanRename
-                ? new CanRenameFileReply { Result = new Result { IsSuccess = true } }
-                : new CanRenameFileReply { Result = new Result { IsSuccess = false, Messages = { result.Message } } };
+            var reply = new CanRenameFileReply { Result = new Result { IsSuccess = response.CanRename, Messages = { response.Message } } };
 
-            await responseStream.WriteAsync(canRenameFileReply);
+            await responseStream.WriteAsync(reply);
         }
     }
 
@@ -44,9 +40,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
         var response = await _mediator.Send(command);
 
-        var reply = response.IsRenamed
-            ? new RenameFileReply { Result = new Result { IsSuccess = true } }
-            : new RenameFileReply { Result = new Result { IsSuccess = false, Messages = { response.ErrorMessage } } };
+        var reply = new RenameFileReply { Result = new Result { IsSuccess = response.IsRenamed, Messages = { response.ErrorMessage } } };
 
         return reply;
     }

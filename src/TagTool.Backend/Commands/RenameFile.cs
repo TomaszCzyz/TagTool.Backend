@@ -12,7 +12,6 @@ public class RenameFileResponse
     public bool IsRenamed => ErrorMessage is null;
 }
 
-[UsedImplicitly]
 public class RenameFileRequest : IRequest<RenameFileResponse>
 {
     public required string FullPath { get; init; }
@@ -38,9 +37,8 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
         var parentDir = Path.GetDirectoryName(oldFullPath)!;
         var newFullPath = Path.Combine(parentDir, request.NewFileName);
 
-        var taggedItem = await _dbContext.TaggedItems.FirstOrDefaultAsync(
-            item => item.ItemType == "file" && item.UniqueIdentifier == oldFullPath,
-            cancellationToken: cancellationToken);
+        var taggedItem = await _dbContext.TaggedItems
+            .FirstOrDefaultAsync(item => item.ItemType == "file" && item.UniqueIdentifier == oldFullPath, cancellationToken);
 
         if (taggedItem is null)
         {

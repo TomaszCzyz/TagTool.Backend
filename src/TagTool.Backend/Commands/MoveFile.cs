@@ -43,9 +43,8 @@ public class MoveFile : IRequestHandler<MoveFileRequest, MoveFileResponse>
             return new MoveFileResponse { ErrorMessage = "File with the same filename already exists in the destination location." };
         }
 
-        var taggedItem = await _dbContext.TaggedItems.FirstOrDefaultAsync(
-            item => item.ItemType == "file" && item.UniqueIdentifier == request.OldFullPath,
-            cancellationToken: cancellationToken);
+        var taggedItem = await _dbContext.TaggedItems
+            .FirstOrDefaultAsync(item => item.ItemType == "file" && item.UniqueIdentifier == request.OldFullPath, cancellationToken);
 
         if (taggedItem is null)
         {

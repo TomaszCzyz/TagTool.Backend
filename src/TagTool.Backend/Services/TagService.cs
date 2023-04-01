@@ -1,5 +1,6 @@
 ﻿using Ganss.Text;
 using Grpc.Core;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
@@ -12,12 +13,14 @@ namespace TagTool.Backend.Services;
 public class TagService : Backend.TagService.TagServiceBase
 {
     private readonly ILogger<TagService> _logger;
+    private readonly IMediator _mediator;
     private readonly TagToolDbContext _dbContext;
 
-    public TagService(ILogger<TagService> logger, TagToolDbContext dbContext)
+    public TagService(ILogger<TagService> logger, IMediator mediator, TagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _mediator = mediator;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -66,44 +69,22 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
-        var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
-
-        var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == tagName);
-        var tag = existingTag ?? _dbContext.Tags.Add(new Tag { Name = tagName }).Entity;
-        var existingItem = await _dbContext.TaggedItems
-            .Include(item => item.Tags)
-            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
-
-        if (existingItem is not null)
+        var command = new Commands.TagItemRequest
         {
-            if (existingItem.Tags.Contains(tag))
-            {
-                return new TagItemReply { ErrorMessage = $"Item {request.Item} already exists and it is tagged with a tag {tagName}" };
-            }
+            TagName = request.TagName,
+            ItemType = request.Item.ItemType,
+            Identifier = request.Item.Identifier
+        };
 
-            _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
-            existingItem.Tags.Add(tag);
+        var response = await _mediator.Send(command);
 
-            await _dbContext.SaveChangesAsync(context.CancellationToken);
+        var enumerable = response.TaggedItem?.Tags.Select(t => t.Name);
 
-            return new TagItemReply
-            {
-                TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(tag1 => tag1.Name) } }
-            };
-        }
+        var reply = response.TaggedItem is not null
+            ? new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { enumerable } } }
+            : new TagItemReply { ErrorMessage = response.ErrorMessage };
 
-        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
-        _dbContext.TaggedItems.Add(
-            new Models.TaggedItem
-            {
-                ItemType = itemType,
-                UniqueIdentifier = identifier,
-                Tags = new List<Tag> { tag }
-            });
-
-        await _dbContext.SaveChangesAsync(context.CancellationToken);
-
-        return new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { new[] { tag.Name } } } };
+        return reply;
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
