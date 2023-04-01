@@ -3,14 +3,14 @@ using MediatR;
 
 namespace TagTool.Backend.Commands;
 
-public class TagFolderChildrenResponse
+public class UntagFolderChildrenResponse
 {
     public string? ErrorMessage { get; init; }
 
     public bool IsSuccess => ErrorMessage is null;
 }
 
-public class TagFolderChildrenRequest : IRequest<TagFolderChildrenResponse>
+public class UntagFolderChildrenRequest : IRequest<UntagFolderChildrenResponse>
 {
     public required string RootFolder { get; init; }
 
@@ -22,18 +22,18 @@ public class TagFolderChildrenRequest : IRequest<TagFolderChildrenResponse>
 }
 
 [UsedImplicitly]
-public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFolderChildrenResponse>
+public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, UntagFolderChildrenResponse>
 {
-    private readonly ILogger<TagFolderChildren> _logger;
+    private readonly ILogger<UntagFolderChildren> _logger;
     private readonly IMediator _mediator;
 
-    public TagFolderChildren(ILogger<TagFolderChildren> logger, IMediator mediator)
+    public UntagFolderChildren(ILogger<UntagFolderChildren> logger, IMediator mediator)
     {
         _logger = logger;
         _mediator = mediator;
     }
 
-    public async Task<TagFolderChildrenResponse> Handle(TagFolderChildrenRequest request, CancellationToken cancellationToken)
+    public async Task<UntagFolderChildrenResponse> Handle(UntagFolderChildrenRequest request, CancellationToken cancellationToken)
     {
         var dirInfo = new DirectoryInfo(request.RootFolder);
         var enumerationOptions = new EnumerationOptions
@@ -44,10 +44,10 @@ public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFo
             ReturnSpecialDirectories = false
         };
 
-        var responses = new List<TagItemResponse>();
+        var responses = new List<UntagItemResponse>();
 
         _logger.LogInformation(
-            "Tagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",
+            "Untagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",
             request.RootFolder,
             enumerationOptions);
 
@@ -55,19 +55,19 @@ public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFo
         {
             if (info is DirectoryInfo && request.TagFilesOnly) continue;
 
-            var tagItemRequest = new TagItemRequest
+            var untagItemRequest = new UntagItemRequest
             {
                 TagName = request.TagName,
                 ItemType = info is FileInfo ? "file" : "folder",
                 Identifier = info.FullName
             };
 
-            var response = await _mediator.Send(tagItemRequest, cancellationToken);
+            var response = await _mediator.Send(untagItemRequest, cancellationToken);
 
             if (response.ErrorMessage is not null)
             {
                 _logger.LogInformation(
-                    "Item {ItemFullName} was not tagged, because of an error {ErrorMessage}",
+                    "Item {ItemFullName} was not untagged, because of an error {ErrorMessage}",
                     info.FullName,
                     response.ErrorMessage);
             }
@@ -77,7 +77,7 @@ public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFo
 
         // todo: introduce aggregated error message or list of tagItem errors or something...
         return responses.Any(response => response.ErrorMessage is null)
-            ? new TagFolderChildrenResponse()
-            : new TagFolderChildrenResponse { ErrorMessage = "Even one item was not tagged." };
+            ? new UntagFolderChildrenResponse()
+            : new UntagFolderChildrenResponse { ErrorMessage = "Even one item was not tagged." };
     }
 }

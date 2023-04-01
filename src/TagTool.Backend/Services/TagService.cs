@@ -89,31 +89,22 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-        var (tagName, itemType, identifier) = (request.TagName, request.Item.ItemType, request.Item.Identifier);
-
-        var existingItem = await _dbContext.TaggedItems
-            .Include(item => item.Tags)
-            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
-
-        if (existingItem is null)
+        var command = new Commands.UntagItemRequest
         {
-            return new UntagItemReply { ErrorMessage = $"There is no item {request.Item} in database." };
-        }
+            TagName = request.TagName,
+            ItemType = request.Item.ItemType,
+            Identifier = request.Item.Identifier
+        };
 
-        if (!existingItem.Tags.Select(tag => tag.Name).Contains(tagName))
-        {
-            return new UntagItemReply { ErrorMessage = $"There is no item {request.Item} in database." };
-        }
+        var response = await _mediator.Send(command, context.CancellationToken);
 
-        var tag = await _dbContext.Tags.FirstAsync(tag => tag.Name == tagName);
+        var enumerable = response.TaggedItem?.Tags.Select(t => t.Name);
 
-        _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
-        var isRemoved = existingItem.Tags.Remove(tag);
+        var reply = response.TaggedItem is not null
+            ? new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { enumerable } } }
+            : new UntagItemReply { ErrorMessage = response.ErrorMessage };
 
-        await _dbContext.SaveChangesAsync(context.CancellationToken);
-        return !isRemoved
-            ? new UntagItemReply { ErrorMessage = $"Unable to remove tag {tag} from item {existingItem}." }
-            : new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(t => t.Name) } } };
+        return reply;
     }
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)

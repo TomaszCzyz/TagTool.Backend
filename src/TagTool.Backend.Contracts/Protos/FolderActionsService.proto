@@ -15,8 +15,10 @@ service FolderActionsService {
   rpc MoveFolder (MoveFolderRequest) returns (MoveFolderReply);
   // Deletes a specified folder and its content.
   rpc DeleteFolder (DeleteFolderRequest) returns (DeleteFolderReply);
-  // Add given tag of children of a folder.
+  // Add given tag to children of a folder.
   rpc TagChildren (TagChildrenRequest) returns (TagChildrenReply);
+  // Removes given tag from children of a folder.
+  rpc UntagChildren (UntagChildrenRequest) returns (UntagChildrenReply);
 }
 
 message CanRenameFolderRequest {
@@ -81,5 +83,16 @@ message TagChildrenRequest {
 }
 
 message TagChildrenReply {
+  Result result = 1;
+}
+
+message UntagChildrenRequest {
+  string tagName = 1;
+  string fullName = 2;
+  int32 depth = 3;
+  bool tagOnlyFiles = 4;
+}
+
+message UntagChildrenReply {
   Result result = 1;
 }

@@ -75,7 +75,26 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
         };
         var response = await _mediator.Send(command);
 
-        var reply = new TagChildrenReply { Result = new Result { IsSuccess = response.IsSuccess, Messages = { response.ErrorMessage } } };
+        var reply = new TagChildrenReply { Result = new Result { IsSuccess = response.IsSuccess, Messages = { response.ErrorMessage ?? "" } } };
+
+        return reply;
+    }
+
+    public override async Task<UntagChildrenReply> UntagChildren(UntagChildrenRequest request, ServerCallContext context)
+    {
+        var command = new Commands.UntagFolderChildrenRequest
+        {
+            RootFolder = request.FullName,
+            TagName = request.TagName,
+            Depth = request.Depth,
+            TagFilesOnly = request.TagOnlyFiles
+        };
+        var response = await _mediator.Send(command);
+
+        var reply = new UntagChildrenReply
+        {
+            Result = new Result { IsSuccess = response.IsSuccess, Messages = { response.ErrorMessage ?? "" } }
+        };
 
         return reply;
     }
