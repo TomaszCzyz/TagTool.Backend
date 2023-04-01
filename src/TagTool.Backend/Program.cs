@@ -21,6 +21,8 @@ builder.Host.UseSerilog((_, configuration) =>
                 item.UniqueIdentifier,
                 Tags = item.Tags.Select(tag => tag.Name).ToArray()
             })
+        .Destructure.ByTransforming<Tag>(
+            tag => new { tag.Name, TaggedItem = tag.TaggedItems.Select(item => item.UniqueIdentifier).ToArray() })
         .MinimumLevel.Information()
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
@@ -28,7 +30,7 @@ builder.Host.UseSerilog((_, configuration) =>
         .WriteTo.Console(
             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}]{NewLine} {Message:lj}{NewLine}{Exception}",
             formatProvider: CultureInfo.CurrentCulture)
-        .WriteTo.SQLite(Constants.LogsDbPath, formatProvider: CultureInfo.CurrentCulture, storeTimestampInUtc: true, batchSize: 1));
+        .WriteTo.SQLite(Constants.LogsDbPath, formatProvider: CultureInfo.CurrentCulture, storeTimestampInUtc: true, batchSize: 20));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
@@ -63,6 +65,8 @@ await using (var db = scope.ServiceProvider.GetRequiredService<TagToolDbContext>
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();
+
+Log.CloseAndFlush();
 
 void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
 {
