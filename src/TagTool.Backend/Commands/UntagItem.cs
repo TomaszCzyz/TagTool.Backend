@@ -7,13 +7,6 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class UntagItemResponse
-{
-    public TaggedItem? TaggedItem { get; init; }
-
-    public string? ErrorMessage { get; init; }
-}
-
 public class UntagItemRequest : IRequest<OneOf<TaggedItem, ErrorResponse>>
 {
     public required string TagName { get; init; }

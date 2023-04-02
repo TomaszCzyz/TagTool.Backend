@@ -5,13 +5,6 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class UntagFolderChildrenResponse
-{
-    public string? ErrorMessage { get; init; }
-
-    public bool IsSuccess => ErrorMessage is null;
-}
-
 public class UntagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
 {
     public required string RootFolder { get; init; }
