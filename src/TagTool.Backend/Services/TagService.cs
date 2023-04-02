@@ -1,70 +1,46 @@
-﻿using Ganss.Text;
-using Grpc.Core;
+﻿using Grpc.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
+using TagTool.Backend.Queries;
 using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
 
 namespace TagTool.Backend.Services;
 
 public class TagService : Backend.TagService.TagServiceBase
 {
-    private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly TagToolDbContext _dbContext;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, TagToolDbContext dbContext)
+    public TagService(IMediator mediator, TagToolDbContext dbContext)
     {
-        _logger = logger;
         _dbContext = dbContext;
         _mediator = mediator;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        var newTagName = request.TagName;
-        var first = _dbContext.Tags.FirstOrDefault(tag => tag.Name == newTagName);
+        var command = new Commands.CreateTagRequest { TagName = request.TagName };
 
-        if (first is not null)
-        {
-            return new CreateTagReply { ErrorMessage = $"Tag {newTagName} already exists." };
-        }
+        var response = await _mediator.Send(command);
 
-        _logger.LogInformation("Creating new tag {@TagName}", newTagName);
-
-        await _dbContext.Tags.AddAsync(new Tag { Name = newTagName });
-        await _dbContext.SaveChangesAsync(context.CancellationToken);
-
-        return new CreateTagReply { CreatedTagName = newTagName };
+        return response.Match(
+            newTagName => new CreateTagReply { CreatedTagName = newTagName },
+            errorResponse => new CreateTagReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        var newTagName = request.TagName;
-        var existingTag = await _dbContext.Tags
-            .Include(tag => tag.TaggedItems)
-            .FirstOrDefaultAsync(tag => tag.Name == newTagName);
+        var command = new Commands.CreateTagRequest { TagName = request.TagName };
 
-        if (existingTag is null)
-        {
-            return new DeleteTagReply { ErrorMessage = $"Tag {request.TagName} does not exists." };
-        }
+        var response = await _mediator.Send(command);
 
-        if (!request.DeleteUsedToo && existingTag.TaggedItems.Count != 0)
-        {
-            var message = $"Tag {request.TagName} is in use and it was not deleted. " +
-                          $"If you want to delete this tag use {nameof(request.DeleteUsedToo)} flag.";
-
-            return new DeleteTagReply { ErrorMessage = message };
-        }
-
-        _logger.LogInformation("Removing tag {@TagName} and all its occurrences in TaggedItems table", existingTag);
-        _dbContext.Tags.Remove(existingTag);
-
-        return new DeleteTagReply { DeletedTagName = request.TagName };
+        return response.Match(
+            deletedTagName => new DeleteTagReply { DeletedTagName = deletedTagName },
+            errorResponse => new DeleteTagReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
@@ -113,20 +89,17 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
     {
-        var queryResults = await _dbContext.TaggedItems
-            .Include(item => item.Tags)
-            .Where(item => item.Tags.Any(tag => request.TagNames.Contains(tag.Name)))
-            .Select(item => new { Item = item, CommonTagsCount = item.Tags.Count(tag => request.TagNames.Contains(tag.Name)) })
-            .OrderByDescending(arg => arg.CommonTagsCount)
-            .Select(arg => arg.Item)
-            .ToArrayAsync(context.CancellationToken);
+        var query = new Queries.GetItemsByTagsRequest { TagNames = request.TagNames.ToArray() };
 
-        var results = queryResults.Select(item =>
-            new TaggedItem
-            {
-                Item = new Item { ItemType = item.ItemType, Identifier = item.UniqueIdentifier },
-                TagNames = { item.Tags.Select(tag => tag.Name) }
-            });
+        var taggedItems = await _mediator.Send(query, context.CancellationToken);
+
+        var results = taggedItems
+            .Select(item =>
+                new TaggedItem
+                {
+                    Item = new Item { ItemType = item.ItemType, Identifier = item.UniqueIdentifier }, TagNames = { item.Tags.Names() }
+                })
+            .ToArray();
 
         return new GetItemsByTagsReply { TaggedItem = { results } };
     }
@@ -135,14 +108,14 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
         var existingItem = await _dbContext.TaggedItems
-            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier, context.CancellationToken);
 
         return new DoesItemExistsReply { Exists = existingItem is not null };
     }
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
-        var existingItem = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == request.TagName);
+        var existingItem = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == request.TagName, context.CancellationToken);
 
         return new DoesTagExistsReply { Exists = existingItem is not null };
     }
@@ -152,71 +125,30 @@ public class TagService : Backend.TagService.TagServiceBase
         IServerStreamWriter<SearchTagsReply> responseStream,
         ServerCallContext context)
     {
-        switch (request.SearchType)
+        var (value, limit) = (request.Name, request.ResultsLimit);
+
+        IStreamRequest<(string, IEnumerable<MatchedPart>)> query = request.SearchType switch
         {
-            case SearchTagsRequest.Types.SearchType.Wildcard:
-                if (request.Name != "*") throw new NotImplementedException();
+            SearchTagsRequest.Types.SearchType.Wildcard => new SearchTagsWildcardRequest { Value = value, ResultsLimit = limit },
+            SearchTagsRequest.Types.SearchType.StartsWith => new SearchTagsStartsWithRequest { Value = value, ResultsLimit = limit },
+            SearchTagsRequest.Types.SearchType.Partial => new SearchTagsPartialRequest { Value = value, ResultsLimit = limit },
+            _ => throw new ArgumentOutOfRangeException(nameof(request))
+        };
 
-                await foreach (var tag in _dbContext.Tags)
-                {
-                    var matchTagsReply = new SearchTagsReply
-                    {
-                        TagName = tag.Name,
-                        MatchedPart = { new SearchTagsReply.Types.MatchedPart { StartIndex = 0, Length = tag.Name.Length } },
-                        IsExactMatch = true
-                    };
+        await foreach (var (tagName, parts) in _mediator.CreateStream(query, context.CancellationToken))
+        {
+            var matchedParts = parts
+                .Select(part => new SearchTagsReply.Types.MatchedPart { StartIndex = part.StartIndex, Length = part.Length })
+                .ToArray();
 
-                    await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
-                }
+            var matchTagsReply = new SearchTagsReply
+            {
+                TagName = tagName,
+                MatchedPart = { matchedParts },
+                IsExactMatch = matchedParts[0].Length == tagName.Length
+            };
 
-                return;
-
-            case SearchTagsRequest.Types.SearchType.StartsWith:
-                var queryable = _dbContext.Tags
-                    .Where(tag => tag.Name.StartsWith(request.Name))
-                    .Select(tag => tag.Name)
-                    .Take(request.ResultsLimit);
-
-                foreach (var tagName in queryable)
-                {
-                    var matchedPart = new SearchTagsReply.Types.MatchedPart { StartIndex = 0, Length = tagName.IndexOf(request.Name.Last()) };
-                    var matchTagsReply = new SearchTagsReply
-                    {
-                        TagName = tagName,
-                        MatchedPart = { matchedPart },
-                        IsExactMatch = matchedPart.Length == tagName.Length
-                    };
-
-                    await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
-                }
-
-                return;
-            case SearchTagsRequest.Types.SearchType.Partial:
-                await foreach (var tag in _dbContext.Tags)
-                {
-                    var tagName = tag.Name;
-                    var ahoCorasick = new AhoCorasick(request.Name.Substrings().Distinct());
-
-                    var matchedParts = ahoCorasick
-                        .Search(tagName) // todo: safeguard for very long tagNames would be nice
-                        .ExcludeOverlaying(tagName)
-                        .Select(match => new SearchTagsReply.Types.MatchedPart { StartIndex = match.Index, Length = match.Word.Length })
-                        .OrderByDescending(match => match.Length)
-                        .ToList();
-
-                    if (matchedParts.Count == 0) continue;
-
-                    var matchTagsReply = new SearchTagsReply
-                    {
-                        TagName = tagName,
-                        MatchedPart = { matchedParts },
-                        IsExactMatch = matchedParts[0].Length == tagName.Length
-                    };
-
-                    await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
-                }
-
-                return;
+            await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
         }
     }
 }
