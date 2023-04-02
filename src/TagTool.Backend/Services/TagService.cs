@@ -2,6 +2,8 @@
 using Grpc.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
+using TagTool.Backend.Commands;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
@@ -78,13 +80,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var response = await _mediator.Send(command);
 
-        var enumerable = response.TaggedItem?.Tags.Select(t => t.Name);
-
-        var reply = response.TaggedItem is not null
-            ? new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { enumerable } } }
-            : new TagItemReply { ErrorMessage = response.ErrorMessage };
-
-        return reply;
+        return response.Match(
+            item => new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { item.Tags.Names() } } },
+            errorResponse => new TagItemReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
@@ -98,13 +96,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
-        var enumerable = response.TaggedItem?.Tags.Select(t => t.Name);
-
-        var reply = response.TaggedItem is not null
-            ? new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { enumerable } } }
-            : new UntagItemReply { ErrorMessage = response.ErrorMessage };
-
-        return reply;
+        return response.Match(
+            item => new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { item.Tags.Names() } } },
+            errorResponse => new UntagItemReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)

@@ -42,7 +42,12 @@ message RenameFolderRequest {
 
 message RenameFolderReply {
   // The result indicating if renaming was successful.
-  Result result = 1;
+  oneof result {
+    // New location of a moved folder.
+    string newFullName = 1;
+    // The error message.
+    string errorMessage = 2;
+  };
 }
 
 message MoveFolderRequest {
@@ -83,7 +88,11 @@ message TagChildrenRequest {
 }
 
 message TagChildrenReply {
-  Result result = 1;
+  oneof result {
+    string successMessage = 1;
+    // The error message.
+    string errorMessage = 2;
+  };
 }
 
 message UntagChildrenRequest {
@@ -94,5 +103,9 @@ message UntagChildrenRequest {
 }
 
 message UntagChildrenReply {
-  Result result = 1;
+  oneof result {
+    string successMessage = 1;
+    // The error message.
+    string errorMessage = 2;
+  };
 }

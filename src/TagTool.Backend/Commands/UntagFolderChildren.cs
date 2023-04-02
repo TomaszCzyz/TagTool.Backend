@@ -1,5 +1,7 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
+using OneOf;
+using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
@@ -10,7 +12,7 @@ public class UntagFolderChildrenResponse
     public bool IsSuccess => ErrorMessage is null;
 }
 
-public class UntagFolderChildrenRequest : IRequest<UntagFolderChildrenResponse>
+public class UntagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
 {
     public required string RootFolder { get; init; }
 
@@ -22,7 +24,7 @@ public class UntagFolderChildrenRequest : IRequest<UntagFolderChildrenResponse>
 }
 
 [UsedImplicitly]
-public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, UntagFolderChildrenResponse>
+public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<UntagFolderChildren> _logger;
     private readonly IMediator _mediator;
@@ -33,7 +35,7 @@ public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, U
         _mediator = mediator;
     }
 
-    public async Task<UntagFolderChildrenResponse> Handle(UntagFolderChildrenRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<string, ErrorResponse>> Handle(UntagFolderChildrenRequest request, CancellationToken cancellationToken)
     {
         var dirInfo = new DirectoryInfo(request.RootFolder);
         var enumerationOptions = new EnumerationOptions
@@ -44,7 +46,7 @@ public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, U
             ReturnSpecialDirectories = false
         };
 
-        var responses = new List<UntagItemResponse>();
+        var responses = new List<OneOf<TaggedItem, ErrorResponse>>();
 
         _logger.LogInformation(
             "Untagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",
@@ -64,20 +66,20 @@ public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, U
 
             var response = await _mediator.Send(untagItemRequest, cancellationToken);
 
-            if (response.ErrorMessage is not null)
+            if (response.TryPickT1(out var errorResponse, out _))
             {
                 _logger.LogInformation(
                     "Item {ItemFullName} was not untagged, because of an error {ErrorMessage}",
                     info.FullName,
-                    response.ErrorMessage);
+                    errorResponse.Message);
             }
 
             responses.Add(response);
         }
 
         // todo: introduce aggregated error message or list of tagItem errors or something...
-        return responses.Any(response => response.ErrorMessage is null)
-            ? new UntagFolderChildrenResponse()
-            : new UntagFolderChildrenResponse { ErrorMessage = "Even one item was not tagged." };
+        return responses.Any(response => response.IsT0)
+            ? "Some or all items were untagged"
+            : new ErrorResponse("Even one item was not tagged.");
     }
 }

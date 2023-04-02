@@ -1,18 +1,13 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class RenameFolderResponse
-{
-    public string? ErrorMessage { get; init; }
-
-    public bool IsRenamed => ErrorMessage is null;
-}
-
-public class RenameFolderRequest : IRequest<RenameFolderResponse>
+public class RenameFolderRequest : IRequest<OneOf<string, ErrorResponse>>
 {
     public required string FullPath { get; init; }
 
@@ -20,7 +15,7 @@ public class RenameFolderRequest : IRequest<RenameFolderResponse>
 }
 
 [UsedImplicitly]
-public class RenameFolder : IRequestHandler<RenameFolderRequest, RenameFolderResponse>
+public class RenameFolder : IRequestHandler<RenameFolderRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<RenameFolder> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -31,7 +26,7 @@ public class RenameFolder : IRequestHandler<RenameFolderRequest, RenameFolderRes
         _dbContext = dbContext;
     }
 
-    public async Task<RenameFolderResponse> Handle(RenameFolderRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<string, ErrorResponse>> Handle(RenameFolderRequest request, CancellationToken cancellationToken)
     {
         var oldFullPath = request.FullPath;
         var parentDir = Directory.GetParent(oldFullPath)?.FullName
@@ -66,14 +61,14 @@ public class RenameFolder : IRequestHandler<RenameFolderRequest, RenameFolderRes
             entityEntry.Entity.UniqueIdentifier = oldFullPath;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return new RenameFolderResponse { ErrorMessage = $"Unable to rename \"{oldFullPath}\"." };
+            return new ErrorResponse($"Unable to rename \"{oldFullPath}\".");
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return new RenameFolderResponse();
+        return newFullPath;
     }
 
-    private RenameFolderResponse RenameUntrackedFolder(string oldFullPath, string newFullPath)
+    private OneOf<string, ErrorResponse> RenameUntrackedFolder(string oldFullPath, string newFullPath)
     {
         try
         {
@@ -82,9 +77,9 @@ public class RenameFolder : IRequestHandler<RenameFolderRequest, RenameFolderRes
         catch (Exception e)
         {
             _logger.LogWarning(e, "Unable to rename untracked folder {OldPath} to {NewPath}", oldFullPath, newFullPath);
-            return new RenameFolderResponse { ErrorMessage = $"Unable to rename \"{oldFullPath}\"." };
+            return new ErrorResponse($"Unable to rename \"{oldFullPath}\"." );
         }
 
-        return new RenameFolderResponse();
+        return newFullPath;
     }
 }

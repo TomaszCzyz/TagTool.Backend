@@ -1,18 +1,13 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class RenameFileResponse
-{
-    public string? ErrorMessage { get; init; }
-
-    public bool IsRenamed => ErrorMessage is null;
-}
-
-public class RenameFileRequest : IRequest<RenameFileResponse>
+public class RenameFileRequest : IRequest<OneOf<string, ErrorResponse>>
 {
     public required string FullPath { get; init; }
 
@@ -20,7 +15,7 @@ public class RenameFileRequest : IRequest<RenameFileResponse>
 }
 
 [UsedImplicitly]
-public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
+public class RenameFile : IRequestHandler<RenameFileRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<RenameFile> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -31,7 +26,7 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
         _dbContext = dbContext;
     }
 
-    public async Task<RenameFileResponse> Handle(RenameFileRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<string, ErrorResponse>> Handle(RenameFileRequest request, CancellationToken cancellationToken)
     {
         var oldFullPath = request.FullPath;
         var parentDir = Path.GetDirectoryName(oldFullPath)!;
@@ -65,14 +60,14 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
             entityEntry.Entity.UniqueIdentifier = oldFullPath;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return new RenameFileResponse { ErrorMessage = $"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\"." };
+            return new ErrorResponse($"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\".");
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return new RenameFileResponse();
+        return newFullPath;
     }
 
-    private RenameFileResponse RenameUntrackedFile(string oldFullPath, string newFullPath)
+    private OneOf<string, ErrorResponse> RenameUntrackedFile(string oldFullPath, string newFullPath)
     {
         try
         {
@@ -81,9 +76,9 @@ public class RenameFile : IRequestHandler<RenameFileRequest, RenameFileResponse>
         catch (Exception e)
         {
             _logger.LogWarning(e, "Unable to rename untracked file {OldPath} to {NewPath}", oldFullPath, newFullPath);
-            return new RenameFileResponse { ErrorMessage = $"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\"." };
+            return new ErrorResponse($"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\".");
         }
 
-        return new RenameFileResponse();
+        return newFullPath;
     }
 }

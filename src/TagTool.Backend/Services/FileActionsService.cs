@@ -40,9 +40,9 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
         var response = await _mediator.Send(command);
 
-        var reply = new RenameFileReply { Result = new Result { IsSuccess = response.IsRenamed, Messages = { response.ErrorMessage } } };
-
-        return reply;
+        return response.Match(
+            newFullName => new RenameFileReply { NewFullName = newFullName },
+            errorResponse => new RenameFileReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<MoveFileReply> MoveFile(MoveFileRequest request, ServerCallContext context)
@@ -51,11 +51,9 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
         var response = await _mediator.Send(command);
 
-        var reply = response.IsMoved
-            ? new MoveFileReply { NewLocation = request.Destination }
-            : new MoveFileReply { ErrorMessage = response.ErrorMessage };
-
-        return reply;
+        return response.Match(
+            newFullName => new MoveFileReply { NewLocation = newFullName },
+            errorResponse => new MoveFileReply { ErrorMessage = errorResponse.Message });
     }
 
     public override Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context)

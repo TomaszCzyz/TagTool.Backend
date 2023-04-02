@@ -1,5 +1,7 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
+using OneOf;
+using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
@@ -10,7 +12,7 @@ public class TagFolderChildrenResponse
     public bool IsSuccess => ErrorMessage is null;
 }
 
-public class TagFolderChildrenRequest : IRequest<TagFolderChildrenResponse>
+public class TagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
 {
     public required string RootFolder { get; init; }
 
@@ -22,7 +24,7 @@ public class TagFolderChildrenRequest : IRequest<TagFolderChildrenResponse>
 }
 
 [UsedImplicitly]
-public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFolderChildrenResponse>
+public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<TagFolderChildren> _logger;
     private readonly IMediator _mediator;
@@ -33,7 +35,7 @@ public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFo
         _mediator = mediator;
     }
 
-    public async Task<TagFolderChildrenResponse> Handle(TagFolderChildrenRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<string, ErrorResponse>> Handle(TagFolderChildrenRequest request, CancellationToken cancellationToken)
     {
         var dirInfo = new DirectoryInfo(request.RootFolder);
         var enumerationOptions = new EnumerationOptions
@@ -44,7 +46,7 @@ public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFo
             ReturnSpecialDirectories = false
         };
 
-        var responses = new List<TagItemResponse>();
+        var responses = new List<OneOf<TaggedItem, ErrorResponse>>();
 
         _logger.LogInformation(
             "Tagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",
@@ -64,20 +66,20 @@ public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, TagFo
 
             var response = await _mediator.Send(tagItemRequest, cancellationToken);
 
-            if (response.ErrorMessage is not null)
+            if (response.TryPickT1(out var errorResponse, out _))
             {
                 _logger.LogInformation(
                     "Item {ItemFullName} was not tagged, because of an error {ErrorMessage}",
                     info.FullName,
-                    response.ErrorMessage);
+                    errorResponse.Message);
             }
 
             responses.Add(response);
         }
 
         // todo: introduce aggregated error message or list of tagItem errors or something...
-        return responses.Any(response => response.ErrorMessage is null)
-            ? new TagFolderChildrenResponse()
-            : new TagFolderChildrenResponse { ErrorMessage = "Even one item was not tagged." };
+        return responses.Any(response => response.IsT0)
+            ? "Some or all items were tagged"
+            : new ErrorResponse("Even one item was not tagged.");
     }
 }

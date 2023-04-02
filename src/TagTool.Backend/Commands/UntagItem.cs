@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 
@@ -13,7 +14,7 @@ public class UntagItemResponse
     public string? ErrorMessage { get; init; }
 }
 
-public class UntagItemRequest : IRequest<UntagItemResponse>
+public class UntagItemRequest : IRequest<OneOf<TaggedItem, ErrorResponse>>
 {
     public required string TagName { get; init; }
 
@@ -23,7 +24,7 @@ public class UntagItemRequest : IRequest<UntagItemResponse>
 }
 
 [UsedImplicitly]
-public class UntagItem : IRequestHandler<UntagItemRequest, UntagItemResponse>
+public class UntagItem : IRequestHandler<UntagItemRequest, OneOf<TaggedItem, ErrorResponse>>
 {
     private readonly ILogger<UntagItem> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -34,7 +35,7 @@ public class UntagItem : IRequestHandler<UntagItemRequest, UntagItemResponse>
         _dbContext = dbContext;
     }
 
-    public async Task<UntagItemResponse> Handle(UntagItemRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<TaggedItem, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
     {
         var (tagName, itemType, identifier) = (request.TagName, request.ItemType, request.Identifier);
 
@@ -44,12 +45,12 @@ public class UntagItem : IRequestHandler<UntagItemRequest, UntagItemResponse>
 
         if (existingItem is null)
         {
-            return new UntagItemResponse { ErrorMessage = $"There is no {request.ItemType} item {request.Identifier} in database." };
+            return new ErrorResponse($"There is no {request.ItemType} item {request.Identifier} in database.");
         }
 
         if (!existingItem.Tags.Select(tag => tag.Name).Contains(tagName))
         {
-            return new UntagItemResponse { ErrorMessage = $"{request.ItemType} item does not contain tag {request.TagName}." };
+            return new ErrorResponse($"{request.ItemType} item does not contain tag {request.TagName}.");
         }
 
         var tag = await _dbContext.Tags.FirstAsync(tag => tag.Name == tagName, cancellationToken);
@@ -58,8 +59,7 @@ public class UntagItem : IRequestHandler<UntagItemRequest, UntagItemResponse>
         var isRemoved = existingItem.Tags.Remove(tag);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return !isRemoved
-            ? new UntagItemResponse { ErrorMessage = $"Unable to remove tag {tag} from item {existingItem}." }
-            : new UntagItemResponse { TaggedItem = existingItem };
+
+        return isRemoved ? existingItem : new ErrorResponse($"Unable to remove tag {tag} from item {existingItem}.");
     }
 }

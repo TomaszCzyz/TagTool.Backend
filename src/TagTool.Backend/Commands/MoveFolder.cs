@@ -1,18 +1,13 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class MoveFolderResponse
-{
-    public string? ErrorMessage { get; init; }
-
-    public bool IsMoved => ErrorMessage is null;
-}
-
-public class MoveFolderRequest : IRequest<MoveFolderResponse>
+public class MoveFolderRequest : IRequest<OneOf<string, ErrorResponse>>
 {
     public required string OldFullPath { get; init; }
 
@@ -20,7 +15,7 @@ public class MoveFolderRequest : IRequest<MoveFolderResponse>
 }
 
 [UsedImplicitly]
-public class MoveFolder : IRequestHandler<MoveFolderRequest, MoveFolderResponse>
+public class MoveFolder : IRequestHandler<MoveFolderRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<MoveFolder> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -31,13 +26,13 @@ public class MoveFolder : IRequestHandler<MoveFolderRequest, MoveFolderResponse>
         _dbContext = dbContext;
     }
 
-    public async Task<MoveFolderResponse> Handle(MoveFolderRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<string, ErrorResponse>> Handle(MoveFolderRequest request, CancellationToken cancellationToken)
     {
         var (oldFullPath, newFullPath) = (request.OldFullPath, request.NewFullPath);
 
         if (Directory.Exists(newFullPath))
         {
-            return new MoveFolderResponse { ErrorMessage = "Folder with the same filename already exists in the destination location." };
+            return new ErrorResponse("Folder with the same filename already exists in the destination location.");
         }
 
         var taggedItem = await _dbContext.TaggedItems
@@ -68,14 +63,14 @@ public class MoveFolder : IRequestHandler<MoveFolderRequest, MoveFolderResponse>
             entityEntry.Entity.UniqueIdentifier = oldFullPath;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return new MoveFolderResponse { ErrorMessage = $"Unable to move a folder from \"{oldFullPath}\" to \"{newFullPath}\"." };
+            return new ErrorResponse($"Unable to move a folder from \"{oldFullPath}\" to \"{newFullPath}\".");
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-        return new MoveFolderResponse();
+        return newFullPath;
     }
 
-    private MoveFolderResponse MoveUntrackedFolder(string oldFullPath, string newFullPath)
+    private OneOf<string, ErrorResponse> MoveUntrackedFolder(string oldFullPath, string newFullPath)
     {
         try
         {
@@ -84,9 +79,9 @@ public class MoveFolder : IRequestHandler<MoveFolderRequest, MoveFolderResponse>
         catch (Exception e)
         {
             _logger.LogWarning(e, "Unable to move untracked folder from {OldPath} to {NewPath}", oldFullPath, newFullPath);
-            return new MoveFolderResponse { ErrorMessage = $"Unable to move a folder from \"{oldFullPath}\" to \"{newFullPath}\"." };
+            return new ErrorResponse($"Unable to move a folder from \"{oldFullPath}\" to \"{newFullPath}\".");
         }
 
-        return new MoveFolderResponse();
+        return newFullPath;
     }
 }

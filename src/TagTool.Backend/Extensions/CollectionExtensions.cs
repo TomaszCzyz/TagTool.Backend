@@ -1,4 +1,6 @@
-﻿namespace TagTool.Backend.Extensions;
+﻿using TagTool.Backend.Models;
+
+namespace TagTool.Backend.Extensions;
 
 public static class CollectionExtensions
 {
@@ -11,4 +13,6 @@ public static class CollectionExtensions
             collection.Add(entity);
         }
     }
+
+    public static string[] Names(this IEnumerable<Tag> tagCollection) => tagCollection.Select(tag => tag.Name).ToArray();
 }

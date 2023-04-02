@@ -1,19 +1,13 @@
 ﻿using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class TagItemResponse
-{
-    public TaggedItem? TaggedItem { get; init; }
-
-    public string? ErrorMessage { get; init; }
-}
-
-public class TagItemRequest : IRequest<TagItemResponse>
+public class TagItemRequest : IRequest<OneOf<TaggedItem, ErrorResponse>>
 {
     public required string TagName { get; init; }
 
@@ -23,7 +17,7 @@ public class TagItemRequest : IRequest<TagItemResponse>
 }
 
 [UsedImplicitly]
-public class TagItem : IRequestHandler<TagItemRequest, TagItemResponse>
+public class TagItem : IRequestHandler<TagItemRequest, OneOf<TaggedItem, ErrorResponse>>
 {
     private readonly ILogger<TagItem> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -34,7 +28,7 @@ public class TagItem : IRequestHandler<TagItemRequest, TagItemResponse>
         _dbContext = dbContext;
     }
 
-    public async Task<TagItemResponse> Handle(TagItemRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<TaggedItem, ErrorResponse>> Handle(TagItemRequest request, CancellationToken cancellationToken)
     {
         var (tagName, itemType, identifier) = (request.TagName, request.ItemType, request.Identifier);
 
@@ -48,7 +42,7 @@ public class TagItem : IRequestHandler<TagItemRequest, TagItemResponse>
         {
             if (existingItem.Tags.Contains(tag))
             {
-                return new TagItemResponse { ErrorMessage = $"Item {request.Identifier} already exists and it is tagged with a tag {tagName}" };
+                return new ErrorResponse($"Item {request.Identifier} already exists and it is tagged with a tag {tagName}");
             }
 
             _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
@@ -56,20 +50,20 @@ public class TagItem : IRequestHandler<TagItemRequest, TagItemResponse>
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return new TagItemResponse { TaggedItem = existingItem };
+            return existingItem;
         }
 
         _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
-        _dbContext.TaggedItems.Add(
-            new TaggedItem
-            {
-                ItemType = itemType,
-                UniqueIdentifier = identifier,
-                Tags = new List<Tag> { tag }
-            });
+        var newTaggedItem = new TaggedItem
+        {
+            ItemType = itemType,
+            UniqueIdentifier = identifier,
+            Tags = new List<Tag> { tag }
+        };
+        var entry = _dbContext.TaggedItems.Add(newTaggedItem);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new TagItemResponse { TaggedItem = existingItem };
+        return entry.Entity;
     }
 }

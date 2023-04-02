@@ -41,9 +41,9 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
         var response = await _mediator.Send(command);
 
-        var reply = new RenameFolderReply { Result = new Result { IsSuccess = response.IsRenamed, Messages = { response.ErrorMessage } } };
-
-        return reply;
+        return response.Match(
+            newFullName => new RenameFolderReply { NewFullName = newFullName },
+            errorResponse => new RenameFolderReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<MoveFolderReply> MoveFolder(MoveFolderRequest request, ServerCallContext context)
@@ -52,11 +52,9 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
         var response = await _mediator.Send(command);
 
-        var reply = response.IsMoved
-            ? new MoveFolderReply { NewLocation = request.Destination }
-            : new MoveFolderReply { ErrorMessage = response.ErrorMessage };
-
-        return reply;
+        return response.Match(
+            newFullName => new MoveFolderReply { NewLocation = newFullName },
+            errorResponse => new MoveFolderReply { ErrorMessage = errorResponse.Message });
     }
 
     public override Task<DeleteFolderReply> DeleteFolder(DeleteFolderRequest request, ServerCallContext context)
@@ -73,11 +71,12 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
             Depth = request.Depth,
             TagFilesOnly = request.TagOnlyFiles
         };
+
         var response = await _mediator.Send(command);
 
-        var reply = new TagChildrenReply { Result = new Result { IsSuccess = response.IsSuccess, Messages = { response.ErrorMessage ?? "" } } };
-
-        return reply;
+        return response.Match(
+            message => new TagChildrenReply { SuccessMessage = message },
+            errorResponse => new TagChildrenReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<UntagChildrenReply> UntagChildren(UntagChildrenRequest request, ServerCallContext context)
@@ -89,13 +88,11 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
             Depth = request.Depth,
             TagFilesOnly = request.TagOnlyFiles
         };
+
         var response = await _mediator.Send(command);
 
-        var reply = new UntagChildrenReply
-        {
-            Result = new Result { IsSuccess = response.IsSuccess, Messages = { response.ErrorMessage ?? "" } }
-        };
-
-        return reply;
+        return response.Match(
+            message => new UntagChildrenReply { SuccessMessage = message },
+            errorResponse => new UntagChildrenReply { ErrorMessage = errorResponse.Message });
     }
 }

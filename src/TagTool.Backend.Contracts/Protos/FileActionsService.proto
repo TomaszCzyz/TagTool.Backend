@@ -40,7 +40,12 @@ message RenameFileRequest {
 
 message RenameFileReply {
   // The result indicating if renaming was successful.
-  Result result = 2;
+  oneof result {
+    // New location of a renamed file.
+    string newFullName = 1;
+    // The error message.
+    string errorMessage = 2;
+  };
 }
 
 message MoveFileRequest {
