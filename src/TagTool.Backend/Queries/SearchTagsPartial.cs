@@ -10,11 +10,10 @@ namespace TagTool.Backend.Queries;
 
 public class SearchTagsPartialRequest : IStreamRequest<(string, IEnumerable<MatchedPart>)>
 {
-    public string Value { get; init; }
+    public required string Value { get; init; }
 
     public int ResultsLimit { get; init; } = 20;
 }
-
 
 [UsedImplicitly]
 public class SearchTagsPartial : IStreamRequestHandler<SearchTagsPartialRequest, (string, IEnumerable<MatchedPart>)>

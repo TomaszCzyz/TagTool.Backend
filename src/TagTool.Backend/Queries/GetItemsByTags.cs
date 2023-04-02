@@ -8,7 +8,7 @@ namespace TagTool.Backend.Queries;
 
 public class GetItemsByTagsRequest : IRequest<IEnumerable<TaggedItem>>
 {
-    public string[] TagNames { get; init; }
+    public required string[] TagNames { get; init; }
 }
 
 [UsedImplicitly]
