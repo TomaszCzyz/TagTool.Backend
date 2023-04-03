@@ -15,7 +15,6 @@
     <PackageReference Include="AhoCorasick" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="JetBrains.Annotations" />
-    <PackageReference Include="LiteDB" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
