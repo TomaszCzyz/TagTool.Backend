@@ -27,7 +27,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
                 NewFullPath = Path.Join(Path.GetDirectoryName(canRenameFolderRequest.FullName), canRenameFolderRequest.NewFolderName)
             };
 
-            var response = await _mediator.Send(query);
+            var response = await _mediator.Send(query, context.CancellationToken);
 
             var reply = new CanRenameFolderReply { Result = new Result { IsSuccess = response.CanRename, Messages = { response.Message } } };
 
@@ -39,7 +39,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
     {
         var command = new Commands.RenameFolderRequest { FullPath = request.FullName, NewFolderName = request.NewFolderName };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             newFullName => new RenameFolderReply { NewFullName = newFullName },
@@ -50,7 +50,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
     {
         var command = new Commands.MoveFolderRequest { OldFullPath = request.FullName, NewFullPath = request.Destination };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             newFullName => new MoveFolderReply { NewLocation = newFullName },
@@ -72,7 +72,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
             TagFilesOnly = request.TagOnlyFiles
         };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             message => new TagChildrenReply { SuccessMessage = message },
@@ -89,7 +89,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
             TagFilesOnly = request.TagOnlyFiles
         };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             message => new UntagChildrenReply { SuccessMessage = message },

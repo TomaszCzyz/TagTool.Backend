@@ -26,7 +26,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             var directoryName = Path.GetDirectoryName(canRenameFileRequest.Item.Identifier);
             var query = new Queries.CanRenameFileRequest { NewFullPath = Path.Join(directoryName, canRenameFileRequest.NewFileName) };
 
-            var response = await _mediator.Send(query);
+            var response = await _mediator.Send(query, context.CancellationToken);
 
             var reply = new CanRenameFileReply { Result = new Result { IsSuccess = response.CanRename, Messages = { response.Message } } };
 
@@ -38,7 +38,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
     {
         var command = new Commands.RenameFileRequest { FullPath = request.Item.Identifier, NewFileName = request.NewFileName };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             newFullName => new RenameFileReply { NewFullName = newFullName },
@@ -49,7 +49,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
     {
         var command = new Commands.MoveFileRequest { OldFullPath = request.Item.Identifier, NewFullPath = request.Destination };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             newFullName => new MoveFileReply { NewLocation = newFullName },

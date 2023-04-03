@@ -25,7 +25,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var command = new Commands.CreateTagRequest { TagName = request.TagName };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             newTagName => new CreateTagReply { CreatedTagName = newTagName },
@@ -36,7 +36,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var command = new Commands.CreateTagRequest { TagName = request.TagName };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             deletedTagName => new DeleteTagReply { DeletedTagName = deletedTagName },
@@ -52,7 +52,7 @@ public class TagService : Backend.TagService.TagServiceBase
             Identifier = request.Item.Identifier
         };
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
             item => new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { item.Tags.Names() } } },
