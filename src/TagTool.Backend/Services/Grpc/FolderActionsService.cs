@@ -2,7 +2,7 @@
 using MediatR;
 using TagTool.Backend.DomainTypes;
 
-namespace TagTool.Backend.Services;
+namespace TagTool.Backend.Services.Grpc;
 
 public class FolderActionsService : Backend.FolderActionsService.FolderActionsServiceBase
 {

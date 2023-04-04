@@ -8,7 +8,7 @@ using TagTool.Backend.Models;
 using TagTool.Backend.Queries;
 using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
 
-namespace TagTool.Backend.Services;
+namespace TagTool.Backend.Services.Grpc;
 
 public class TagService : Backend.TagService.TagServiceBase
 {

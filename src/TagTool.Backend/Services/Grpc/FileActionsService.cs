@@ -3,7 +3,7 @@ using Grpc.Core;
 using MediatR;
 using TagTool.Backend.DomainTypes;
 
-namespace TagTool.Backend.Services;
+namespace TagTool.Backend.Services.Grpc;
 
 public class FileActionsService : Backend.FileActionsService.FileActionsServiceBase
 {

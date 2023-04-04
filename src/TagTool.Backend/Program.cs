@@ -9,6 +9,7 @@ using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Services;
+using TagTool.Backend.Services.Grpc;
 
 var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder();
 
@@ -42,6 +43,7 @@ if (!Directory.Exists(path))
 
 builder.Services.AddGrpc();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddDbContext<TagToolDbContext>(options
     => options
         .UseSqlite($"Data Source={Constants.DbPath}")
