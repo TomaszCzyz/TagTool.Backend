@@ -48,6 +48,7 @@ public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorRe
 
         _logger.LogInformation("Removing tag {@TagName} and all its occurrences in TaggedItems table", existingTag);
         _dbContext.Tags.Remove(existingTag);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         return request.TagName;
     }

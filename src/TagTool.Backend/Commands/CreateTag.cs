@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -10,6 +9,8 @@ namespace TagTool.Backend.Commands;
 public class CreateTagRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string TagName { get; init; }
+
+    public ICommand<OneOf<string, ErrorResponse>> GetUndoCommand() => new DeleteTagRequest { TagName = TagName };
 }
 
 [UsedImplicitly]

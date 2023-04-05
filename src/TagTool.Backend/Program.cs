@@ -41,9 +41,10 @@ if (!Directory.Exists(path))
     Directory.CreateDirectory(path);
 }
 
+builder.Services.AddSingleton(typeof(ICommandsHistory), typeof(CommandsHistory));
+builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddGrpc();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
-builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddDbContext<TagToolDbContext>(options
     => options
         .UseSqlite($"Data Source={Constants.DbPath}")

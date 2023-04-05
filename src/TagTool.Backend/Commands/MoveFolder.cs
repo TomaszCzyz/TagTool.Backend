@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;

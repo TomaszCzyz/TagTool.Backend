@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
@@ -12,13 +13,17 @@ namespace TagTool.Backend.Services.Grpc;
 
 public class TagService : Backend.TagService.TagServiceBase
 {
+    private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
+    private readonly ICommandsHistory _commandsHistory;
     private readonly TagToolDbContext _dbContext;
 
-    public TagService(IMediator mediator, TagToolDbContext dbContext)
+    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, TagToolDbContext dbContext)
     {
-        _dbContext = dbContext;
+        _logger = logger;
         _mediator = mediator;
+        _commandsHistory = commandsHistory;
+        _dbContext = dbContext;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -150,5 +155,18 @@ public class TagService : Backend.TagService.TagServiceBase
 
             await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
         }
+    }
+
+    public override async Task<UndoReply> Undo(UndoRequest request, ServerCallContext context)
+    {
+        var baseRequest = _commandsHistory.Pop();
+        var response = await _mediator.Send(baseRequest, context.CancellationToken);
+
+        if (response is IOneOf { Value: ErrorResponse errorResponse })
+        {
+            _logger.LogWarning("Undo of command {@Command} was unsuccessful. Error: {@ErrorResponse}", baseRequest, errorResponse);
+        }
+
+        return new UndoReply();
     }
 }

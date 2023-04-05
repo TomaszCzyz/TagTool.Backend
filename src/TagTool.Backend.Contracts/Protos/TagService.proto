@@ -32,6 +32,8 @@ service TagService {
 
   // Searches existing tags for matches or partial matches.
   rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
+
+  rpc Undo(UndoRequest) returns (UndoReply);
 }
 
 // The request to create a new tag.
@@ -189,4 +191,11 @@ message SearchTagsReply {
     // The length of a substring.
     int32 length = 2;
   }
+}
+
+message UndoRequest {
+
+}
+message UndoReply {
+  
 }
