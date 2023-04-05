@@ -11,13 +11,13 @@ public class CanRenameFileResponse
     public bool CanRename => Message is null;
 }
 
-public class CanRenameFileRequest : IRequest<CanRenameFileResponse>
+public class CanRenameFileRequest : IQuery<CanRenameFileResponse>
 {
     public required string NewFullPath { get; init; }
 }
 
 [UsedImplicitly]
-public class CanRenameFile : IRequestHandler<CanRenameFileRequest, CanRenameFileResponse>
+public class CanRenameFile : IQueryHandler<CanRenameFileRequest, CanRenameFileResponse>
 {
     private readonly ILogger<CanRenameFile> _logger;
 

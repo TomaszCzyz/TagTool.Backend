@@ -7,13 +7,13 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class CreateTagRequest : IRequest<OneOf<string, ErrorResponse>>
+public class CreateTagRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string TagName { get; init; }
 }
 
 [UsedImplicitly]
-public class CreateTag : IRequestHandler<CreateTagRequest, OneOf<string, ErrorResponse>>
+public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<CreateTag> _logger;
     private readonly TagToolDbContext _dbContext;

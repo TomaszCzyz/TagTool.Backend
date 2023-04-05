@@ -7,7 +7,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class RenameFileRequest : IRequest<OneOf<string, ErrorResponse>>
+public class RenameFileRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string FullPath { get; init; }
 
@@ -15,7 +15,7 @@ public class RenameFileRequest : IRequest<OneOf<string, ErrorResponse>>
 }
 
 [UsedImplicitly]
-public class RenameFile : IRequestHandler<RenameFileRequest, OneOf<string, ErrorResponse>>
+public class RenameFile : ICommandHandler<RenameFileRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<RenameFile> _logger;
     private readonly TagToolDbContext _dbContext;

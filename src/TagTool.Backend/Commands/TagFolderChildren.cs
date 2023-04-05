@@ -5,7 +5,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class TagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
+public class TagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string RootFolder { get; init; }
 
@@ -17,7 +17,7 @@ public class TagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
 }
 
 [UsedImplicitly]
-public class TagFolderChildren : IRequestHandler<TagFolderChildrenRequest, OneOf<string, ErrorResponse>>
+public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<TagFolderChildren> _logger;
     private readonly IMediator _mediator;

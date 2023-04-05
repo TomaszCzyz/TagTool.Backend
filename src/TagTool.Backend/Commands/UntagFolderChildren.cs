@@ -5,7 +5,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class UntagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
+public class UntagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string RootFolder { get; init; }
 
@@ -17,7 +17,7 @@ public class UntagFolderChildrenRequest : IRequest<OneOf<string, ErrorResponse>>
 }
 
 [UsedImplicitly]
-public class UntagFolderChildren : IRequestHandler<UntagFolderChildrenRequest, OneOf<string, ErrorResponse>>
+public class UntagFolderChildren : ICommandHandler<UntagFolderChildrenRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<UntagFolderChildren> _logger;
     private readonly IMediator _mediator;

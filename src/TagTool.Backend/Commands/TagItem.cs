@@ -7,7 +7,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class TagItemRequest : IRequest<OneOf<TaggedItem, ErrorResponse>>
+public class TagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>
 {
     public required string TagName { get; init; }
 
@@ -17,7 +17,7 @@ public class TagItemRequest : IRequest<OneOf<TaggedItem, ErrorResponse>>
 }
 
 [UsedImplicitly]
-public class TagItem : IRequestHandler<TagItemRequest, OneOf<TaggedItem, ErrorResponse>>
+public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItem, ErrorResponse>>
 {
     private readonly ILogger<TagItem> _logger;
     private readonly TagToolDbContext _dbContext;

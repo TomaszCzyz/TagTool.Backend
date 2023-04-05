@@ -6,13 +6,13 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class GetItemsByTagsRequest : IRequest<IEnumerable<TaggedItem>>
+public class GetItemsByTagsRequest : IQuery<IEnumerable<TaggedItem>>
 {
     public required string[] TagNames { get; init; }
 }
 
 [UsedImplicitly]
-public class GetItemsByTags : IRequestHandler<GetItemsByTagsRequest, IEnumerable<TaggedItem>>
+public class GetItemsByTags : IQueryHandler<GetItemsByTagsRequest, IEnumerable<TaggedItem>>
 {
     private readonly TagToolDbContext _dbContext;
 

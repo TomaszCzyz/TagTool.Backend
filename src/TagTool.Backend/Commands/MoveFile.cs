@@ -8,7 +8,7 @@ using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;
 
-public class MoveFileRequest : IRequest<OneOf<string, ErrorResponse>>
+public class MoveFileRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string OldFullPath { get; init; }
 
@@ -16,7 +16,7 @@ public class MoveFileRequest : IRequest<OneOf<string, ErrorResponse>>
 }
 
 [UsedImplicitly]
-public class MoveFile : IRequestHandler<MoveFileRequest, OneOf<string, ErrorResponse>>
+public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<MoveFile> _logger;
     private readonly TagToolDbContext _dbContext;

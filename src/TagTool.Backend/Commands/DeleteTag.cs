@@ -7,7 +7,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class DeleteTagRequest : IRequest<OneOf<string, ErrorResponse>>
+public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string TagName { get; init; }
 
@@ -15,7 +15,7 @@ public class DeleteTagRequest : IRequest<OneOf<string, ErrorResponse>>
 }
 
 [UsedImplicitly]
-public class DeleteTag : IRequestHandler<DeleteTagRequest, OneOf<string, ErrorResponse>>
+public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<DeleteTag> _logger;
     private readonly TagToolDbContext _dbContext;
