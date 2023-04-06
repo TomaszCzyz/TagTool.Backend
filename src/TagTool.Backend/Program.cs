@@ -3,10 +3,12 @@ using System.Globalization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Extensions.Logging;
 using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
+using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.Services;
 using TagTool.Backend.Services.Grpc;
@@ -15,16 +17,16 @@ var builder = WebApplication.CreateBuilder(args); // todo: check if this would n
 
 builder.Host.UseSerilog((_, configuration) =>
     configuration
-        .Destructure.ByTransforming<TaggedItem>(
-            item => new
+        .Destructure.ByTransforming<TaggedItem>(item
+            => new
             {
                 item.ItemType,
                 item.UniqueIdentifier,
-                Tags = item.Tags.Select(tag => tag.Name).ToArray()
+                Tags = item.Tags.Names()
             })
-        .Destructure.ByTransforming<Tag>(
-            tag => new { tag.Name, TaggedItem = tag.TaggedItems.Select(item => item.UniqueIdentifier).ToArray() })
+        .Destructure.ByTransforming<Tag>(tag => new { tag.Name, TaggedItem = tag.TaggedItems.Select(item => item.UniqueIdentifier).ToArray() })
         .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
         .Enrich.WithExceptionDetails()
