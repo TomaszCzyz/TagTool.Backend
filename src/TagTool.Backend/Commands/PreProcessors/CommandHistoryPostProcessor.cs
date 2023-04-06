@@ -23,10 +23,10 @@ public class CommandHistoryPostProcessor<TRequest, TResponse> : IRequestPostProc
 
     public Task Process(TRequest request, TResponse response, CancellationToken cancellationToken)
     {
-        if (response.Value is not ErrorResponse)
+        if (request is IReversible reversible && response.Value is not ErrorResponse)
         {
-            _logger.LogInformation("PreProcessing request {@Request}", request);
-            _commandsHistory.Push(request);
+            _logger.LogInformation("PreProcessing request {@Request}", reversible);
+            _commandsHistory.Push(reversible);
         }
 
         return Task.CompletedTask;

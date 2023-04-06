@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
+using TagTool.Backend.Commands;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
@@ -159,14 +160,38 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<UndoReply> Undo(UndoRequest request, ServerCallContext context)
     {
-        var baseRequest = _commandsHistory.Pop();
-        var response = await _mediator.Send(baseRequest, context.CancellationToken);
+        var undoCommand = _commandsHistory.GetUndoCommand();
+
+        var result = await InvokeCommand(nameof(Undo), undoCommand);
+
+        return result.Match(
+            s => new UndoReply { UndoCommand = s },
+            errorResponse => new UndoReply { ErrorMessage = errorResponse.Message });
+    }
+
+    public override async Task<RedoReply> Redo(RedoRequest request, ServerCallContext context)
+    {
+        var redoCommand = _commandsHistory.GetRedoCommand();
+
+        var result = await InvokeCommand(nameof(Redo), redoCommand);
+
+        return result.Match(
+            s => new RedoReply { RedoCommand = s },
+            errorResponse => new RedoReply { ErrorMessage = errorResponse.Message });
+    }
+
+    private async Task<OneOf<string, ErrorResponse>> InvokeCommand(string undoOrRedo, IReversible? command)
+    {
+        if (command is null) return new ErrorResponse($"Nothing to {undoOrRedo}.");
+
+        var response = await _mediator.Send(command);
 
         if (response is IOneOf { Value: ErrorResponse errorResponse })
         {
-            _logger.LogWarning("Undo of command {@Command} was unsuccessful. Error: {@ErrorResponse}", baseRequest, errorResponse);
+            _logger.LogWarning("Invoking of a command {@Command} was unsuccessful. Error: {@ErrorResponse}", command, errorResponse);
+            return new ErrorResponse($"Command {command} was not reverted");
         }
 
-        return new UndoReply();
+        return command.GetType().ToString();
     }
 }

@@ -6,11 +6,11 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class CreateTagRequest : ICommand<OneOf<string, ErrorResponse>>
+public class CreateTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string TagName { get; init; }
 
-    public ICommand<OneOf<string, ErrorResponse>> GetUndoCommand() => new DeleteTagRequest { TagName = TagName };
+    public IReversible GetReverse() => new DeleteTagRequest { TagName = TagName };
 }
 
 [UsedImplicitly]

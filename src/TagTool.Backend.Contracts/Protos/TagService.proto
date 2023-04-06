@@ -33,7 +33,10 @@ service TagService {
   // Searches existing tags for matches or partial matches.
   rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
 
+  // Reverts effects of the last command, such as CreateTag, TagItem, e.t.c.
   rpc Undo(UndoRequest) returns (UndoReply);
+  // Repeats command reverted by Undo endpoint.
+  rpc Redo(RedoRequest) returns (RedoReply);
 }
 
 // The request to create a new tag.
@@ -193,9 +196,20 @@ message SearchTagsReply {
   }
 }
 
-message UndoRequest {
+message UndoRequest {}
 
-}
 message UndoReply {
-  
+  oneof result {
+    string undoCommand = 1;
+    string errorMessage = 2;
+  }
+}
+
+message RedoRequest {}
+
+message RedoReply {
+  oneof result {
+    string redoCommand = 1;
+    string errorMessage = 2;
+  }
 }

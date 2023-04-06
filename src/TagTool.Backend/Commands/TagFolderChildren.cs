@@ -5,7 +5,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class TagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
+public class TagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string RootFolder { get; init; }
 
@@ -14,6 +14,15 @@ public class TagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
     public int Depth { get; init; } = 1;
 
     public bool TagFilesOnly { get; init; } = true;
+
+    public IReversible GetReverse()
+        => new UntagFolderChildrenRequest
+        {
+            RootFolder = RootFolder,
+            TagName = TagName,
+            Depth = Depth,
+            TagFilesOnly = TagFilesOnly
+        };
 }
 
 [UsedImplicitly]

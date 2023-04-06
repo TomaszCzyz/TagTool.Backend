@@ -41,7 +41,7 @@ if (!Directory.Exists(path))
     Directory.CreateDirectory(path);
 }
 
-builder.Services.AddSingleton(typeof(ICommandsHistory), typeof(CommandsHistory));
+builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddGrpc();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());

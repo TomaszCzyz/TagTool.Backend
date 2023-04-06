@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -7,13 +6,21 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class UntagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>
+public class UntagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IReversible
 {
     public required string TagName { get; init; }
 
     public required string ItemType { get; init; }
 
     public required string Identifier { get; init; }
+
+    public IReversible GetReverse()
+        => new TagItemRequest
+        {
+            TagName = TagName,
+            ItemType = ItemType,
+            Identifier = Identifier
+        };
 }
 
 [UsedImplicitly]

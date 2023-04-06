@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -8,11 +7,13 @@ using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;
 
-public class MoveFileRequest : ICommand<OneOf<string, ErrorResponse>>
+public class MoveFileRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string OldFullPath { get; init; }
 
     public required string NewFullPath { get; init; }
+
+    public IReversible GetReverse() => new MoveFileRequest { NewFullPath = OldFullPath, OldFullPath = NewFullPath };
 }
 
 [UsedImplicitly]

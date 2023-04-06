@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -7,11 +6,17 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class RenameFileRequest : ICommand<OneOf<string, ErrorResponse>>
+public class RenameFileRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string FullPath { get; init; }
 
     public required string NewFileName { get; init; }
+
+    public IReversible GetReverse()
+        => new RenameFileRequest
+        {
+            NewFileName = Path.GetFileName(FullPath), FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, NewFileName)
+        };
 }
 
 [UsedImplicitly]

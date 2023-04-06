@@ -1,33 +1,41 @@
-﻿using MediatR;
-using OneOf;
-using TagTool.Backend.Commands;
+﻿using TagTool.Backend.Commands;
 
 namespace TagTool.Backend.Services;
 
 public interface ICommandsHistory
 {
-    void Push<TResponse>(ICommand<TResponse> command) where TResponse : IOneOf;
+    void Push(IReversible command);
 
-    // ICommand<TResponse> Pop<TResponse>() where TResponse : IOneOf;
-    IBaseRequest Pop();
+    IReversible? GetUndoCommand();
+
+    IReversible? GetRedoCommand();
 }
 
 public class CommandsHistory : ICommandsHistory
 {
-    private readonly Stack<IBaseRequest> _commandsHistory = new();
-    private readonly Stack<IBaseRequest> _undoCommandsHistory = new();
+    private readonly Stack<IReversible> _undoCommands = new();
+    private readonly Stack<IReversible> _redoCommands = new();
 
-    public void Push<TResponse>(ICommand<TResponse> command) where TResponse : IOneOf
+    public void Push(IReversible command)
     {
-        _commandsHistory.Push(command);
-        _undoCommandsHistory.Push(command.GetUndoCommand());
+        _undoCommands.Push(command.GetReverse());
     }
 
-    public IBaseRequest Pop()// where TResponse : IOneOf
+    public IReversible? GetUndoCommand()
     {
-        var command = _commandsHistory.Pop();
-        var undoCommand = _undoCommandsHistory.Pop();
+        if (!_undoCommands.TryPop(out var undoCommand)) return null;
+
+        _redoCommands.Push(undoCommand.GetReverse());
 
         return undoCommand;
+    }
+
+    public IReversible? GetRedoCommand()
+    {
+        if (!_redoCommands.TryPop(out var redoCommand)) return null;
+
+        _undoCommands.Push(redoCommand.GetReverse());
+
+        return redoCommand;
     }
 }

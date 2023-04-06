@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -7,11 +6,16 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class RenameFolderRequest : ICommand<OneOf<string, ErrorResponse>>
+public class RenameFolderRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string FullPath { get; init; }
 
     public required string NewFolderName { get; init; }
+
+    public IReversible GetReverse() => new RenameFolderRequest
+    {
+        NewFolderName = Path.GetFileName(FullPath), FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, NewFolderName)
+    };
 }
 
 [UsedImplicitly]
@@ -77,7 +81,7 @@ public class RenameFolder : ICommandHandler<RenameFolderRequest, OneOf<string, E
         catch (Exception e)
         {
             _logger.LogWarning(e, "Unable to rename untracked folder {OldPath} to {NewPath}", oldFullPath, newFullPath);
-            return new ErrorResponse($"Unable to rename \"{oldFullPath}\"." );
+            return new ErrorResponse($"Unable to rename \"{oldFullPath}\".");
         }
 
         return newFullPath;

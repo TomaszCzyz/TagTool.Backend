@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -7,11 +6,13 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>
+public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string TagName { get; init; }
 
     public bool DeleteUsedToo { get; init; }
+
+    public IReversible GetReverse() => new CreateTagRequest { TagName = TagName };
 }
 
 [UsedImplicitly]

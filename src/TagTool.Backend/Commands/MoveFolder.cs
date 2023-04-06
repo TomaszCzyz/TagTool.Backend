@@ -7,11 +7,13 @@ using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;
 
-public class MoveFolderRequest : ICommand<OneOf<string, ErrorResponse>>
+public class MoveFolderRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
     public required string OldFullPath { get; init; }
 
     public required string NewFullPath { get; init; }
+
+    public IReversible GetReverse() => new MoveFolderRequest { NewFullPath = OldFullPath, OldFullPath = NewFullPath };
 }
 
 [UsedImplicitly]
