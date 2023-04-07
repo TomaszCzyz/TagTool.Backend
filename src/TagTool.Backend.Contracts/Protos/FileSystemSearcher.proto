@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+option csharp_namespace = "TagTool.Backend";
+
+package TagToolBackend;
+
+service SearchService {
+  rpc Search (SearchRequest) returns (stream SearchReply);
+}
+
+message ExactExpression {
+  string value = 1;
+  bool caseSensitive = 2;
+}
+
+message WildcardExpression {
+  string value = 1;
+  bool caseSensitive = 2;
+}
+
+message RegexExpression {
+  string value = 1;
+  bool ignoreCase = 2;
+  uint32 timeoutInSeconds = 3;
+}
+
+message SearchRequest {
+  string root = 1;
+  int32 depth = 2;
+  oneof searchType {
+    ExactExpression exact = 3;
+    WildcardExpression wildcard = 4;
+    RegexExpression regex = 5;
+  }
+}
+
+message SearchReply {
+  string fullName = 1;
+}

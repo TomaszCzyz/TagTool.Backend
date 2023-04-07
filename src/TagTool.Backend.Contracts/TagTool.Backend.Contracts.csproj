@@ -23,6 +23,7 @@
     <Protobuf Include="Protos\DomainTypes.proto" GrpcService="Server" />
     <Protobuf Include="Protos\TagService.proto" GrpcService="Server" />
     <Protobuf Include="Protos\FileActionsService.proto" GrpcService="Server" />
+    <Protobuf Include="Protos\FileSystemSearcher.proto" GrpcService="Server" />
   </ItemGroup>
 
   <Target Name="CopyPackage" AfterTargets="Pack">
