@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using Grpc.Core;
 using MediatR;
 using TagTool.Backend.Queries;
@@ -16,9 +17,61 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
         _mediator = mediator;
     }
 
-    public override async Task Search(SearchRequest request, IServerStreamWriter<SearchReply> responseStream, ServerCallContext context)
+    public override async Task Search(
+        IAsyncStreamReader<SearchRequest> requestStream,
+        IServerStreamWriter<SearchReply> responseStream,
+        ServerCallContext context)
     {
-        IStreamRequest<string> streamReq = request.SearchTypeCase switch
+        // todo: it does not take to account case when MoveNext() return false... NullPointerException will be thrown 
+        await requestStream.MoveNext(context.CancellationToken);
+        var firstRequest = requestStream.Current;
+        // var streamRequest = MapRequest(firstRequest);
+        var excludedPaths = new ConcurrentBag<string>();
+        var streamRequest = new FileSystemRegexSearchRequest
+        {
+            Depth = firstRequest.Depth,
+            Root = firstRequest.Root,
+            ExcludePathsAction = () => excludedPaths,
+            Value = new Regex(
+                firstRequest.Regex.Value,
+                RegexOptions.NonBacktracking | (firstRequest.Regex.IgnoreCase ? RegexOptions.IgnoreCase : 0),
+                TimeSpan.FromSeconds(firstRequest.Regex.TimeoutInSeconds))
+        };
+
+        var asyncEnumerable = _mediator.CreateStream(streamRequest, context.CancellationToken);
+
+        var task = Task.Run(async () =>
+        {
+            while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+            {
+                var newExcludedPaths = requestStream.Current.ExcludedPaths;
+                foreach (var path in newExcludedPaths)
+                {
+                    if (excludedPaths.Contains(path)) continue;
+
+                    excludedPaths.Add(path);
+                }
+            }
+        });
+
+        try
+        {
+            await foreach (var fullName in asyncEnumerable.WithCancellation(context.CancellationToken))
+            {
+                await responseStream.WriteAsync(new SearchReply { FullName = fullName }, context.CancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Search was cancelled");
+        }
+
+        await task.WaitAsync(context.CancellationToken);
+    }
+
+    private IStreamRequest<string> MapRequest(SearchRequest request)
+    {
+        return request.SearchTypeCase switch
         {
             SearchRequest.SearchTypeOneofCase.Exact =>
                 new FileSystemExactSearchRequest
@@ -38,21 +91,5 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                         TimeSpan.FromSeconds(request.Regex.TimeoutInSeconds))
                 }
         };
-
-        var asyncEnumerable = _mediator.CreateStream(streamReq, context.CancellationToken);
-
-        try
-        {
-            await foreach (var fullName in asyncEnumerable.WithCancellation(context.CancellationToken))
-            {
-                if (context.CancellationToken.IsCancellationRequested) return;
-
-                await responseStream.WriteAsync(new SearchReply { FullName = fullName }, context.CancellationToken);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Search was cancelled");
-        }
     }
 }
