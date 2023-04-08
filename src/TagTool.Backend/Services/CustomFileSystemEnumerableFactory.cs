@@ -44,10 +44,10 @@ public class CustomFileSystemEnumerableFactory : ICustomFileSystemEnumerableFact
                     (ref FileSystemEntry entry) =>
                     {
                         Debug.Assert(entry.IsDirectory, "entry.IsDirectory");
-                        logger.LogInformation("Checking enumeration criteria for folder {EntryFullPath}", entry.ToFullPath());
+                        logger.LogDebug("Checking enumeration criteria for folder {EntryFullPath}", entry.ToFullPath());
 
                         var excludedPaths = requestBase.ExcludePathsAction.Invoke();
-                        logger.LogInformation("Currently excluded paths: {Paths}", string.Join(",", excludedPaths));
+                        logger.LogDebug("Currently excluded paths: {Paths}", string.Join(",", excludedPaths));
 
                         foreach (var path in excludedPaths)
                         {
