@@ -1,79 +1,58 @@
-﻿using System.Diagnostics;
-using System.IO.Enumeration;
+﻿using System.IO.Enumeration;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using MediatR;
+using OneOf;
+using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Queries;
 
-public class FileSystemRegexSearchRequest : IStreamRequest<string>
+public class FileSystemRegexSearchRequest : FileSystemSearchRequestBase
 {
-    public required Regex Value { get; init; }
-
-    public required string Root { get; init; }
-
-    public required int Depth { get; init; }
-
-    public Func<IReadOnlyCollection<string>> ExcludePathsAction { get; init; }
+    public required string Pattern { get; init; }
 }
 
 [UsedImplicitly]
-public class FileSystemRegexSearch : IStreamRequestHandler<FileSystemRegexSearchRequest, string>
+public class FileSystemRegexSearch : IStreamRequestHandler<FileSystemRegexSearchRequest, OneOf<string, CurrentlySearchDir>>
 {
     private readonly ILogger<FileSystemRegexSearch> _logger;
+    private readonly ICustomFileSystemEnumerableFactory _systemEnumerableFactory;
 
-    public FileSystemRegexSearch(ILogger<FileSystemRegexSearch> logger)
+    public FileSystemRegexSearch(ILogger<FileSystemRegexSearch> logger, ICustomFileSystemEnumerableFactory systemEnumerableFactory)
     {
         _logger = logger;
+        _systemEnumerableFactory = systemEnumerableFactory;
     }
 
-    public async IAsyncEnumerable<string> Handle(
+    public async IAsyncEnumerable<OneOf<string, CurrentlySearchDir>> Handle(
         FileSystemRegexSearchRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var options = new EnumerationOptions
+        _logger.LogInformation("Starting file system regex search with params {@Request}", request);
+
+        var regexOptions = RegexOptions.NonBacktracking | (request.IgnoreCase ? RegexOptions.IgnoreCase : 0);
+        var regex = new Regex(request.Pattern, regexOptions, TimeSpan.FromSeconds(3));
+
+        bool IsMatch(ref FileSystemEntry entry) => regex.IsMatch(entry.FileName);
+
+        var enumeration = _systemEnumerableFactory.Create(request, IsMatch);
+
+        var (matchesCounter, dirCounter) = (0, 0);
+        await foreach (var (fullPath, isMatch) in enumeration.ToAsyncEnumerable().WithCancellation(cancellationToken))
         {
-            IgnoreInaccessible = true,
-            RecurseSubdirectories = true,
-            MaxRecursionDepth = request.Depth
-        };
-
-        string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
-
-        var enumeration =
-            new FileSystemEnumerable<string>(request.Root, FindTransform, options)
+            if (isMatch)
             {
-                ShouldIncludePredicate = (ref FileSystemEntry entry) => !entry.IsDirectory && request.Value.IsMatch(entry.FileName),
-                ShouldRecursePredicate = (ref FileSystemEntry entry) =>
-                {
-                    Debug.Assert(entry.IsDirectory, "entry.IsDirectory");
-                    _logger.LogInformation("Checking enumeration criteria for folder {EntryFullPath}", entry.ToFullPath());
-
-                    var excludedPaths = request.ExcludePathsAction.Invoke();
-                    _logger.LogInformation("Currently excluded paths: {Paths}", string.Join(",", excludedPaths));
-                    foreach (var path in excludedPaths)
-                    {
-                        var dirOfPath = Path.GetDirectoryName(path.AsSpan());
-                        var fileNameOfPath = Path.GetFileName(path.AsSpan());
-
-                        if (!entry.Directory.SequenceEqual(dirOfPath) || !entry.FileName.SequenceEqual(fileNameOfPath)) continue;
-
-                        _logger.LogInformation("Skipping enumerating of folder {EntryFullPath}", entry.ToFullPath());
-                        return false;
-                    }
-
-                    return true;
-                }
-            };
-
-        var counter = 0;
-        await foreach (var item in enumeration.ToAsyncEnumerable().WithCancellation(cancellationToken))
-        {
-            counter++;
-            yield return item;
+                matchesCounter++;
+                yield return fullPath;
+            }
+            else
+            {
+                dirCounter++;
+                yield return new CurrentlySearchDir { FullName = fullPath };
+            }
         }
 
-        _logger.LogInformation("Search ended with {Count} file entries yielded", counter);
+        _logger.LogInformation("Search ended with {MatchesCount} matches found in {DirCount} directories", matchesCounter, dirCounter);
     }
 }

@@ -1,35 +1,37 @@
 ﻿using System.IO.Enumeration;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using MediatR;
 using OneOf;
 using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Queries;
 
-public class FileSystemExactSearchRequest : FileSystemSearchRequestBase
+public class FileSystemWildcardSearchRequest : FileSystemSearchRequestBase
 {
-    public required string Value { get; set; }
+    public required string Value { get; init; }
 }
 
 [UsedImplicitly]
-public class FileSystemExactSearch : FileSystemSearchRequestBase
+public class FileSystemWildcardSearch : IStreamRequestHandler<FileSystemWildcardSearchRequest, OneOf<string, CurrentlySearchDir>>
 {
-    private readonly ILogger<FileSystemExactSearch> _logger;
+    private readonly ILogger<FileSystemWildcardSearch> _logger;
     private readonly ICustomFileSystemEnumerableFactory _systemEnumerableFactory;
 
-    public FileSystemExactSearch(ILogger<FileSystemExactSearch> logger, ICustomFileSystemEnumerableFactory systemEnumerableFactory)
+    public FileSystemWildcardSearch(ILogger<FileSystemWildcardSearch> logger, ICustomFileSystemEnumerableFactory systemEnumerableFactory)
     {
         _logger = logger;
         _systemEnumerableFactory = systemEnumerableFactory;
     }
 
     public async IAsyncEnumerable<OneOf<string, CurrentlySearchDir>> Handle(
-        FileSystemExactSearchRequest request,
+        FileSystemWildcardSearchRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting file system search for an exact match with params {@Request}", request);
+        _logger.LogInformation("Starting file system wildcard search with params {@Request}", request);
 
-        bool IsMatch(ref FileSystemEntry entry) => entry.FileName.Contains(request.Value.AsSpan(), StringComparison.Ordinal);
+        bool IsMatch(ref FileSystemEntry entry)
+            => FileSystemName.MatchesSimpleExpression(request.Value.AsSpan(), entry.FileName, request.IgnoreCase);
 
         var enumeration = _systemEnumerableFactory.Create(request, IsMatch);
 
