@@ -30,28 +30,50 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
         var streamRequest = MapToSearchRequest(firstRequest, excludedPaths);
 
         // listen to new messages and update ExcludedPaths collection
-        var task = Task.Run(async () =>
-        {
-            while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
+        var cts = new CancellationTokenSource();
+        var task = Task.Run(
+            async () =>
             {
-                var newExcludedPaths = requestStream.Current.ExcludedPaths;
-                foreach (var path in newExcludedPaths)
+                try
                 {
-                    if (excludedPaths.Contains(path) || excludedPaths.Any(excluded => path.StartsWith(excluded, StringComparison.Ordinal)))
+                    await foreach (var request in requestStream.ReadAllAsync(cts.Token))
                     {
-                        continue;
-                    }
+                        var newExcludedPaths = request.ExcludedPaths;
+                        foreach (var path in newExcludedPaths)
+                        {
+                            if (excludedPaths.Contains(path)
+                                || excludedPaths.Any(excluded => path.StartsWith(excluded, StringComparison.Ordinal)))
+                            {
+                                continue;
+                            }
 
-                    excludedPaths.Add(path);
+                            excludedPaths.Add(path);
+                        }
+                    }
                 }
-            }
-        });
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation("The operation was canceled");
+                }
+            },
+            cts.Token);
 
         var asyncEnumerable = _mediator.CreateStream(streamRequest, context.CancellationToken);
 
         await SendReplies(asyncEnumerable, responseStream, context);
 
-        await task.WaitAsync(context.CancellationToken);
+        // search ended, so we do not need listen for more updates
+        cts.Cancel();
+        try
+        {
+            await task.WaitAsync(context.CancellationToken);
+        }
+        catch
+        {
+            // ignored
+        }
+
+        task.Dispose();
     }
 
     private async Task SendReplies(
