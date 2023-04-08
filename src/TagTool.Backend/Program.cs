@@ -44,6 +44,7 @@ if (!Directory.Exists(path))
 }
 
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
+builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddGrpc();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());

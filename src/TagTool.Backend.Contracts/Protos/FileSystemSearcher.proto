@@ -13,30 +13,31 @@ service SearchService {
 message SearchRequest {
   string root = 1;
   int32 depth = 2;
-  repeated string excludedPaths = 3;
+  bool ignoreCase = 3;
+  repeated string excludedPaths = 4;
   oneof searchType {
-    ExactExpression exact = 4;
-    WildcardExpression wildcard = 5;
-    RegexExpression regex = 6;
+    ExactExpression exact = 5;
+    WildcardExpression wildcard = 6;
+    RegexExpression regex = 7;
   }
 }
 
 message SearchReply {
-  string fullName = 1;
+  oneof content {
+    string fullName = 1;
+    string currentlySearchDir = 2;  
+  }
 }
 
 message ExactExpression {
-  string value = 1;
-  bool caseSensitive = 2;
+  string substring = 1;
 }
 
 message WildcardExpression {
-  string value = 1;
-  bool caseSensitive = 2;
+  string pattern = 1;
 }
 
 message RegexExpression {
-  string value = 1;
-  bool ignoreCase = 2;
-  uint32 timeoutInSeconds = 3;
+  string pattern = 1;
+  uint32 timeoutInSeconds = 2;
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 using Grpc.Core;
 using MediatR;
+using OneOf;
 using TagTool.Backend.Queries;
 
 namespace TagTool.Backend.Services.Grpc;
@@ -22,24 +22,14 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
         IServerStreamWriter<SearchReply> responseStream,
         ServerCallContext context)
     {
-        // todo: it does not take to account case when MoveNext() return false... NullPointerException will be thrown 
-        await requestStream.MoveNext(context.CancellationToken);
+        if (!await requestStream.MoveNext(context.CancellationToken)) return;
         var firstRequest = requestStream.Current;
-        // var streamRequest = MapRequest(firstRequest);
-        var excludedPaths = new ConcurrentBag<string>();
-        var streamRequest = new FileSystemRegexSearchRequest
-        {
-            Depth = firstRequest.Depth,
-            Root = firstRequest.Root,
-            ExcludePathsAction = () => excludedPaths,
-            Value = new Regex(
-                firstRequest.Regex.Value,
-                RegexOptions.NonBacktracking | (firstRequest.Regex.IgnoreCase ? RegexOptions.IgnoreCase : 0),
-                TimeSpan.FromSeconds(firstRequest.Regex.TimeoutInSeconds))
-        };
 
-        var asyncEnumerable = _mediator.CreateStream(streamRequest, context.CancellationToken);
+        var excludedPaths = new ConcurrentBag<string>(firstRequest.ExcludedPaths);
 
+        var streamRequest = MapToSearchRequest(firstRequest, excludedPaths);
+
+        // listen to new messages and update ExcludedPaths collection
         var task = Task.Run(async () =>
         {
             while (await requestStream.MoveNext() && !context.CancellationToken.IsCancellationRequested)
@@ -47,49 +37,77 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                 var newExcludedPaths = requestStream.Current.ExcludedPaths;
                 foreach (var path in newExcludedPaths)
                 {
-                    if (excludedPaths.Contains(path)) continue;
+                    if (excludedPaths.Contains(path) || excludedPaths.Any(excluded => path.StartsWith(excluded, StringComparison.Ordinal)))
+                    {
+                        continue;
+                    }
 
                     excludedPaths.Add(path);
                 }
             }
         });
 
+        var asyncEnumerable = _mediator.CreateStream(streamRequest, context.CancellationToken);
+
+        await SendReplies(asyncEnumerable, responseStream, context);
+
+        await task.WaitAsync(context.CancellationToken);
+    }
+
+    private async Task SendReplies(
+        IAsyncEnumerable<OneOf<string, CurrentlySearchDir>> asyncEnumerable,
+        IAsyncStreamWriter<SearchReply> responseStream,
+        ServerCallContext context)
+    {
         try
         {
-            await foreach (var fullName in asyncEnumerable.WithCancellation(context.CancellationToken))
+            await foreach (var info in asyncEnumerable.WithCancellation(context.CancellationToken))
             {
-                await responseStream.WriteAsync(new SearchReply { FullName = fullName }, context.CancellationToken);
+                var searchReply = info.Match(
+                    s => new SearchReply { FullName = s },
+                    dir => new SearchReply { CurrentlySearchDir = dir.FullName });
+
+                await responseStream.WriteAsync(searchReply, context.CancellationToken);
             }
         }
         catch (OperationCanceledException)
         {
             _logger.LogInformation("Search was cancelled");
         }
-
-        await task.WaitAsync(context.CancellationToken);
     }
 
-    private IStreamRequest<string> MapRequest(SearchRequest request)
+    private static FileSystemSearchRequestBase MapToSearchRequest(SearchRequest request, ConcurrentBag<string> concurrentBag)
     {
         return request.SearchTypeCase switch
         {
-            SearchRequest.SearchTypeOneofCase.Exact =>
-                new FileSystemExactSearchRequest
+            SearchRequest.SearchTypeOneofCase.Exact
+                => new FileSystemExactSearchRequest
                 {
                     Depth = request.Depth,
-                    Value = request.Exact.Value,
-                    Root = request.Root
-                },
-            SearchRequest.SearchTypeOneofCase.Regex =>
-                new FileSystemRegexSearchRequest
-                {
-                    Depth = request.Depth,
+                    Value = request.Exact.Substring,
                     Root = request.Root,
-                    Value = new Regex(
-                        request.Regex.Value,
-                        RegexOptions.NonBacktracking | (request.Regex.IgnoreCase ? RegexOptions.IgnoreCase : 0),
-                        TimeSpan.FromSeconds(request.Regex.TimeoutInSeconds))
-                }
+                    ExcludePathsAction = () => concurrentBag,
+                    IgnoreCase = request.IgnoreCase
+                },
+            SearchRequest.SearchTypeOneofCase.Wildcard
+                => new FileSystemWildcardSearchRequest
+                {
+                    Depth = request.Depth,
+                    Value = request.Wildcard.Pattern,
+                    Root = request.Root,
+                    ExcludePathsAction = () => concurrentBag,
+                    IgnoreCase = request.IgnoreCase
+                },
+            SearchRequest.SearchTypeOneofCase.Regex
+                => new FileSystemRegexSearchRequest
+                {
+                    Depth = request.Depth,
+                    Pattern = request.Regex.Pattern,
+                    Root = request.Root,
+                    ExcludePathsAction = () => concurrentBag,
+                    IgnoreCase = request.IgnoreCase
+                },
+            _ => throw new ArgumentOutOfRangeException(nameof(request), "Unknown search type")
         };
     }
 }
