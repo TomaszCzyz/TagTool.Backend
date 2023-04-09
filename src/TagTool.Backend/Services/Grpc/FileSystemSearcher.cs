@@ -25,9 +25,8 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
         if (!await requestStream.MoveNext(context.CancellationToken)) return;
         var firstRequest = requestStream.Current;
 
-        var excludedPaths = new ConcurrentBag<string>(firstRequest.ExcludedPaths);
-
-        var streamRequest = MapToSearchRequest(firstRequest, excludedPaths);
+        var streamRequest = MapToSearchRequest(firstRequest);
+        var excludedPaths = streamRequest.ExcludePaths;
 
         // listen to new messages and update ExcludedPaths collection
         var cts = new CancellationTokenSource();
@@ -46,6 +45,8 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                             {
                                 continue;
                             }
+
+                            _logger.LogInformation("Adding excluded path {FullPath} to paths {Paths}", path, string.Join(",", excludedPaths));
 
                             excludedPaths.Add(path);
                         }
@@ -98,7 +99,7 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
         }
     }
 
-    private static FileSystemSearchRequestBase MapToSearchRequest(SearchRequest request, ConcurrentBag<string> concurrentBag)
+    private static FileSystemSearchRequestBase MapToSearchRequest(SearchRequest request)
     {
         return request.SearchTypeCase switch
         {
@@ -108,7 +109,7 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                     Depth = request.Depth,
                     Value = request.Exact.Substring,
                     Root = request.Root,
-                    ExcludePathsAction = () => concurrentBag,
+                    ExcludePaths = new ConcurrentBag<string>(request.ExcludedPaths),
                     IgnoreCase = request.IgnoreCase
                 },
             SearchRequest.SearchTypeOneofCase.Wildcard
@@ -117,7 +118,7 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                     Depth = request.Depth,
                     Value = request.Wildcard.Pattern,
                     Root = request.Root,
-                    ExcludePathsAction = () => concurrentBag,
+                    ExcludePaths = new ConcurrentBag<string>(request.ExcludedPaths),
                     IgnoreCase = request.IgnoreCase
                 },
             SearchRequest.SearchTypeOneofCase.Regex
@@ -126,7 +127,7 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                     Depth = request.Depth,
                     Pattern = request.Regex.Pattern,
                     Root = request.Root,
-                    ExcludePathsAction = () => concurrentBag,
+                    ExcludePaths = new ConcurrentBag<string>(request.ExcludedPaths),
                     IgnoreCase = request.IgnoreCase
                 },
             _ => throw new ArgumentOutOfRangeException(nameof(request), "Unknown search type")

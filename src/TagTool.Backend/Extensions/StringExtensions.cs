@@ -18,4 +18,12 @@ public static class StringExtensions // todo: optimize with span<char>
 
         return substrings;
     }
+
+    public static bool ContainsPath(this ReadOnlySpan<char> path, ReadOnlySpan<char> parentDir, ReadOnlySpan<char> dirName)
+    {
+        var pathDirectory = Path.GetDirectoryName(path);
+        var pathFileName = Path.GetFileName(path);
+
+        return pathDirectory.SequenceEqual(parentDir) && pathFileName.SequenceEqual(dirName) || parentDir.StartsWith(path);
+    }
 }

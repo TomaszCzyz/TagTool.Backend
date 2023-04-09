@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO.Enumeration;
+using TagTool.Backend.Extensions;
 using TagTool.Backend.Queries;
 
 namespace TagTool.Backend.Services;
@@ -39,50 +40,34 @@ public class CustomFileSystemEnumerableFactory : ICustomFileSystemEnumerableFact
             new FileSystemEnumerable<(string FullPath, bool IsMatch)>(requestBase.Root, FindTransform, options)
             {
                 // always return directories to send search progress
-                ShouldIncludePredicate = (ref FileSystemEntry entry) => entry.IsDirectory || isMatch(ref entry),
+                ShouldIncludePredicate =
+                    (ref FileSystemEntry entry) => isMatch(ref entry) || (entry.IsDirectory && !IsExcluded(requestBase.ExcludePaths, entry)),
                 ShouldRecursePredicate =
                     (ref FileSystemEntry entry) =>
                     {
                         Debug.Assert(entry.IsDirectory, "entry.IsDirectory");
                         logger.LogDebug("Checking enumeration criteria for folder {EntryFullPath}", entry.ToFullPath());
 
-                        var excludedPaths = requestBase.ExcludePathsAction.Invoke();
-                        logger.LogDebug("Currently excluded paths: {Paths}", string.Join(",", excludedPaths));
+                        var excludedPaths = requestBase.ExcludePaths;
 
-                        foreach (var path in excludedPaths)
-                        {
-                            if (IsSubDirectory(entry, path.AsSpan()) || IsDirectoryEqual(entry, path.AsSpan()))
-                            {
-                                logger.LogInformation("Skipping enumerating of folder {EntryFullPath}", entry.ToFullPath());
-                                return false;
-                            }
-                        }
+                        if (!IsExcluded(excludedPaths, entry)) return true;
 
-                        return true;
+                        logger.LogDebug("Skipping enumerating of folder {EntryFullPath}", entry.ToFullPath());
+                        return false;
                     }
             };
     }
 
-    private static bool IsSubDirectory(FileSystemEntry entry, ReadOnlySpan<char> path)
+    private static bool IsExcluded(IEnumerable<string> excludedPaths, FileSystemEntry entry)
     {
-        // path:            C:\Users\xxx\Files\SubDir
-        // dirOfPath:       C:\Users\xxx\Files\
-        // fileNameOfPath:  SubDir
-        //
-        // entry.Directory = C:\Users\xxx\Files\SubDir\
-        // entry.FileName = AnotherSubDir
-        var dirOfPath = Path.GetDirectoryName(path);
-        var fileNameOfPath = Path.GetFileName(path);
+        foreach (var path in excludedPaths)
+        {
+            if (entry.IsSubdirectoryOf(path.AsSpan()))
+            {
+                return true;
+            }
+        }
 
-        return dirOfPath.StartsWith(entry.Directory) && fileNameOfPath.StartsWith(entry.FileName);
-    }
-
-    // todo: check if this method is necessary.. maybe IsSubDirectory is more general and it is enough
-    private static bool IsDirectoryEqual(FileSystemEntry entry, ReadOnlySpan<char> path)
-    {
-        var dirOfPath = Path.GetDirectoryName(path);
-        var fileNameOfPath = Path.GetFileName(path);
-
-        return entry.Directory.SequenceEqual(dirOfPath) && entry.FileName.SequenceEqual(fileNameOfPath);
+        return false;
     }
 }
