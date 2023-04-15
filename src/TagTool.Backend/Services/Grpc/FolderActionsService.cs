@@ -53,7 +53,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            newFullName => new MoveFolderReply { NewLocation = newFullName },
+            successResponse => new MoveFolderReply { NewLocation = successResponse.NewPath },
             errorResponse => new MoveFolderReply { ErrorMessage = errorResponse.Message });
     }
 

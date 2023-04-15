@@ -8,9 +8,9 @@ namespace TagTool.Backend.Services;
 
 public interface ICommonStoragePathProvider
 {
-    OneOf<string, None> GetPathForFile(ReadOnlySpan<char> fullName);
+    OneOf<string, None> GetPathForFile(string fileName);
 
-    OneOf<string, None> GetPathForFolder(ReadOnlySpan<char> fullName);
+    OneOf<string, None> GetPathForFolder(string fullName);
 }
 
 /// <summary>
@@ -19,13 +19,16 @@ public interface ICommonStoragePathProvider
 [UsedImplicitly]
 public class CommonStoragePathProvider : ICommonStoragePathProvider
 {
+    private readonly ILogger<CommonStoragePathProvider> _logger;
+
     // todo: change to IOptionSnapshot or something like that.
     private readonly CommonStorageOptions _options;
     private string FilesRoot => Path.Combine(_options.RootFolder, "Files");
     private string FoldersRoot => Path.Combine(_options.RootFolder, "Folders");
 
-    public CommonStoragePathProvider(IOptions<CommonStorageOptions> options)
+    public CommonStoragePathProvider(ILogger<CommonStoragePathProvider> logger, IOptions<CommonStorageOptions> options)
     {
+        _logger = logger;
         _options = options.Value;
         Directory.CreateDirectory(FilesRoot);
         Directory.CreateDirectory(FoldersRoot);
@@ -34,28 +37,36 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
     /// <summary>
     ///     Construct a path based on input path. The resulting path depends on a file extension.
     /// </summary>
-    /// <param name="fullName">path to file</param>
+    /// <param name="fileName">path of a file</param>
     /// <returns>
     ///     Path in a following format:
     ///     [CommonStorageRootPath]/files/[Extensions]/[originalFileName]
     /// </returns>
-    public OneOf<string, None> GetPathForFile(ReadOnlySpan<char> fullName)
+    public OneOf<string, None> GetPathForFile(string fileName)
     {
-        var fileName = Path.GetFileName(fullName);
-        var ext = Path.HasExtension(fullName) ? Path.GetExtension(fullName)[1..] : Path.GetExtension(fullName);
+        if (string.IsNullOrWhiteSpace(fileName)) return new None();
 
-        if (fileName.IsEmpty || fileName.IsWhiteSpace()) return new None();
+        var ext = Path.HasExtension(fileName) ? Path.GetExtension(fileName.AsSpan())[1..] : "_noExtension";
+        var newFileDir = Path.Join(FilesRoot, ext);
 
-        var newFullName = Path.Combine(FilesRoot, ext.ToString(), fileName.ToString());
+        if (!TryCreateDir(newFileDir)) return new None();
 
-        var _ = Directory.CreateDirectory(Path.GetDirectoryName(newFullName)!);
+        return Path.Join(FilesRoot, ext, fileName);
+    }
 
-        if (!File.Exists(newFullName))
+    private bool TryCreateDir(string path)
+    {
+        try
         {
-            return newFullName;
+            Directory.CreateDirectory(path);
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Unable to create directory {PathFullName} in CommonStorage", path);
         }
 
-        return new None();
+        return false;
     }
 
     /// <summary>
@@ -65,6 +76,6 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
     ///     Path in a following format:
     ///     [CommonStorageRootPath]/folders/[Extensions]/[originalFileName]
     /// </returns>
-    public OneOf<string, None> GetPathForFolder(ReadOnlySpan<char> fullName)
-        => Path.Combine(FoldersRoot, Path.GetFileName(Path.TrimEndingDirectorySeparator(fullName)).ToString());
+    public OneOf<string, None> GetPathForFolder(string fullName)
+        => Path.Join(FoldersRoot, Path.GetFileName(Path.TrimEndingDirectorySeparator(fullName.AsSpan())));
 }

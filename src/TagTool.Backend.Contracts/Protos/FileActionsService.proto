@@ -62,6 +62,8 @@ message MoveFileReply {
     // The error message.
     string errorMessage = 2;
   };
+  // additional info, i.e. 'similar file exists'
+  optional string infoMessage = 3;
 }
 
 message DeleteFileRequest {

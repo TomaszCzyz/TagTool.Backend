@@ -52,7 +52,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            newFullName => new MoveFileReply { NewLocation = newFullName },
+            successResponse => new MoveFileReply { NewLocation = successResponse.NewPath, InfoMessage = successResponse.AdditionalInfos },
             errorResponse => new MoveFileReply { ErrorMessage = errorResponse.Message });
     }
 

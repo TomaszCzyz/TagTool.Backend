@@ -7,7 +7,9 @@ using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;
 
-public class MoveFileRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
+public record SuccessResponse(string NewPath, string? AdditionalInfos);
+
+public class MoveFileRequest : ICommand<OneOf<SuccessResponse, ErrorResponse>>, IReversible
 {
     public required string OldFullPath { get; init; }
 
@@ -17,36 +19,38 @@ public class MoveFileRequest : ICommand<OneOf<string, ErrorResponse>>, IReversib
 }
 
 [UsedImplicitly]
-public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<string, ErrorResponse>>
+public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<SuccessResponse, ErrorResponse>>
 {
     private readonly ILogger<MoveFile> _logger;
     private readonly TagToolDbContext _dbContext;
-    private readonly ICommonStoragePathProvider _commonStoragePathProvider;
+    private readonly ICommonStorage _commonStorage;
 
-    public MoveFile(ILogger<MoveFile> logger, TagToolDbContext dbContext, ICommonStoragePathProvider commonStoragePathProvider)
+    public MoveFile(ILogger<MoveFile> logger, TagToolDbContext dbContext, ICommonStorage commonStorage)
     {
         _logger = logger;
         _dbContext = dbContext;
-        _commonStoragePathProvider = commonStoragePathProvider;
+        _commonStorage = commonStorage;
     }
 
-    public async Task<OneOf<string, ErrorResponse>> Handle(MoveFileRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<SuccessResponse, ErrorResponse>> Handle(MoveFileRequest request, CancellationToken cancellationToken)
     {
         var (oldFulPath, newFullPath) = (request.OldFullPath, request.NewFullPath);
+        string? additionalInfos = null;
 
+        // todo: replace magick string
         if (newFullPath == "CommonStorage")
         {
-            var oneOf = _commonStoragePathProvider.GetPathForFile(Path.GetFileName(request.OldFullPath.AsSpan()));
-            if (oneOf.TryPickT0(out var newPath, out _))
+            var oneOf = _commonStorage.GetPath(request.OldFullPath, false);
+            if (!oneOf.TryPickT0(out var storageInfo, out var error))
             {
-                newFullPath = newPath;
+                return error;
             }
-            else
-            {
-                return new ErrorResponse($"Unable to get path for Common Storage for {newFullPath}");
-            }
+
+            newFullPath = storageInfo.Path;
+            additionalInfos = storageInfo.SimilarFiles;
         }
 
+        // todo: these validation are duplicated in case we store file in a CommonStorage
         if (!Path.Exists(Path.GetDirectoryName(newFullPath)))
         {
             return new ErrorResponse("Specified destination folder does not exists.");
@@ -67,9 +71,12 @@ public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<string, ErrorResp
         var taggedItem = await _dbContext.TaggedItems
             .FirstOrDefaultAsync(item => item.ItemType == "file" && item.UniqueIdentifier == oldFulPath, cancellationToken);
 
-        return taggedItem is null
-            ? newFullPath
-            : await UpdateItem(taggedItem, newFullPath, cancellationToken);
+        if (taggedItem is not null)
+        {
+            newFullPath = await UpdateItem(taggedItem, newFullPath, cancellationToken);
+        }
+
+        return new SuccessResponse(newFullPath, additionalInfos);
     }
 
     private OneOf<string, ErrorResponse> Move(string oldFullPath, string newFullPath)
