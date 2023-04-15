@@ -100,7 +100,7 @@ public class CommonStorage : ICommonStorage
         string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
         bool ShouldInclude(ref FileSystemEntry entry) => entry.Length == fileInfo.Length;
 
-        var rootFolder = Path.Join(_commonStorageOptions.RootFolder, "Files", Path.GetExtension(fileInfo.Name));
+        var rootFolder = Path.Join(_commonStorageOptions.Files, Path.GetExtension(fileInfo.Name));
 
         var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options)
         {
@@ -123,7 +123,7 @@ public class CommonStorage : ICommonStorage
         string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
         bool ShouldInclude(ref FileSystemEntry entry) => entry.Length == fileInfo.Length;
 
-        var rootFolder = Path.Join(_commonStorageOptions.RootFolder, "Folders");
+        var rootFolder = _commonStorageOptions.Directories;
 
         var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options)
         {

@@ -23,15 +23,13 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
 
     // todo: change to IOptionSnapshot or something like that.
     private readonly CommonStorageOptions _options;
-    private string FilesRoot => Path.Combine(_options.RootFolder, "Files");
-    private string FoldersRoot => Path.Combine(_options.RootFolder, "Folders");
 
     public CommonStoragePathProvider(ILogger<CommonStoragePathProvider> logger, IOptions<CommonStorageOptions> options)
     {
         _logger = logger;
         _options = options.Value;
-        Directory.CreateDirectory(FilesRoot);
-        Directory.CreateDirectory(FoldersRoot);
+        Directory.CreateDirectory(_options.Files);
+        Directory.CreateDirectory(_options.Directories);
     }
 
     /// <summary>
@@ -40,18 +38,18 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
     /// <param name="fileName">path of a file</param>
     /// <returns>
     ///     Path in a following format:
-    ///     [CommonStorageRootPath]/files/[Extensions]/[originalFileName]
+    ///     [CommonStorageDirectoriesPath]/[Extension]/[originalFileName]
     /// </returns>
     public OneOf<string, None> GetPathForFile(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName)) return new None();
 
         var ext = Path.HasExtension(fileName) ? Path.GetExtension(fileName.AsSpan())[1..] : "_noExtension";
-        var newFileDir = Path.Join(FilesRoot, ext);
+        var newFileDir = Path.Join(_options.Files, ext);
 
         if (!TryCreateDir(newFileDir)) return new None();
 
-        return Path.Join(FilesRoot, ext, fileName);
+        return Path.Join(_options.Files, ext, fileName);
     }
 
     private bool TryCreateDir(string path)
@@ -74,8 +72,8 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
     /// </summary>
     /// <returns>
     ///     Path in a following format:
-    ///     [CommonStorageRootPath]/folders/[Extensions]/[originalFileName]
+    ///     [CommonStorageFilesPath]/[originalDirectoryName]
     /// </returns>
     public OneOf<string, None> GetPathForFolder(string fullName)
-        => Path.Join(FoldersRoot, Path.GetFileName(Path.TrimEndingDirectorySeparator(fullName.AsSpan())));
+        => Path.Join(_options.Directories, Path.GetFileName(Path.TrimEndingDirectorySeparator(fullName.AsSpan())));
 }
