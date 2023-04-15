@@ -19,5 +19,9 @@ public class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
         modelBuilder.Entity<Tag>()
             .HasIndex(tag => tag.Name)
             .IsUnique();
+
+        modelBuilder.Entity<Tag>()
+            .Property(tag => tag.Name)
+            .UseCollation("NOCASE");
     }
 }
