@@ -1,6 +1,5 @@
 ﻿using System.Security;
 using JetBrains.Annotations;
-using MediatR;
 
 namespace TagTool.Backend.Queries;
 
