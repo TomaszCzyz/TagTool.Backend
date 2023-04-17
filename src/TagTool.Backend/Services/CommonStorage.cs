@@ -1,5 +1,6 @@
 ﻿using System.IO.Enumeration;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
 using TagTool.Backend.Models;
@@ -22,13 +23,13 @@ public class CommonStorage : ICommonStorage
     private readonly ICommonStoragePathProvider _commonStoragePathProvider;
 
     public CommonStorage(
-        ICommonStoragePathProvider commonStoragePathProvider,
         ILogger<CommonStorage> logger,
-        CommonStorageOptions commonStorageOptions)
+        ICommonStoragePathProvider commonStoragePathProvider,
+        IOptions<CommonStorageOptions> commonStorageOptions)
     {
         _commonStoragePathProvider = commonStoragePathProvider;
         _logger = logger;
-        _commonStorageOptions = commonStorageOptions;
+        _commonStorageOptions = commonStorageOptions.Value;
     }
 
     public OneOf<CommonStorageInfo, ErrorResponse> GetPath(string fullName, bool overwrite)
