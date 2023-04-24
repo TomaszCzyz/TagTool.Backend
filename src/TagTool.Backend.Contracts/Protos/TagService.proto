@@ -170,7 +170,7 @@ message SearchTagsRequest {
   int32 resultsLimit = 2;
   // The flag allowing to force searching only exact matches.
   SearchType searchType = 3;
-
+  // The type of search to be used
   enum SearchType {
     StartsWith = 0;
     Partial = 1;

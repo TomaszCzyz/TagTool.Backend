@@ -26,11 +26,16 @@ message CanRenameFileRequest {
   string newFileName = 2;
 }
 
+// The result indicating if file can be renamed to provided filename.
 message CanRenameFileReply {
-  // The result indicating if file can be renamed to provided filename.
-  Result result = 2;
+  // The result that contains error in case when operation failed.
+  oneof result {
+    // The error describing the reason of a failure.
+    Error error = 1;
+  }
 }
 
+// The request to rename a given file.
 message RenameFileRequest {
   // The item to rename.
   Item item = 1;
@@ -38,6 +43,7 @@ message RenameFileRequest {
   string newFileName = 2;
 }
 
+// The result of rename operation.
 message RenameFileReply {
   // The result indicating if renaming was successful.
   oneof result {
@@ -48,6 +54,7 @@ message RenameFileReply {
   };
 }
 
+// The request to move file to new location.
 message MoveFileRequest {
   // The file to move. 
   Item item = 1;
@@ -55,6 +62,7 @@ message MoveFileRequest {
   string destination = 2;
 }
 
+// The reply indicating if moving of a file was successful.
 message MoveFileReply {
   oneof result {
     // New location of a moved file.
@@ -66,11 +74,13 @@ message MoveFileReply {
   optional string infoMessage = 3;
 }
 
+// The delete request. 
 message DeleteFileRequest {
   // The item to be deleted.
   Item item = 1;
 }
 
+// The reply indicating if deletion of a file was successful.
 message DeleteFileReply {
   oneof result {
     // The location from where file was deleted.
@@ -80,24 +90,18 @@ message DeleteFileReply {
   };
 }
 
+// The request to open a file using system's default app.
+// The process is started independently.
 message OpenFileRequest {
   // The full file name if file to be open
   string fullFileName = 1;
 }
 
+// The reply indicating if process started.
 message OpenFileReply {
   // The result indicating opening was successful.
-  Result result = 1;
-}
-
-message CutAction {
-  string what = 1;
-}
-
-message PasteAction {
-  string what = 1;
-}
-
-message TagChildren {
-  string tagName = 1;
+  // None if operation was successful. 
+  oneof result {
+    Error error = 1;
+  }
 }

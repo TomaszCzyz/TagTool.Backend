@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using MediatR;
+using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
 
 namespace TagTool.Backend.Services.Grpc;
@@ -29,7 +30,9 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
             var response = await _mediator.Send(query, context.CancellationToken);
 
-            var reply = new CanRenameFolderReply { Result = new Result { IsSuccess = response.CanRename, Messages = { response.Message } } };
+            var reply = response.CanRename
+                ? new CanRenameFolderReply()
+                : new CanRenameFolderReply { Error = new Error { Message = response.Message } };
 
             await responseStream.WriteAsync(reply);
         }
@@ -64,7 +67,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<TagChildrenReply> TagChildren(TagChildrenRequest request, ServerCallContext context)
     {
-        var command = new Commands.TagFolderChildrenRequest
+        var command = new TagFolderChildrenRequest
         {
             RootFolder = request.FullName,
             TagName = request.TagName,
@@ -75,13 +78,13 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            message => new TagChildrenReply { SuccessMessage = message },
+            message => new TagChildrenReply(),
             errorResponse => new TagChildrenReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<UntagChildrenReply> UntagChildren(UntagChildrenRequest request, ServerCallContext context)
     {
-        var command = new Commands.UntagFolderChildrenRequest
+        var command = new UntagFolderChildrenRequest
         {
             RootFolder = request.FullName,
             TagName = request.TagName,

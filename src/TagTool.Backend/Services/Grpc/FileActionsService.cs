@@ -28,7 +28,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
             var response = await _mediator.Send(query, context.CancellationToken);
 
-            var reply = new CanRenameFileReply { Result = new Result { IsSuccess = response.CanRename, Messages = { response.Message } } };
+            var reply = new CanRenameFileReply { Error = new Error { Message = response.Message } };
 
             await responseStream.WriteAsync(reply);
         }
@@ -65,8 +65,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
     {
         if (!File.Exists(request.FullFileName))
         {
-            return await Task.FromResult(
-                new OpenFileReply { Result = new Result { IsSuccess = false, Messages = { "Specified file does not exists." } } });
+            return await Task.FromResult(new OpenFileReply { Error = new Error { Message = "Specified file does not exists." } });
         }
 
         using var process = new Process();
@@ -76,6 +75,6 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
         process.Start();
 
-        return await Task.FromResult(new OpenFileReply { Result = new Result { IsSuccess = true } });
+        return await Task.FromResult(new OpenFileReply());
     }
 }

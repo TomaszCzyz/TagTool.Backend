@@ -21,6 +21,7 @@ service FolderActionsService {
   rpc UntagChildren (UntagChildrenRequest) returns (UntagChildrenReply);
 }
 
+// The single request checks if given folder name can be used.  
 message CanRenameFolderRequest {
   // The item to rename.
   string fullName = 1;
@@ -28,11 +29,16 @@ message CanRenameFolderRequest {
   string newFolderName = 2;
 }
 
+// The reply indicating if folder can be renamed
 message CanRenameFolderReply {
-  // The result indicating if folder can be renamed to provided value.
-  Result result = 1;
+  // The result that contains error in case of operation failure, None otherwise.
+  oneof result {
+    // The error describing the reason of a failure.
+    Error error = 1;
+  }
 }
 
+// The request to rename a given folder
 message RenameFolderRequest {
   // The item to rename.
   string fullName = 1;
@@ -40,8 +46,8 @@ message RenameFolderRequest {
   string newFolderName = 2;
 }
 
+// The result indicating if rename operation was successful.
 message RenameFolderReply {
-  // The result indicating if renaming was successful.
   oneof result {
     // New location of a moved folder.
     string newFullName = 1;
@@ -50,6 +56,7 @@ message RenameFolderReply {
   };
 }
 
+// The request to move folder to a new location.
 message MoveFolderRequest {
   // The file to move. 
   string fullName = 1;
@@ -57,6 +64,7 @@ message MoveFolderRequest {
   string destination = 2;
 }
 
+// The reply indicating if move operation was successful. 
 message MoveFolderReply {
   oneof result {
     // New location of a moved folder.
@@ -66,11 +74,15 @@ message MoveFolderReply {
   };
 }
 
+// The request to delete a folder. 
 message DeleteFolderRequest {
   // The folder to be deleted.
   Item item = 1;
+  // The flag indicating whether a folder should be recoverable.
+  bool recycle = 2;
 }
 
+// The replying indicating if folder deletion was successful.
 message DeleteFolderReply {
   oneof result {
     // The location from where folder was deleted.
@@ -80,30 +92,44 @@ message DeleteFolderReply {
   };
 }
 
+// The request to tag children of a given folder with a given tag.
 message TagChildrenRequest {
+  // The name of a tag.
   string tagName = 1;
+  // The full path to root folder.
   string fullName = 2;
+  // The recurse depth, defaults to int.MaxValue
   int32 depth = 3;
+  // The flag indicating if only files should be tagged and folder omitted. 
   bool tagOnlyFiles = 4;
 }
 
+// The reply indicating success or fail of tagging children of a folder.
 message TagChildrenReply {
   oneof result {
+    // The success message.
     string successMessage = 1;
     // The error message.
     string errorMessage = 2;
   };
 }
 
+// The request to untag children of a given folder.
 message UntagChildrenRequest {
+  // The name of a tag.
   string tagName = 1;
+  // The full path to root folder.
   string fullName = 2;
+  // The recurse depth, defaults to int.MaxValue
   int32 depth = 3;
+  // The flag indicating if only files should be tagged and folder omitted. 
   bool tagOnlyFiles = 4;
 }
 
+// The reply indicating success or fail of untagging children of a folder.
 message UntagChildrenReply {
   oneof result {
+    // The success message.
     string successMessage = 1;
     // The error message.
     string errorMessage = 2;

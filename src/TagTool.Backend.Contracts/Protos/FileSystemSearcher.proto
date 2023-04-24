@@ -7,14 +7,24 @@ option csharp_namespace = "TagTool.Backend";
 package TagToolBackend;
 
 service SearchService {
+  // Searches FileSystem using different matching strategies
   rpc Search (stream SearchRequest) returns (stream SearchReply);
 }
 
+// The search request. 'Root' and 'SearchType' parameters are required.
+// 'Depth' defaults to int.MaxValue and 'ignoreCase' defaults to 'true'.
 message SearchRequest {
+  // The search's root folder.
   string root = 1;
+  // The depth of search, defaults to int.MaxValue.
   int32 depth = 2;
+  // The case sensitivity flag, defaults to true.
   bool ignoreCase = 3;
+  // The list of directory paths to be excluded from search.
+  // New paths can be excluded be sending more requests.
+  // This is the only parameter that matters after first request, the rest is omitted.  
   repeated string excludedPaths = 4;
+  // The type of search.
   oneof searchType {
     ExactExpression exact = 5;
     WildcardExpression wildcard = 6;
@@ -22,22 +32,32 @@ message SearchRequest {
   }
 }
 
+// The single reply can inform about item found or about change in enumerated directory.
 message SearchReply {
   oneof content {
+    // The full path of item found.
     string fullName = 1;
-    string currentlySearchDir = 2;  
+    // The full name of the currently enumerated directory.
+    string currentlySearchDir = 2;
   }
 }
 
+// The type of string search that matches only exact substrings.
 message ExactExpression {
+  // The substring to match.
   string substring = 1;
 }
 
+// The type of string search that matches pattern containing wildcards '*' and '?'.
 message WildcardExpression {
+  // The pattern that can contain wildcards '*' and '?'.
   string pattern = 1;
 }
 
+// The Regex string search.
 message RegexExpression {
+  // The regex expression.
   string pattern = 1;
+  // The timeout of matching single regex.
   uint32 timeoutInSeconds = 2;
 }
