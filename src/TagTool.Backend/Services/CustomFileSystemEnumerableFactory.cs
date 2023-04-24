@@ -60,6 +60,8 @@ public class CustomFileSystemEnumerableFactory : ICustomFileSystemEnumerableFact
 
     private static bool IsExcluded(IEnumerable<string> excludedPaths, FileSystemEntry entry)
     {
+        // foreach cannot be converted to LINQ-expression as this would require ref struct (FileSystemEntry) to be captured
+        // ReSharper disable once LoopCanBeConvertedToQuery
         foreach (var path in excludedPaths)
         {
             if (entry.IsSubdirectoryOf(path.AsSpan()))

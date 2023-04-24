@@ -37,8 +37,7 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                 {
                     await foreach (var request in requestStream.ReadAllAsync(cts.Token))
                     {
-                        var newExcludedPaths = request.ExcludedPaths;
-                        foreach (var path in newExcludedPaths)
+                        foreach (var path in request.ExcludedPaths)
                         {
                             if (excludedPaths.Contains(path)
                                 || excludedPaths.Any(excluded => path.StartsWith(excluded, StringComparison.Ordinal)))
