@@ -45,6 +45,7 @@ if (!Directory.Exists(path))
 
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
+builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddScoped<ICommonStorage, CommonStorage>();
 builder.Services.AddGrpc();

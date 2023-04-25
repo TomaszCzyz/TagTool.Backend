@@ -37,6 +37,10 @@ service TagService {
   rpc Undo(UndoRequest) returns (UndoReply);
   // Repeats command reverted by Undo endpoint.
   rpc Redo(RedoRequest) returns (RedoReply);
+
+  // Sets convention of tag names. The convention is applied when tag is created 
+  // and tag name is stored in given format.
+  rpc SetTagNamingConvention(SetTagNamingConventionRequest) returns (SetTagNamingConventionReply);
 }
 
 // The request to create a new tag.
@@ -211,5 +215,30 @@ message RedoReply {
   oneof result {
     string redoCommand = 1;
     string errorMessage = 2;
+  }
+}
+
+enum NamingConvention {
+  None = 0;
+  CamelCase = 1;
+  PascalCase = 2;
+  KebabCase = 3;
+  SnakeCase = 4;
+}
+
+// Sets naming convention of tags in application.
+message SetTagNamingConventionRequest {
+  // New naming convention to apply.
+  NamingConvention convention = 1;
+  // When true, then change will be applied to existing tags.
+  bool applyToExisting = 2;
+}
+
+// The reply indicating whether change was successful.
+message SetTagNamingConventionReply {
+  // The result indicating opening was successful.
+  // None if operation was successful. 
+  oneof result {
+    Error error = 1;
   }
 }

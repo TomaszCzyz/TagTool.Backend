@@ -194,4 +194,30 @@ public class TagService : Backend.TagService.TagServiceBase
 
         return command.GetType().ToString();
     }
+
+    public override async Task<SetTagNamingConventionReply> SetTagNamingConvention(
+        SetTagNamingConventionRequest request,
+        ServerCallContext context)
+    {
+        var setTagNamingConventionCommand = new SetTagNamingConventionCommand { NewNamingConvention = Map(request.Convention) };
+
+        var oneOf = await _mediator.Send(setTagNamingConventionCommand);
+
+        return oneOf.Match(
+            _ => new SetTagNamingConventionReply(),
+            response => new SetTagNamingConventionReply { Error = new Error { Message = response.Message } });
+    }
+
+    private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
+    {
+        return requestConvention switch
+        {
+            NamingConvention.None => Models.Options.NamingConvention.Unchanged,
+            NamingConvention.CamelCase => Models.Options.NamingConvention.CamelCase,
+            NamingConvention.PascalCase => Models.Options.NamingConvention.PascalCase,
+            NamingConvention.KebabCase => Models.Options.NamingConvention.KebabCase,
+            NamingConvention.SnakeCase => Models.Options.NamingConvention.SnakeCase,
+            _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
+        };
+    }
 }

@@ -78,7 +78,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            message => new TagChildrenReply(),
+            message => new TagChildrenReply { SuccessMessage = message },
             errorResponse => new TagChildrenReply { ErrorMessage = errorResponse.Message });
     }
 
