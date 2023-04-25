@@ -2,7 +2,11 @@
 
 namespace TagTool.Backend.Models;
 
-public abstract class TagBase : IHasTimestamps
+public interface ITagBase
+{
+}
+
+public abstract class TagBase : IHasTimestamps, ITagBase
 {
     public int Id { get; set; }
 

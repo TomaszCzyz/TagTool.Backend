@@ -26,3 +26,11 @@ message Error {
   // The description of an error.
   string message = 2;
 }
+
+message NormalTag {
+  string Name = 1;
+}
+
+message YearTag {
+  int32 year = 1;
+}

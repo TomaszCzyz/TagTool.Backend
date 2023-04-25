@@ -45,8 +45,13 @@ service TagService {
 
 // The request to create a new tag.
 message CreateTagRequest {
-  // The Tag's name.
-  string TagName = 1;
+//  // The Tag's name.
+//  string TagName = 1;
+  google.protobuf.Any tag = 2;
+//  oneof tag {
+//    NormalTag normalTag = 2;
+//    YearTag yearTag = 3;
+//  }
 }
 
 // The reply indicating whether tag creation was successful or not.

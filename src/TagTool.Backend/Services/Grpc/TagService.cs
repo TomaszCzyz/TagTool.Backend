@@ -8,7 +8,9 @@ using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.Queries;
+using NormalTag = TagTool.Backend.DomainTypes.NormalTag;
 using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
+using YearTag = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Services.Grpc;
 
@@ -29,18 +31,31 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        var command = new Commands.CreateTagRequest { TagName = request.TagName };
+        TagBase? tag = null;
+        if (request.Tag.Is(NormalTag.Descriptor))
+        {
+            var normalTag = request.Tag.Unpack<NormalTag>();
+            tag = new Models.NormalTag { Name = normalTag.Name };
+        }
+        else if (request.Tag.Is(YearTag.Descriptor))
+        {
+            var yearTag = request.Tag.Unpack<YearTag>();
+            tag = new Models.YearTag { DateOnly = new DateOnly(yearTag.Year, 1, 1) };
+        }
 
+        if (tag is null) throw new ArgumentException("Unable to match tag type");
+
+        var command = new Commands.CreateTagRequest { Tag = tag };
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            newTagName => new CreateTagReply { CreatedTagName = newTagName },
+            newTagName => new CreateTagReply { CreatedTagName = newTagName.FormattedName },
             errorResponse => new CreateTagReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        var command = new Commands.CreateTagRequest { TagName = request.TagName };
+        var command = new Commands.DeleteTagRequest { Tag = new Models.NormalTag { Name = request.TagName } };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 

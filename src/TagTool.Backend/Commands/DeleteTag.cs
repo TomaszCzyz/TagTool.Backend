@@ -8,20 +8,20 @@ namespace TagTool.Backend.Commands;
 
 public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
 {
-    public required string TagName { get; init; }
+    public required TagBase Tag { get; init; }
 
     public bool DeleteUsedToo { get; init; }
 
-    public IReversible GetReverse() => new CreateTagRequest { TagName = TagName };
+    public IReversible GetReverse() => new CreateTagRequest { Tag = Tag };
 }
 
 [UsedImplicitly]
-public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>>
+public class DeleteTag<T> : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>> where T : TagBase
 {
-    private readonly ILogger<DeleteTag> _logger;
+    private readonly ILogger<DeleteTag<T>> _logger;
     private readonly TagToolDbContext _dbContext;
 
-    public DeleteTag(ILogger<DeleteTag> logger, TagToolDbContext dbContext)
+    public DeleteTag(ILogger<DeleteTag<T>> logger, TagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;
@@ -29,19 +29,18 @@ public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorRe
 
     public async Task<OneOf<string, ErrorResponse>> Handle(DeleteTagRequest request, CancellationToken cancellationToken)
     {
-        var newTagName = request.TagName;
-        var existingTag = await _dbContext.NormalTags
+        var existingTag = await _dbContext.Set<T>()
             .Include(tag => tag.TaggedItems)
-            .FirstOrDefaultAsync(tag => tag.Name == newTagName, cancellationToken);
+            .FirstOrDefaultAsync(tag => tag.FormattedName == request.Tag.FormattedName, cancellationToken);
 
         if (existingTag is null)
         {
-            return new ErrorResponse($"Tag {request.TagName} does not exists.");
+            return new ErrorResponse($"Tag {request.Tag} does not exists.");
         }
 
         if (!request.DeleteUsedToo && existingTag.TaggedItems.Count != 0)
         {
-            var message = $"Tag {request.TagName} is in use and it was not deleted. " +
+            var message = $"Tag {request.Tag} is in use and it was not deleted. " +
                           $"If you want to delete this tag use {nameof(request.DeleteUsedToo)} flag.";
 
             return new ErrorResponse(message);
@@ -51,6 +50,6 @@ public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorRe
         _dbContext.Tags.Remove(existingTag);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return request.TagName;
+        return request.Tag.FormattedName ?? "empty";
     }
 }

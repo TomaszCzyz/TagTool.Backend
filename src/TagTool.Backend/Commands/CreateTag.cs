@@ -1,20 +1,21 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class CreateTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
+public class CreateTagRequest : ICommand<OneOf<TagBase, ErrorResponse>>, IReversible
 {
-    public required string TagName { get; init; }
+    public required TagBase Tag { get; init; }
 
-    public IReversible GetReverse() => new DeleteTagRequest { TagName = TagName };
+    public IReversible GetReverse() => new Commands.DeleteTagRequest { Tag = Tag };
 }
 
 [UsedImplicitly]
-public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<string, ErrorResponse>>
+public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<TagBase, ErrorResponse>>
 {
     private readonly ILogger<CreateTag> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -25,21 +26,20 @@ public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<string, ErrorRe
         _logger = logger;
     }
 
-    public async Task<OneOf<string, ErrorResponse>> Handle(CreateTagRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<TagBase, ErrorResponse>> Handle(CreateTagRequest request, CancellationToken cancellationToken)
     {
-        var newTagName = request.TagName;
-        var first = await _dbContext.NormalTags.FirstOrDefaultAsync(tag => tag.Name == newTagName, cancellationToken);
+        var first = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.FormattedName == request.Tag.FormattedName, cancellationToken);
 
         if (first is not null)
         {
-            return new ErrorResponse($"Tag {newTagName} already exists.");
+            return new ErrorResponse($"Tag {request.Tag} already exists.");
         }
 
-        _logger.LogInformation("Creating new tag {@TagName}", newTagName);
+        _logger.LogInformation("Creating new tag {@TagName}", request.Tag);
 
-        await _dbContext.Tags.AddAsync(new NormalTag { Name = newTagName }, cancellationToken);
+        await _dbContext.Tags.AddAsync(request.Tag, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return newTagName;
+        return request.Tag;
     }
 }
