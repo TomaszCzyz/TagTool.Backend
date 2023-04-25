@@ -20,8 +20,9 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsRequest, IEnumerable<T
     public async Task<IEnumerable<TaggedItem>> Handle(GetItemsByTagsRequest request, CancellationToken cancellationToken)
         => await _dbContext.TaggedItems
             .Include(item => item.Tags)
-            .Where(item => item.Tags.Any(tag => request.TagNames.Contains(tag.Name)))
-            .Select(item => new { Item = item, CommonTagsCount = item.Tags.Count(tag => request.TagNames.Contains(tag.Name)) })
+            .Where(item => item.Tags.OfType<NormalTag>().Any(tag => request.TagNames.Contains(tag.Name)))
+            .Select(
+                item => new { Item = item, CommonTagsCount = item.Tags.OfType<NormalTag>().Count(tag => request.TagNames.Contains(tag.Name)) })
             .OrderByDescending(arg => arg.CommonTagsCount)
             .Select(arg => arg.Item)
             .ToArrayAsync(cancellationToken);

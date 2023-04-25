@@ -90,7 +90,10 @@ public class TagService : Backend.TagService.TagServiceBase
 
         return existingItem is null
             ? new GetItemReply { ErrorMessage = $"Requested item {request.Item} does not exists." }
-            : new GetItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(tag => tag.Name) } } };
+            : new GetItemReply
+            {
+                TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(tag => tag.ToString()) } }
+            };
     }
 
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
@@ -121,7 +124,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
-        var existingItem = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == request.TagName, context.CancellationToken);
+        var existingItem = await _dbContext.NormalTags.FirstOrDefaultAsync(tag => tag.Name == request.TagName, context.CancellationToken);
 
         return new DoesTagExistsReply { Exists = existingItem is not null };
     }

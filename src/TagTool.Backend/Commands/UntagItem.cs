@@ -48,12 +48,12 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItem, Err
             return new ErrorResponse($"There is no {request.ItemType} item {request.Identifier} in database.");
         }
 
-        if (!existingItem.Tags.Select(tag => tag.Name).Contains(tagName))
+        if (!existingItem.Tags.OfType<NormalTag>().Select(tag => tag.Name).Contains(tagName))
         {
             return new ErrorResponse($"{request.ItemType} item does not contain tag {request.TagName}.");
         }
 
-        var tag = await _dbContext.Tags.FirstAsync(tag => tag.Name == tagName, cancellationToken);
+        var tag = await _dbContext.NormalTags.FirstAsync(tag => tag.Name == tagName, cancellationToken);
 
         _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
         var isRemoved = existingItem.Tags.Remove(tag);

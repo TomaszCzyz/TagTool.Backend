@@ -40,7 +40,7 @@ public class SetTagNamingConvention : ICommandHandler<SetTagNamingConventionComm
 
         _logger.LogInformation("Applying naming convention {NamingConvention} to existing tags", request.NewNamingConvention);
 
-        await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        await foreach (var tag in _dbContext.NormalTags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             tag.Name = _tagNameProvider.GetName(tag.Name, request.NewNamingConvention);
         }

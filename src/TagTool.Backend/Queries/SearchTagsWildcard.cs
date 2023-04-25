@@ -27,7 +27,7 @@ public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardReques
         if (request.Value != "*") throw new NotImplementedException();
 
         var counter = 0;
-        await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        await foreach (var tag in _dbContext.NormalTags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             if (counter == request.ResultsLimit) break;
             counter++;

@@ -24,7 +24,7 @@ public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRe
         SearchTagsStartsWithRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var queryable = _dbContext.Tags
+        var queryable = _dbContext.NormalTags
             .Where(tag => tag.Name.StartsWith(request.Value))
             .Select(tag => tag.Name)
             .Take(request.ResultsLimit);

@@ -30,7 +30,7 @@ public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorRe
     public async Task<OneOf<string, ErrorResponse>> Handle(DeleteTagRequest request, CancellationToken cancellationToken)
     {
         var newTagName = request.TagName;
-        var existingTag = await _dbContext.Tags
+        var existingTag = await _dbContext.NormalTags
             .Include(tag => tag.TaggedItems)
             .FirstOrDefaultAsync(tag => tag.Name == newTagName, cancellationToken);
 

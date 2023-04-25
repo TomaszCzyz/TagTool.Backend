@@ -29,7 +29,7 @@ public class SearchTagsPartial : IStreamRequestHandler<SearchTagsPartialRequest,
         var ahoCorasick = new AhoCorasick(request.Value.Substrings().Distinct());
 
         var counter = 0;
-        await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        await foreach (var tag in _dbContext.NormalTags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             if (counter == request.ResultsLimit) break;
             counter++;

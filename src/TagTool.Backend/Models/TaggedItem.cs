@@ -8,5 +8,5 @@ public class TaggedItem
 
     public required string UniqueIdentifier { get; set; }
 
-    public ICollection<Tag> Tags { get; init; } = new List<Tag>();
+    public ICollection<TagBase> Tags { get; init; } = new List<TagBase>();
 }

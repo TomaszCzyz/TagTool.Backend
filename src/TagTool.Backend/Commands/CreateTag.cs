@@ -28,7 +28,7 @@ public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<string, ErrorRe
     public async Task<OneOf<string, ErrorResponse>> Handle(CreateTagRequest request, CancellationToken cancellationToken)
     {
         var newTagName = request.TagName;
-        var first = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == newTagName, cancellationToken);
+        var first = await _dbContext.NormalTags.FirstOrDefaultAsync(tag => tag.Name == newTagName, cancellationToken);
 
         if (first is not null)
         {
@@ -37,7 +37,7 @@ public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<string, ErrorRe
 
         _logger.LogInformation("Creating new tag {@TagName}", newTagName);
 
-        await _dbContext.Tags.AddAsync(new Tag { Name = newTagName }, cancellationToken);
+        await _dbContext.Tags.AddAsync(new NormalTag { Name = newTagName }, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return newTagName;

@@ -39,8 +39,8 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItem, ErrorRe
     {
         var (tagName, itemType, identifier) = (request.TagName, request.ItemType, request.Identifier);
 
-        var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == tagName, cancellationToken);
-        var tag = existingTag ?? (await _dbContext.Tags.AddAsync(new Tag { Name = tagName }, cancellationToken)).Entity;
+        var existingTag = await _dbContext.NormalTags.FirstOrDefaultAsync(tag => tag.Name == tagName, cancellationToken);
+        var tag = existingTag ?? (await _dbContext.NormalTags.AddAsync(new NormalTag { Name = tagName }, cancellationToken)).Entity;
         var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier, cancellationToken);
@@ -65,7 +65,7 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItem, ErrorRe
         {
             ItemType = itemType,
             UniqueIdentifier = identifier,
-            Tags = new List<Tag> { tag }
+            Tags = new List<TagBase> { tag }
         };
         var entry = _dbContext.TaggedItems.Add(newTaggedItem);
 

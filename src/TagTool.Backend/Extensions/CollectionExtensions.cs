@@ -14,5 +14,5 @@ public static class CollectionExtensions
         }
     }
 
-    public static IEnumerable<string> Names(this IEnumerable<Tag> tagCollection) => tagCollection.Select(tag => tag.Name).ToArray();
+    public static string?[] Names(this IEnumerable<TagBase> tagCollection) => tagCollection.Select(tag => tag.ToString()).ToArray();
 }
