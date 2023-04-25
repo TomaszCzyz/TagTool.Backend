@@ -24,7 +24,8 @@ builder.Host.UseSerilog((_, configuration) =>
                 item.UniqueIdentifier,
                 Tags = item.Tags.Names()
             })
-        .Destructure.ByTransforming<Tag>(tag => new { tag.Name, TaggedItem = tag.TaggedItems.Select(item => item.UniqueIdentifier).ToArray() })
+        .Destructure.ByTransforming<TagBase>(tag
+            => new { Name = tag.ToString(), TaggedItem = tag.TaggedItems.Select(item => item.UniqueIdentifier).ToArray() })
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .ReadFrom.Configuration(builder.Configuration)
@@ -70,6 +71,7 @@ await using (var db = scope.ServiceProvider.GetRequiredService<TagToolDbContext>
 {
     app.Logger.LogInformation("Executing EF migrations...");
     db.Database.Migrate();
+    db.Database.EnsureCreated();
 }
 
 app.Logger.LogInformation("Launching application...");

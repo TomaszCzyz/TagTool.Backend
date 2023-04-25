@@ -16,7 +16,11 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<ItemTypeTag> ItemTypeTags => Set<ItemTypeTag>();
 
-    // public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<YearTag> YearTags => Set<YearTag>();
+
+    public DbSet<MonthTag> MonthTags => Set<MonthTag>();
+
+    public DbSet<DayTag> DayTags => Set<DayTag>();
 
     public DbSet<TaggedItem> TaggedItems => Set<TaggedItem>();
 
@@ -28,19 +32,43 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TagBase>().UseTphMappingStrategy().HasIndex(@base => @base.Id);
+        modelBuilder
+            .Entity<TagBase>()
+            .UseTphMappingStrategy();
+
+        modelBuilder
+            .Entity<TagBase>()
+            .Property(tag => tag.FormattedName);
+
+        modelBuilder
+            .Entity<TagBase>()
+            .HasIndex(tag => tag.FormattedName)
+            .IsUnique();
+
+        modelBuilder
+            .Entity<NormalTag>()
+            .Property(tag => tag.Name)
+            .UseCollation("NOCASE");
+
+        modelBuilder
+            .Entity<TagBase>()
+            .Property(tag => tag.FormattedName)
+            .UseCollation("NOCASE");
+
         modelBuilder.Entity<NormalTag>();
         modelBuilder.Entity<DateRangeTag>();
         modelBuilder.Entity<SizeRangeTag>();
         modelBuilder.Entity<ItemTypeTag>();
+        modelBuilder.Entity<MonthTag>();
+        modelBuilder.Entity<DayTag>();
 
-        modelBuilder.Entity<Tag>()
-            .HasIndex(tag => tag.Name)
-            .IsUnique();
+        modelBuilder
+            .Entity<DayTag>()
+            .HasData(Enum.GetValues<DayOfWeek>().Select(day => new DayTag { Id = 1000 + (int)day, DayOfWeek = day }));
 
-        modelBuilder.Entity<Tag>()
-            .Property(tag => tag.Name)
-            .UseCollation("NOCASE");
+        modelBuilder
+            .Entity<MonthTag>()
+            .HasData(Enumerable.Range(1, 12).Select(month => new MonthTag { Id = 2000 + month, Month = month }));
     }
 
     private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)

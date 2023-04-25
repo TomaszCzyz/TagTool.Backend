@@ -1,47 +1,139 @@
-﻿namespace TagTool.Backend.Models;
+﻿using System.Globalization;
 
-public class Tag
-{
-    public int Id { get; set; }
-
-    public required string Name { get; set; } = null!;
-
-    public ICollection<TaggedItem> TaggedItems { get; set; } = new List<TaggedItem>();
-}
+namespace TagTool.Backend.Models;
 
 public abstract class TagBase : IHasTimestamps
 {
     public int Id { get; set; }
 
-    public ICollection<TaggedItem> TaggedItems { get; set; } = new List<TaggedItem>();
+    // The cleaner way to do this would be abstract get-only property...
+    // however (sqlite's?) migration validation throws an error
+    // 'No backing field could be found for property 'TagBase.FormattedName' and the property does not have a setter.'
+    public string? FormattedName { get; protected set; }
 
     public DateTime? Added { get; set; }
 
     public DateTime? Deleted { get; set; }
 
     public DateTime? Modified { get; set; }
+
+    public ICollection<TaggedItem> TaggedItems { set; get; } = new List<TaggedItem>();
 }
 
-public class NormalTag : TagBase
+public sealed class NormalTag : TagBase
 {
-    public string Name { get; set; } = null!;
+    private string _name = null!;
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            _name = value;
+            FormattedName = _name;
+        }
+    }
 }
 
-public class ItemTypeTag : TagBase
+public sealed class ItemTypeTag : TagBase
 {
-    public string? Type { get; set; }
+    private string? _type;
+
+    public string? Type
+    {
+        get => _type;
+        set
+        {
+            _type = value;
+            FormattedName = nameof(ItemTypeTag) + Type;
+        }
+    }
 }
 
-public class DateRangeTag : TagBase
+public sealed class DateRangeTag : TagBase
 {
-    public DateTime Begin { get; set; }
+    private DateTime _begin;
+    private DateTime _end;
 
-    public DateTime End { get; set; }
+    public DateTime Begin
+    {
+        get => _begin;
+        set
+        {
+            _begin = value;
+            FormattedName = nameof(DateRangeTag) + $":{value}-{End}";
+        }
+    }
+
+    public DateTime End
+    {
+        get => _end;
+        set
+        {
+            _end = value;
+            FormattedName = nameof(DateRangeTag) + $":{Begin}-{value}";
+        }
+    }
 }
 
-public class SizeRangeTag : TagBase
+public sealed class SizeRangeTag : TagBase
 {
-    public double Min { get; set; }
+    private double _min;
+
+    public double Min
+    {
+        get => _min;
+        set
+        {
+            _min = value;
+            FormattedName = nameof(SizeRangeTag) + $":{value}-{Max}";
+        }
+    }
 
     public double Max { get; set; }
+}
+
+public sealed class YearTag : TagBase
+{
+    private DateOnly _dateOnly;
+
+    public DateOnly DateOnly
+    {
+        get => _dateOnly;
+        set
+        {
+            _dateOnly = value;
+            FormattedName = nameof(YearTag) + ":" + value;
+        }
+    }
+}
+
+public sealed class MonthTag : TagBase
+{
+    private int _month;
+
+    public int Month
+    {
+        get => _month;
+        set
+        {
+            _month = value;
+            FormattedName = nameof(MonthTag) + ":" + CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value);
+        }
+    }
+}
+
+public sealed class DayTag : TagBase
+{
+    private DayOfWeek _dayOfWeek;
+
+    public DayOfWeek DayOfWeek
+    {
+        get => _dayOfWeek;
+        set
+        {
+            FormattedName = nameof(DayTag) + ":" + CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value);
+            _dayOfWeek = value;
+        }
+    }
 }
