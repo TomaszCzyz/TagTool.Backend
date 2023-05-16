@@ -8,7 +8,7 @@ namespace TagTool.Backend.Commands;
 
 public class UntagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IReversible
 {
-    public required string TagName { get; init; }
+    public required TagBase Tag { get; init; }
 
     public required string ItemType { get; init; }
 
@@ -17,7 +17,7 @@ public class UntagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IRev
     public IReversible GetReverse()
         => new TagItemRequest
         {
-            TagName = TagName,
+            Tag = Tag,
             ItemType = ItemType,
             Identifier = Identifier
         };
@@ -37,7 +37,7 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItem, Err
 
     public async Task<OneOf<TaggedItem, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
     {
-        var (tagName, itemType, identifier) = (request.TagName, request.ItemType, request.Identifier);
+        var (tag, itemType, identifier) = (request.Tag, request.ItemType, request.Identifier);
 
         var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
@@ -48,12 +48,12 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItem, Err
             return new ErrorResponse($"There is no {request.ItemType} item {request.Identifier} in database.");
         }
 
-        if (!existingItem.Tags.OfType<NormalTag>().Select(tag => tag.Name).Contains(tagName))
+        if (!existingItem.Tags.Contains(tag))
         {
-            return new ErrorResponse($"{request.ItemType} item does not contain tag {request.TagName}.");
+            return new ErrorResponse($"{request.ItemType} item does not contain tag {request.Tag}.");
         }
 
-        var tag = await _dbContext.NormalTags.FirstAsync(tag => tag.Name == tagName, cancellationToken);
+        tag = await _dbContext.Tags.FirstAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
 
         _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
         var isRemoved = existingItem.Tags.Remove(tag);

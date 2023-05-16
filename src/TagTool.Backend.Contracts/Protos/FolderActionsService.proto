@@ -1,5 +1,6 @@
 ﻿syntax = "proto3";
 
+import "google/protobuf/any.proto";
 import "Protos/DomainTypes.proto";
 
 option csharp_namespace = "TagTool.Backend";
@@ -94,8 +95,8 @@ message DeleteFolderReply {
 
 // The request to tag children of a given folder with a given tag.
 message TagChildrenRequest {
-  // The name of a tag.
-  string tagName = 1;
+  // The Tag to be added to the item.
+  google.protobuf.Any tag = 1;
   // The full path to root folder.
   string fullName = 2;
   // The recurse depth, defaults to int.MaxValue
@@ -116,8 +117,8 @@ message TagChildrenReply {
 
 // The request to untag children of a given folder.
 message UntagChildrenRequest {
-  // The name of a tag.
-  string tagName = 1;
+  // The Tag to be removed from the item.
+  google.protobuf.Any tag = 1;
   // The full path to root folder.
   string fullName = 2;
   // The recurse depth, defaults to int.MaxValue

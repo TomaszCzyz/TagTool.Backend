@@ -8,7 +8,7 @@ namespace TagTool.Backend.Commands;
 
 public class TagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IReversible
 {
-    public required string TagName { get; init; }
+    public required TagBase Tag { get; init; }
 
     public required string ItemType { get; init; }
 
@@ -17,7 +17,7 @@ public class TagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IRever
     public IReversible GetReverse()
         => new UntagItemRequest
         {
-            TagName = TagName,
+            Tag = Tag,
             Identifier = Identifier,
             ItemType = ItemType
         };
@@ -37,10 +37,10 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItem, ErrorRe
 
     public async Task<OneOf<TaggedItem, ErrorResponse>> Handle(TagItemRequest request, CancellationToken cancellationToken)
     {
-        var (tagName, itemType, identifier) = (request.TagName, request.ItemType, request.Identifier);
+        var (tag, itemType, identifier) = (request.Tag, request.ItemType, request.Identifier);
 
-        var existingTag = await _dbContext.NormalTags.FirstOrDefaultAsync(tag => tag.Name == tagName, cancellationToken);
-        var tag = existingTag ?? (await _dbContext.NormalTags.AddAsync(new NormalTag { Name = tagName }, cancellationToken)).Entity;
+        var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
+        tag = existingTag ?? (await _dbContext.Tags.AddAsync(tag, cancellationToken)).Entity;
         var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier, cancellationToken);
@@ -49,7 +49,7 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItem, ErrorRe
         {
             if (existingItem.Tags.Contains(tag))
             {
-                return new ErrorResponse($"Item {request.Identifier} already exists and it is tagged with a tag {tagName}");
+                return new ErrorResponse($"Item {request.Identifier} already exists and it is tagged with a tag {tag}");
             }
 
             _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
@@ -60,7 +60,7 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItem, ErrorRe
             return existingItem;
         }
 
-        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {Tag}", existingItem, tagName);
+        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", existingItem, tag);
         var newTaggedItem = new TaggedItem
         {
             ItemType = itemType,

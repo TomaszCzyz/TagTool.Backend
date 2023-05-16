@@ -7,10 +7,10 @@ using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Mappers;
 using TagTool.Backend.Queries;
 using NormalTag = TagTool.Backend.DomainTypes.NormalTag;
 using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
-using YearTag = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Services.Grpc;
 
@@ -31,19 +31,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        TagBase? tag = null;
-        if (request.Tag.Is(NormalTag.Descriptor))
-        {
-            var normalTag = request.Tag.Unpack<NormalTag>();
-            tag = new Models.NormalTag { Name = normalTag.Name };
-        }
-        else if (request.Tag.Is(YearTag.Descriptor))
-        {
-            var yearTag = request.Tag.Unpack<YearTag>();
-            tag = new Models.YearTag { DateOnly = new DateOnly(yearTag.Year, 1, 1) };
-        }
-
-        if (tag is null) throw new ArgumentException("Unable to match tag type");
+        var tag = TagMapper.Map(request.Tag);
 
         var command = new Commands.CreateTagRequest { Tag = tag };
         var response = await _mediator.Send(command, context.CancellationToken);
@@ -66,9 +54,11 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
+        var tagBase = TagMapper.Map(request.Tag);
+
         var command = new Commands.TagItemRequest
         {
-            TagName = request.TagName,
+            Tag = tagBase,
             ItemType = request.Item.ItemType,
             Identifier = request.Item.Identifier
         };
@@ -82,9 +72,11 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
+        var tagBase = TagMapper.Map(request.Tag);
+
         var command = new Commands.UntagItemRequest
         {
-            TagName = request.TagName,
+            Tag = tagBase,
             ItemType = request.Item.ItemType,
             Identifier = request.Item.Identifier
         };

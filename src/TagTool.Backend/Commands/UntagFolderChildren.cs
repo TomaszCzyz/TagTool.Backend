@@ -9,7 +9,7 @@ public class UntagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
 {
     public required string RootFolder { get; init; }
 
-    public required string TagName { get; init; }
+    public required TagBase Tag { get; init; }
 
     public int Depth { get; init; } = 1;
 
@@ -18,7 +18,7 @@ public class UntagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
     public IReversible GetReverse() => new TagFolderChildrenRequest
     {
         RootFolder = RootFolder,
-        TagName = TagName,
+        Tag = Tag,
         Depth = Depth,
         TagFilesOnly = TagFilesOnly
     };
@@ -60,7 +60,7 @@ public class UntagFolderChildren : ICommandHandler<UntagFolderChildrenRequest, O
 
             var untagItemRequest = new UntagItemRequest
             {
-                TagName = request.TagName,
+                Tag = request.Tag,
                 ItemType = info is FileInfo ? "file" : "folder",
                 Identifier = info.FullName
             };

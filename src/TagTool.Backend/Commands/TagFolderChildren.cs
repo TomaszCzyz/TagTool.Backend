@@ -9,7 +9,7 @@ public class TagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>, 
 {
     public required string RootFolder { get; init; }
 
-    public required string TagName { get; init; }
+    public required TagBase Tag { get; init; }
 
     public int Depth { get; init; } = 1;
 
@@ -19,7 +19,7 @@ public class TagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>, 
         => new UntagFolderChildrenRequest
         {
             RootFolder = RootFolder,
-            TagName = TagName,
+            Tag = Tag,
             Depth = Depth,
             TagFilesOnly = TagFilesOnly
         };
@@ -61,7 +61,7 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
 
             var tagItemRequest = new TagItemRequest
             {
-                TagName = request.TagName,
+                Tag = request.Tag,
                 ItemType = info is FileInfo ? "file" : "folder",
                 Identifier = info.FullName
             };

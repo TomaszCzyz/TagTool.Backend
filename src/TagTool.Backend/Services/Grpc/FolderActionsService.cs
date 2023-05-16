@@ -2,6 +2,7 @@
 using MediatR;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Models.Mappers;
 
 namespace TagTool.Backend.Services.Grpc;
 
@@ -67,10 +68,12 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<TagChildrenReply> TagChildren(TagChildrenRequest request, ServerCallContext context)
     {
+        var tagBase = TagMapper.Map(request.Tag);
+
         var command = new TagFolderChildrenRequest
         {
             RootFolder = request.FullName,
-            TagName = request.TagName,
+            Tag = tagBase,
             Depth = request.Depth,
             TagFilesOnly = request.TagOnlyFiles
         };
@@ -84,10 +87,12 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<UntagChildrenReply> UntagChildren(UntagChildrenRequest request, ServerCallContext context)
     {
+        var tagBase = TagMapper.Map(request.Tag);
+
         var command = new UntagFolderChildrenRequest
         {
             RootFolder = request.FullName,
-            TagName = request.TagName,
+            Tag = tagBase,
             Depth = request.Depth,
             TagFilesOnly = request.TagOnlyFiles
         };

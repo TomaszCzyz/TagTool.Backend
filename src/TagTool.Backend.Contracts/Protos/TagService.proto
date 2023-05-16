@@ -45,13 +45,8 @@ service TagService {
 
 // The request to create a new tag.
 message CreateTagRequest {
-//  // The Tag's name.
-//  string TagName = 1;
+  // The tag.
   google.protobuf.Any tag = 2;
-//  oneof tag {
-//    NormalTag normalTag = 2;
-//    YearTag yearTag = 3;
-//  }
 }
 
 // The reply indicating whether tag creation was successful or not.
@@ -85,8 +80,8 @@ message DeleteTagReply {
 
 // The request to tag a given item.
 message TagItemRequest {
-  // The Tag's name. If the tag not exists, it will be created.
-  string tagName = 1;
+  // The Tag to be added to the item.
+  google.protobuf.Any tag = 1;
   // The Item to tag.
   Item item = 2;
 }
@@ -103,8 +98,8 @@ message TagItemReply {
 
 // The request to untag a given item.
 message UntagItemRequest {
-  // The Tag's name to untag.
-  string tagName = 1;
+  // The Tag to be removed from the item.
+  google.protobuf.Any tag = 1;
   // The item to untag
   Item item = 2;
 }
