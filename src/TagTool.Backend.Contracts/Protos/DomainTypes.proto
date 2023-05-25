@@ -34,3 +34,16 @@ message NormalTag {
 message YearTag {
   int32 year = 1;
 }
+
+message MonthTag {
+  int32 month = 1;
+}
+
+message DayTag {
+  int32 day = 1;
+}
+
+message DayRangeTag {
+  int32 beginDay = 1;
+  int32 endDay = 2;
+}

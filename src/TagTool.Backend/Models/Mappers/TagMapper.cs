@@ -2,7 +2,15 @@
 
 namespace TagTool.Backend.Models.Mappers;
 
-public class TagMapper
+/// <summary>
+/// Mapper for tag types between grpc contracts and domain types.
+/// </summary>
+/// <remarks>
+/// In the future it should be extendable to any type of tag and registration should be automated.
+/// It can be achieved by registering all tag types from assemblies (mark by something or in given namespace).
+/// The registration should cache all type and not using reflection, for performance reasons.
+/// </remarks>
+public static class TagMapper
 {
     public static TagBase Map(Any tag)
     {
@@ -17,6 +25,21 @@ public class TagMapper
         {
             var yearTag = tag.Unpack<DomainTypes.YearTag>();
             tagBase = new YearTag { DateOnly = new DateOnly(yearTag.Year, 1, 1) };
+        }
+        else if (tag.Is(DomainTypes.DayTag.Descriptor))
+        {
+            var dayTag = tag.Unpack<DomainTypes.DayTag>();
+            tagBase = new DayTag { DayOfWeek = (DayOfWeek)dayTag.Day };
+        }
+        else if (tag.Is(DomainTypes.DayRangeTag.Descriptor))
+        {
+            var dayRangeTag = tag.Unpack<DomainTypes.DayRangeTag>();
+            tagBase = new DayRangeTag { Begin = (DayOfWeek)dayRangeTag.BeginDay, End = (DayOfWeek)dayRangeTag.EndDay };
+        }
+        else if (tag.Is(DomainTypes.MonthTag.Descriptor))
+        {
+            var monthTag = tag.Unpack<DomainTypes.MonthTag>();
+            tagBase = new MonthTag { Month = monthTag.Month };
         }
 
         return tagBase ?? throw new ArgumentException("Unable to match tag type");
