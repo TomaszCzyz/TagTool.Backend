@@ -15,6 +15,4 @@ public static class CollectionExtensions
     }
 
     public static string?[] Names(this IEnumerable<TagBase> tagCollection) => tagCollection.Select(tag => tag.ToString()).ToArray();
-
-    public static string?[] FormattedNames(this IEnumerable<TagBase> tagCollection) => tagCollection.Select(tag => tag.FormattedName).ToArray();
 }

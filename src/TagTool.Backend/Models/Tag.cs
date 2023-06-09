@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace TagTool.Backend.Models;
 
@@ -6,6 +7,7 @@ public interface ITagBase
 {
 }
 
+[DebuggerDisplay("{FormattedName}")]
 public abstract class TagBase : IHasTimestamps, ITagBase
 {
     public int Id { get; set; }

@@ -4,12 +4,12 @@ using Google.Protobuf.WellKnownTypes;
 namespace TagTool.Backend.Models.Mappers;
 
 /// <summary>
-/// Mapper for tag types between grpc contracts and domain types.
+///     Mapper for tag types between grpc contracts and domain types.
 /// </summary>
 /// <remarks>
-/// In the future it should be extendable to any type of tag and registration should be automated.
-/// It can be achieved by registering all tag types from assemblies (mark by something or in given namespace).
-/// The registration should cache all type and not using reflection, for performance reasons.
+///     In the future it should be extendable to any type of tag and registration should be automated.
+///     It can be achieved by registering all tag types from assemblies (mark by something or in given namespace).
+///     The registration should cache all type and not using reflection, for performance reasons.
 /// </remarks>
 public static class TagMapper
 {

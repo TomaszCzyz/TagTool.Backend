@@ -6,6 +6,7 @@ using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
+
 public class SearchTagsStartsWithRequest : IStreamRequest<(string, IEnumerable<MatchedPart>)>
 {
     public required string Value { get; init; }

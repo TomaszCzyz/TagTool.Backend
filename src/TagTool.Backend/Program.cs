@@ -70,8 +70,8 @@ using var scope = app.Services.CreateScope();
 await using (var db = scope.ServiceProvider.GetRequiredService<TagToolDbContext>())
 {
     app.Logger.LogInformation("Executing EF migrations...");
-    db.Database.Migrate();
     db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 
 app.Logger.LogInformation("Launching application...");
