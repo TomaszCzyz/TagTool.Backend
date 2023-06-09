@@ -5,11 +5,9 @@ using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
-using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Mappers;
 using TagTool.Backend.Queries;
-using NormalTag = TagTool.Backend.DomainTypes.NormalTag;
 using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
 
 namespace TagTool.Backend.Services.Grpc;
@@ -31,7 +29,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        var tag = TagMapper.Map(request.Tag);
+        var tag = TagMapper.MapToDomain(request.Tag);
 
         var command = new Commands.CreateTagRequest { Tag = tag };
         var response = await _mediator.Send(command, context.CancellationToken);
@@ -43,7 +41,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        var command = new Commands.DeleteTagRequest { Tag = new Models.NormalTag { Name = request.TagName } };
+        var tag = TagMapper.MapToDomain(request.Tag);
+
+        var command = new Commands.DeleteTagRequest { Tag = tag };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
@@ -54,7 +54,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.Map(request.Tag);
+        var tagBase = TagMapper.MapToDomain(request.Tag);
 
         var command = new Commands.TagItemRequest
         {
@@ -66,13 +66,13 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { item.Tags.Names() } } },
+            item => new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, Tags = { item.Tags.Select(TagMapper.MapToDto) } } },
             errorResponse => new TagItemReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.Map(request.Tag);
+        var tagBase = TagMapper.MapToDomain(request.Tag);
 
         var command = new Commands.UntagItemRequest
         {
@@ -84,7 +84,7 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, TagNames = { item.Tags.Names() } } },
+            item => new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, Tags = { item.Tags.Select(TagMapper.MapToDto) } } },
             errorResponse => new UntagItemReply { ErrorMessage = errorResponse.Message });
     }
 
@@ -97,27 +97,34 @@ public class TagService : Backend.TagService.TagServiceBase
 
         return existingItem is null
             ? new GetItemReply { ErrorMessage = $"Requested item {request.Item} does not exists." }
-            : new GetItemReply
-            {
-                TaggedItem = new TaggedItem { Item = request.Item, TagNames = { existingItem.Tags.Select(tag => tag.ToString()) } }
-            };
+            : new GetItemReply { TaggedItem = new TaggedItem { Item = request.Item, Tags = { existingItem.Tags.Select(TagMapper.MapToDto) } } };
     }
 
-    public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
+    public override async Task<GetItemsByTagsV2Reply> GetItemsByTagsV2(GetItemsByTagsV2Request request, ServerCallContext context)
     {
-        var query = new Queries.GetItemsByTagsRequest { TagNames = request.TagNames.ToArray() };
+        var querySegments = request.QueryParams
+            .Select(tagQueryParam
+                => new TagQuerySegment
+                {
+                    Include = tagQueryParam.Include,
+                    MustBePresent = tagQueryParam.MustBePresent,
+                    Tag = TagMapper.MapToDomain(tagQueryParam.Tag) //MapToTag(tagQueryParam.TagType, tagQueryParam.Params.ToArray()),
+                })
+            .ToList();
 
-        var taggedItems = await _mediator.Send(query, context.CancellationToken);
+        var getItemsByTagsV2Query = new GetItemsByTagsV2Query { QuerySegments = querySegments };
+        var response = await _mediator.Send(getItemsByTagsV2Query);
 
-        var results = taggedItems
+        var results = response
             .Select(item =>
                 new TaggedItem
                 {
-                    Item = new Item { ItemType = item.ItemType, Identifier = item.UniqueIdentifier }, TagNames = { item.Tags.Names() }
+                    Item = new Item { ItemType = item.ItemType, Identifier = item.UniqueIdentifier },
+                    Tags = { item.Tags.Select(TagMapper.MapToDto) }
                 })
             .ToArray();
 
-        return new GetItemsByTagsReply { TaggedItem = { results } };
+        return new GetItemsByTagsV2Reply { TaggedItems = { results } };
     }
 
     public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
@@ -131,7 +138,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
-        var existingItem = await _dbContext.NormalTags.FirstOrDefaultAsync(tag => tag.Name == request.TagName, context.CancellationToken);
+        var tag = TagMapper.MapToDomain(request.Tag);
+        var existingItem = await _dbContext.Tags
+            .FirstOrDefaultAsync(tagBase => tagBase.FormattedName == tag.FormattedName, context.CancellationToken);
 
         return new DoesTagExistsReply { Exists = existingItem is not null };
     }

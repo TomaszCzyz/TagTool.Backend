@@ -1,8 +1,18 @@
 ﻿syntax = "proto3";
 
+import "google/protobuf/any.proto";
+
 option csharp_namespace = "TagTool.Backend.DomainTypes";
 
 package TagToolBackend;
+
+// The unified error type.
+message Error {
+  // The error's id.
+  int32 errorId = 1;
+  // The description of an error.
+  string message = 2;
+}
 
 // The message that unambiguously represents taggable item.
 message Item {
@@ -13,37 +23,41 @@ message Item {
 }
 
 // The message that unambiguously represents taggable item with associated tags.
-// It is used as in many replies (does not make sense for requests). 
+// It should be used in replies (does not make sense for requests). 
 message TaggedItem {
   Item item = 1;
-  repeated string tagNames = 2;
+  repeated google.protobuf.Any tags = 2;
 }
 
-// The unified error type.
-message Error {
-  // The error's id.
-  int32 errorId = 1;
-  // The description of an error.
-  string message = 2;
-}
-
+// The simple text tag.
 message NormalTag {
+  // The content of the tag
   string Name = 1;
 }
 
+// The tag which represents year.
 message YearTag {
+  // The year.
   int32 year = 1;
 }
 
+// The tag which represents month, i.e. January, February, e.t.c.
 message MonthTag {
+  // The number representing month.
+  // todo: add explanation what happens in a case of invalid number.
   int32 month = 1;
 }
 
+// The tag which represents day of the week, i.e. Monday, Tuesday, e.t.c.
 message DayTag {
+  // The number representing a day of the week.
   int32 day = 1;
 }
 
+// The tag representing a range of days.
 message DayRangeTag {
+  // The first beginning of a range. 
   int32 beginDay = 1;
+  // The end of a range; the day is included.
   int32 endDay = 2;
 }

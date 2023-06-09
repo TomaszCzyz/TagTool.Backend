@@ -141,3 +141,29 @@ public sealed class DayTag : TagBase
         }
     }
 }
+
+public sealed class DayRangeTag : TagBase
+{
+    private DayOfWeek _begin;
+    private DayOfWeek _end;
+
+    public DayOfWeek Begin
+    {
+        get => _begin;
+        set
+        {
+            _begin = value;
+            FormattedName = nameof(DayRangeTag) + $":{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value)}-{End}";
+        }
+    }
+
+    public DayOfWeek End
+    {
+        get => _end;
+        set
+        {
+            _end = value;
+            FormattedName = nameof(DayRangeTag) + $":{Begin}-{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value)}";
+        }
+    }
+}

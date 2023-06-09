@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace TagTool.Backend.Models.Mappers;
 
@@ -12,7 +13,7 @@ namespace TagTool.Backend.Models.Mappers;
 /// </remarks>
 public static class TagMapper
 {
-    public static TagBase Map(Any tag)
+    public static TagBase MapToDomain(Any tag)
     {
         TagBase? tagBase = null;
 
@@ -43,5 +44,20 @@ public static class TagMapper
         }
 
         return tagBase ?? throw new ArgumentException("Unable to match tag type");
+    }
+
+    public static Any MapToDto(TagBase tag)
+    {
+        IMessage tagDto = tag switch
+        {
+            NormalTag normalTag => new DomainTypes.NormalTag { Name = normalTag.Name },
+            YearTag yearTag => new DomainTypes.YearTag { Year = yearTag.DateOnly.Year },
+            MonthTag monthTag => new DomainTypes.MonthTag { Month = monthTag.Month },
+            DayTag dayTag => new DomainTypes.DayTag { Day = (int)dayTag.DayOfWeek },
+            DayRangeTag dayRangeTag => new DomainTypes.DayRangeTag { BeginDay = (int)dayRangeTag.Begin, EndDay = (int)dayRangeTag.End },
+            _ => throw new ArgumentOutOfRangeException(nameof(tag), tag, null)
+        };
+
+        return Any.Pack(tagDto);
     }
 }

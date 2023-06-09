@@ -1,6 +1,5 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
@@ -11,7 +10,7 @@ public class CreateTagRequest : ICommand<OneOf<TagBase, ErrorResponse>>, IRevers
 {
     public required TagBase Tag { get; init; }
 
-    public IReversible GetReverse() => new Commands.DeleteTagRequest { Tag = Tag };
+    public IReversible GetReverse() => new DeleteTagRequest { Tag = Tag };
 }
 
 [UsedImplicitly]

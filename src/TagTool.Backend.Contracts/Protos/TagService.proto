@@ -13,6 +13,8 @@ service TagService {
   // Deletes a Tag if tag exists and is unused, otherwise return error message.
   // Used tags can be deleted be setting 'deleteUsedToo' flag .
   rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
+  // Updates a tag
+  //  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagReply);
 
   // Tags an item.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
@@ -23,6 +25,8 @@ service TagService {
   rpc GetItem(GetItemRequest) returns (GetItemReply);
   // Gets items which are tagged with one or more of supplied tags.
   rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
+  // Gets items which tags are meet the request conditions.
+  rpc GetItemsByTagsV2(GetItemsByTagsV2Request) returns (GetItemsByTagsV2Reply);
 
   // Checks if given items exists in tagged items database. 
   // The purpose of this endpoint is to avoid transfer and allocation Item information just to check existence.  
@@ -61,8 +65,8 @@ message CreateTagReply {
 
 // The request to delete a tag.
 message DeleteTagRequest {
-  // The name of a tag to delete.
-  string TagName = 1;
+  // The tag to be deleted.
+  google.protobuf.Any tag = 1;
   // The flag that allows to delete tag that is associated with an item(s).
   // All items will be untagged from the given tag.
   bool deleteUsedToo = 2;
@@ -132,13 +136,36 @@ message GetItemReply {
 
 // The request to retrieve all tags that are tagged with given tags.
 message GetItemsByTagsRequest {
-  // The tag's names
-  repeated string tagNames = 1;
+  // The tags.
+  repeated google.protobuf.Any tags = 1;
 }
 
 // The reply containing an item with associated tags.
 message GetItemsByTagsReply {
-  repeated TaggedItem taggedItem = 1;
+  repeated TaggedItem taggedItems = 1;
+}
+
+// The request to retrieve all tags that meet tags conditions,
+// e.g. include tag 'Tag1' and exclude 'Tag2'.
+message GetItemsByTagsV2Request {
+  repeated TagQueryParam queryParams = 1;
+
+  // Defines single segment of a tag search query.
+  message TagQueryParam {
+    // The flag indicating if searched item can contain given tag.
+    // If flag is false, then returned items cannot by tagged if the tag.
+    // Defaults to true.
+    bool include = 1;
+    // When true, then all returned items must contain given tag.
+    bool mustBePresent = 2;
+    // The tag, e.g. normal, date range, size range, e.t.c.
+    google.protobuf.Any tag = 3;
+  }
+}
+
+// The reply containing tagged items than met query conditions.
+message GetItemsByTagsV2Reply {
+  repeated TaggedItem taggedItems = 1;
 }
 
 // The request to check if given Item exists.
@@ -155,8 +182,8 @@ message DoesItemExistsReply {
 
 // The request to check if given Tag exists.
 message DoesTagExistsRequest {
-  // The Tag's name
-  string tagName = 1;
+  // The tag.
+  google.protobuf.Any tag = 1;
 }
 
 // The reply indicating if given tag exists.
@@ -200,24 +227,33 @@ message SearchTagsReply {
   }
 }
 
+// The request to undo last action.
 message UndoRequest {}
 
+// The reply indicating if undo operation was successful.
 message UndoReply {
   oneof result {
+    // The command's response message.
     string undoCommand = 1;
+    // The error message, when undo operation failed. 
     string errorMessage = 2;
   }
 }
 
+// The request to redo last action.
 message RedoRequest {}
 
+// The reply indicating if redo operation was successful.
 message RedoReply {
   oneof result {
+    // The command's response message.
     string redoCommand = 1;
+    // The error message, when redo operation failed.
     string errorMessage = 2;
   }
 }
 
+// The common naming conventions for sentences without spaces.
 enum NamingConvention {
   None = 0;
   CamelCase = 1;

@@ -22,6 +22,8 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<DayTag> DayTags => Set<DayTag>();
 
+    public DbSet<DayRangeTag> DayRangeTags => Set<DayRangeTag>();
+
     public DbSet<TaggedItem> TaggedItems => Set<TaggedItem>();
 
     public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
@@ -54,13 +56,6 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .Entity<TagBase>()
             .Property(tag => tag.FormattedName)
             .UseCollation("NOCASE");
-
-        modelBuilder.Entity<NormalTag>();
-        modelBuilder.Entity<DateRangeTag>();
-        modelBuilder.Entity<SizeRangeTag>();
-        modelBuilder.Entity<ItemTypeTag>();
-        modelBuilder.Entity<MonthTag>();
-        modelBuilder.Entity<DayTag>();
 
         modelBuilder
             .Entity<DayTag>()

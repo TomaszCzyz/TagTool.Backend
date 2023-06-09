@@ -68,7 +68,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<TagChildrenReply> TagChildren(TagChildrenRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.Map(request.Tag);
+        var tagBase = TagMapper.MapToDomain(request.Tag);
 
         var command = new TagFolderChildrenRequest
         {
@@ -87,7 +87,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<UntagChildrenReply> UntagChildren(UntagChildrenRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.Map(request.Tag);
+        var tagBase = TagMapper.MapToDomain(request.Tag);
 
         var command = new UntagFolderChildrenRequest
         {
