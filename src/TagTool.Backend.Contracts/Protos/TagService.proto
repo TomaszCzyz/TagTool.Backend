@@ -211,8 +211,8 @@ message SearchTagsRequest {
 
 // Stream of the replies containing Tag's names and information about matching type.  
 message SearchTagsReply {
-  // The Tag's name. 
-  string tagName = 1;
+  // The tag.
+  google.protobuf.Any tag = 1;
   // The flag indicating if request name fully matched found Tag.
   bool isExactMatch = 2;
   // The information about partial match. Set only when 'isExactMatch' flag is false. 

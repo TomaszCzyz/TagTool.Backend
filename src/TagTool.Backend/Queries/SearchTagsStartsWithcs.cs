@@ -7,7 +7,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsStartsWithRequest : IStreamRequest<(string, IEnumerable<MatchedPart>)>
+public class SearchTagsStartsWithRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
 {
     public required string Value { get; init; }
 
@@ -15,29 +15,29 @@ public class SearchTagsStartsWithRequest : IStreamRequest<(string, IEnumerable<M
 }
 
 [UsedImplicitly]
-public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRequest, (string, IEnumerable<MatchedPart>)>
+public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRequest, (TagBase, IEnumerable<MatchedPart>)>
 {
     private readonly TagToolDbContext _dbContext;
 
     public SearchTagsStartsWith(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async IAsyncEnumerable<(string, IEnumerable<MatchedPart>)> Handle(
+    public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
         SearchTagsStartsWithRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var queryable = _dbContext.NormalTags
-            .Where(tag => tag.Name.StartsWith(request.Value))
-            .Select(tag => tag.Name)
+        // todo: fix this search; I can add SearchName column to Tag table that will contain FormattedName trimmed form tag Type
+        var queryable = _dbContext.Tags
+            .Where(tag => tag.FormattedName.StartsWith(request.Value))
             .Take(request.ResultsLimit);
 
         var counter = 0;
-        await foreach (var tagName in queryable.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        await foreach (var tag in queryable.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             if (counter == request.ResultsLimit) break;
             counter++;
 
-            var matchedPart = new MatchedPart(0, tagName.IndexOf(request.Value.Last()));
-            yield return (tagName, new[] { matchedPart });
+            var matchedPart = new MatchedPart(0, tag.FormattedName.IndexOf(request.Value.Last()));
+            yield return (tag, new[] { matchedPart });
         }
     }
 }

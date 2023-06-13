@@ -8,7 +8,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsPartialRequest : IStreamRequest<(string, IEnumerable<MatchedPart>)>
+public class SearchTagsPartialRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
 {
     public required string Value { get; init; }
 
@@ -16,13 +16,13 @@ public class SearchTagsPartialRequest : IStreamRequest<(string, IEnumerable<Matc
 }
 
 [UsedImplicitly]
-public class SearchTagsPartial : IStreamRequestHandler<SearchTagsPartialRequest, (string, IEnumerable<MatchedPart>)>
+public class SearchTagsPartial : IStreamRequestHandler<SearchTagsPartialRequest, (TagBase, IEnumerable<MatchedPart>)>
 {
     private readonly TagToolDbContext _dbContext;
 
     public SearchTagsPartial(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async IAsyncEnumerable<(string, IEnumerable<MatchedPart>)> Handle(
+    public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
         SearchTagsPartialRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public class SearchTagsPartial : IStreamRequestHandler<SearchTagsPartialRequest,
 
             if (matchedParts.Length == 0) continue;
 
-            yield return (tagName, matchedParts);
+            yield return (tag, matchedParts);
         }
     }
 }

@@ -15,7 +15,7 @@ public abstract class TagBase : IHasTimestamps, ITagBase
     // The cleaner way to do this would be abstract get-only property...
     // however (sqlite's?) migration validation throws an error
     // 'No backing field could be found for property 'TagBase.FormattedName' and the property does not have a setter.'
-    public string? FormattedName { get; protected set; }
+    public string FormattedName { get; protected set; } = null!;
 
     public DateTime? Added { get; set; }
 
@@ -36,7 +36,7 @@ public sealed class NormalTag : TagBase
         set
         {
             _name = value;
-            FormattedName = _name;
+            FormattedName = nameof(NormalTag) + ":" + _name;
         }
     }
 }

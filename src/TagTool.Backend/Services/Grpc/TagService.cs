@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
@@ -152,7 +153,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var (value, limit) = (request.Name, request.ResultsLimit);
 
-        IStreamRequest<(string, IEnumerable<MatchedPart>)> query = request.SearchType switch
+        IStreamRequest<(TagBase, IEnumerable<MatchedPart>)> query = request.SearchType switch
         {
             SearchTagsRequest.Types.SearchType.Wildcard => new SearchTagsWildcardRequest { Value = value, ResultsLimit = limit },
             SearchTagsRequest.Types.SearchType.StartsWith => new SearchTagsStartsWithRequest { Value = value, ResultsLimit = limit },
@@ -160,7 +161,7 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new ArgumentOutOfRangeException(nameof(request))
         };
 
-        await foreach (var (tagName, parts) in _mediator.CreateStream(query, context.CancellationToken))
+        await foreach (var (tag, parts) in _mediator.CreateStream(query, context.CancellationToken))
         {
             var matchedParts = parts
                 .Select(part => new SearchTagsReply.Types.MatchedPart { StartIndex = part.StartIndex, Length = part.Length })
@@ -168,9 +169,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
             var matchTagsReply = new SearchTagsReply
             {
-                TagName = tagName,
+                Tag = TagMapper.MapToDto(tag),
                 MatchedPart = { matchedParts },
-                IsExactMatch = matchedParts[0].Length == tagName.Length
+                IsExactMatch = matchedParts[0].Length == tag.FormattedName.Length
             };
 
             await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);

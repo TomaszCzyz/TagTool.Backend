@@ -6,7 +6,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsWildcardRequest : IStreamRequest<(string, IEnumerable<MatchedPart>)>
+public class SearchTagsWildcardRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
 {
     public required string Value { get; init; }
 
@@ -14,25 +14,25 @@ public class SearchTagsWildcardRequest : IStreamRequest<(string, IEnumerable<Mat
 }
 
 [UsedImplicitly]
-public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardRequest, (string, IEnumerable<MatchedPart>)>
+public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardRequest, (TagBase, IEnumerable<MatchedPart>)>
 {
     private readonly TagToolDbContext _dbContext;
 
     public SearchTagsWildcard(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async IAsyncEnumerable<(string, IEnumerable<MatchedPart>)> Handle(
+    public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
         SearchTagsWildcardRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (request.Value != "*") throw new NotImplementedException();
 
         var counter = 0;
-        await foreach (var tag in _dbContext.NormalTags.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             if (counter == request.ResultsLimit) break;
             counter++;
 
-            yield return (tag.Name, new[] { new MatchedPart(0, tag.Name.Length) });
+            yield return (tag, new[] { new MatchedPart(0, tag.FormattedName.Length) });
         }
     }
 }
