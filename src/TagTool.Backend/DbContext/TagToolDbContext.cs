@@ -20,6 +20,8 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<MonthTag> MonthTags => Set<MonthTag>();
 
+    public DbSet<MonthRangeTag> MonthRangeTags => Set<MonthRangeTag>();
+
     public DbSet<DayTag> DayTags => Set<DayTag>();
 
     public DbSet<DayRangeTag> DayRangeTags => Set<DayRangeTag>();

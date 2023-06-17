@@ -129,6 +129,36 @@ public sealed class MonthTag : TagBase
     }
 }
 
+public sealed class MonthRangeTag : TagBase
+{
+    private readonly int _begin = 1;
+    private readonly int _end = 13;
+
+    public int Begin
+    {
+        get => _begin;
+        init
+        {
+            _begin = value;
+            FormattedName = nameof(MonthRangeTag) +
+                            $":{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value)}" +
+                            $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(End)}";
+        }
+    }
+
+    public int End
+    {
+        get => _end;
+        init
+        {
+            _end = value;
+            FormattedName = nameof(MonthRangeTag) +
+                            $":{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Begin)}" +
+                            $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value)}";
+        }
+    }
+}
+
 public sealed class DayTag : TagBase
 {
     private DayOfWeek _dayOfWeek;

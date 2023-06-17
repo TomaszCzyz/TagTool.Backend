@@ -56,8 +56,16 @@ message DayTag {
 
 // The tag representing a range of days.
 message DayRangeTag {
-  // The first beginning of a range. 
-  int32 beginDay = 1;
+  // The beginning of a range. 
+  int32 begin = 1;
   // The end of a range; the day is included.
-  int32 endDay = 2;
+  int32 end = 2;
+}
+
+// The tag representing a range of month.
+message MonthRangeTag {
+  // The beginning of a range. 
+  int32 begin = 1;
+  // The end of a range; the day is included.
+  int32 end = 2;
 }

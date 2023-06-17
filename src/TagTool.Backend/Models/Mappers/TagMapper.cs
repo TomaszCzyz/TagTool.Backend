@@ -35,12 +35,17 @@ public static class TagMapper
         else if (tag.Is(DomainTypes.DayRangeTag.Descriptor))
         {
             var dayRangeTag = tag.Unpack<DomainTypes.DayRangeTag>();
-            tagBase = new DayRangeTag { Begin = (DayOfWeek)dayRangeTag.BeginDay, End = (DayOfWeek)dayRangeTag.EndDay };
+            tagBase = new DayRangeTag { Begin = (DayOfWeek)dayRangeTag.Begin, End = (DayOfWeek)dayRangeTag.End };
         }
         else if (tag.Is(DomainTypes.MonthTag.Descriptor))
         {
             var monthTag = tag.Unpack<DomainTypes.MonthTag>();
             tagBase = new MonthTag { Month = monthTag.Month };
+        }
+        else if (tag.Is(DomainTypes.MonthRangeTag.Descriptor))
+        {
+            var monthTag = tag.Unpack<DomainTypes.MonthRangeTag>();
+            tagBase = new MonthRangeTag { Begin = monthTag.Begin, End = monthTag.End };
         }
 
         return tagBase ?? throw new ArgumentException("Unable to match tag type");
@@ -53,8 +58,9 @@ public static class TagMapper
             NormalTag normalTag => new DomainTypes.NormalTag { Name = normalTag.Name },
             YearTag yearTag => new DomainTypes.YearTag { Year = yearTag.DateOnly.Year },
             MonthTag monthTag => new DomainTypes.MonthTag { Month = monthTag.Month },
+            MonthRangeTag monthRangeTag => new DomainTypes.MonthRangeTag { Begin = monthRangeTag.Begin, End = monthRangeTag.End },
             DayTag dayTag => new DomainTypes.DayTag { Day = (int)dayTag.DayOfWeek },
-            DayRangeTag dayRangeTag => new DomainTypes.DayRangeTag { BeginDay = (int)dayRangeTag.Begin, EndDay = (int)dayRangeTag.End },
+            DayRangeTag dayRangeTag => new DomainTypes.DayRangeTag { Begin = (int)dayRangeTag.Begin, End = (int)dayRangeTag.End },
             _ => throw new ArgumentOutOfRangeException(nameof(tag), tag, null)
         };
 

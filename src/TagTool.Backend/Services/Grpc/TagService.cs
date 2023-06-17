@@ -150,7 +150,7 @@ public class TagService : Backend.TagService.TagServiceBase
         IServerStreamWriter<SearchTagsReply> responseStream,
         ServerCallContext context)
     {
-        var (value, limit) = (request.Name, request.ResultsLimit);
+        var (value, limit) = (request.SearchText, request.ResultsLimit);
 
         IStreamRequest<(TagBase, IEnumerable<MatchedPart>)> query = request.SearchType switch
         {

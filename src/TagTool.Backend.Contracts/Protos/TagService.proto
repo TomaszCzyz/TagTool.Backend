@@ -192,16 +192,16 @@ message DoesTagExistsReply {
   bool exists = 1;
 }
 
-// The request to find tags, which match or partially match 'name'.
+// The request to find tags, which match or partially match 'searchText'.
 // The most relevant matches are at the beginning of the reply.
 message SearchTagsRequest {
   // The name or partial name of the searched Tag 
-  string name = 1;
+  string searchText = 1;
   // The limit of returned tag names.
   int32 resultsLimit = 2;
-  // The flag allowing to force searching only exact matches.
+  // The type of search to be used.
   SearchType searchType = 3;
-  // The type of search to be used
+  // Search types.
   enum SearchType {
     StartsWith = 0;
     Fuzzy = 1;
