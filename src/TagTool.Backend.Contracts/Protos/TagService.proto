@@ -204,7 +204,7 @@ message SearchTagsRequest {
   // The type of search to be used
   enum SearchType {
     StartsWith = 0;
-    Partial = 1;
+    Fuzzy = 1;
     Wildcard = 2;
   }
 }

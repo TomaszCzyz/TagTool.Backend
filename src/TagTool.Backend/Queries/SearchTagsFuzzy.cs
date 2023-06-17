@@ -8,7 +8,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsPartialRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsFuzzyRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
 {
     public required string Value { get; init; }
 
@@ -16,14 +16,14 @@ public class SearchTagsPartialRequest : IStreamRequest<(TagBase, IEnumerable<Mat
 }
 
 [UsedImplicitly]
-public class SearchTagsPartial : IStreamRequestHandler<SearchTagsPartialRequest, (TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (TagBase, IEnumerable<MatchedPart>)>
 {
     private readonly TagToolDbContext _dbContext;
 
-    public SearchTagsPartial(TagToolDbContext dbContext) => _dbContext = dbContext;
+    public SearchTagsFuzzy(TagToolDbContext dbContext) => _dbContext = dbContext;
 
     public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
-        SearchTagsPartialRequest request,
+        SearchTagsFuzzyRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var ahoCorasick = new AhoCorasick(request.Value.Substrings().Distinct());

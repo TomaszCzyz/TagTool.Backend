@@ -156,7 +156,7 @@ public class TagService : Backend.TagService.TagServiceBase
         {
             SearchTagsRequest.Types.SearchType.Wildcard => new SearchTagsWildcardRequest { Value = value, ResultsLimit = limit },
             SearchTagsRequest.Types.SearchType.StartsWith => new SearchTagsStartsWithRequest { Value = value, ResultsLimit = limit },
-            SearchTagsRequest.Types.SearchType.Partial => new SearchTagsPartialRequest { Value = value, ResultsLimit = limit },
+            SearchTagsRequest.Types.SearchType.Fuzzy => new SearchTagsFuzzyRequest { Value = value, ResultsLimit = limit },
             _ => throw new ArgumentOutOfRangeException(nameof(request))
         };
 
