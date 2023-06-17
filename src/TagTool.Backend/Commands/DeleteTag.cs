@@ -50,6 +50,6 @@ public class DeleteTag<T> : ICommandHandler<DeleteTagRequest, OneOf<string, Erro
         _dbContext.Tags.Remove(existingTag);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return request.Tag.FormattedName ?? "empty";
+        return request.Tag.FormattedName;
     }
 }
