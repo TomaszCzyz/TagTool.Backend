@@ -131,30 +131,30 @@ public sealed class MonthTag : TagBase
 
 public sealed class MonthRangeTag : TagBase
 {
-    private readonly int _begin = 1;
-    private readonly int _end = 13;
+    private int _begin = 1;
+    private int _end = 13;
 
     public int Begin
     {
         get => _begin;
-        init
+        set
         {
             _begin = value;
-            FormattedName = nameof(MonthRangeTag) +
-                            $":{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value)}" +
-                            $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(End)}";
+            FormattedName = nameof(MonthRangeTag)
+                            + $":{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value)}"
+                            + $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(End)}";
         }
     }
 
     public int End
     {
         get => _end;
-        init
+        set
         {
             _end = value;
-            FormattedName = nameof(MonthRangeTag) +
-                            $":{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Begin)}" +
-                            $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value)}";
+            FormattedName = nameof(MonthRangeTag)
+                            + $":{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Begin)}"
+                            + $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(value)}";
         }
     }
 }
@@ -185,7 +185,9 @@ public sealed class DayRangeTag : TagBase
         set
         {
             _begin = value;
-            FormattedName = nameof(DayRangeTag) + $":{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value)}-{End}";
+            FormattedName = nameof(DayRangeTag)
+                            + $":{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value)}"
+                            + $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(End)}";
         }
     }
 
@@ -195,7 +197,9 @@ public sealed class DayRangeTag : TagBase
         set
         {
             _end = value;
-            FormattedName = nameof(DayRangeTag) + $":{Begin}-{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value)}";
+            FormattedName = nameof(DayRangeTag)
+                            + $":{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(Begin)}"
+                            + $"-{CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(value)}";
         }
     }
 }

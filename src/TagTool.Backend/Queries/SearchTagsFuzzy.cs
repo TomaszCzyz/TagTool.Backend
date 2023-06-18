@@ -29,12 +29,12 @@ public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (Ta
         var ahoCorasick = new AhoCorasick(request.Value.Substrings().Distinct());
 
         var counter = 0;
-        await foreach (var tag in _dbContext.NormalTags.AsAsyncEnumerable().WithCancellation(cancellationToken))
+        await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             if (counter == request.ResultsLimit) break;
             counter++;
 
-            var tagName = tag.Name;
+            var tagName = tag.FormattedName[(tag.FormattedName.IndexOf(':') + 1)..];
 
             var matchedParts = ahoCorasick
                 .Search(tagName) // todo: safeguard for very long tagNames would be nice

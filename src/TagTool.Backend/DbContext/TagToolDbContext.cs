@@ -55,6 +55,11 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .UseCollation("NOCASE");
 
         modelBuilder
+            .Entity<DayRangeTag>()
+            .Property(tag => tag.Begin)
+            .HasConversion<int>();
+
+        modelBuilder
             .Entity<TagBase>()
             .Property(tag => tag.FormattedName)
             .UseCollation("NOCASE");
