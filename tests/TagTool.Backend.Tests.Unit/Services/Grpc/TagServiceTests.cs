@@ -49,10 +49,11 @@ public class TagServiceTests
     {
         // Arrange
         var testServerCallContext = TestServerCallContext.Create();
+
         var tagItemRequest
             = new TagItemRequest
             {
-                Item = new Item { ItemType = TestItemType, Identifier = TestItemIdentifier }, Tag = Any.Pack(new YearTagDto { Year = 4022 })
+                File = new FileDto{Path = TestItemIdentifier}, Tag = Any.Pack(new YearTagDto { Year = 4022 })
             };
 
         var taggedItem = new TaggedItemDto
@@ -62,9 +63,9 @@ public class TagServiceTests
             Tags = new List<TagBase>()
         };
 
-        _mediatorMock
-            .Setup(m => m.Send(It.IsAny<Commands.TagItemRequest>(), testServerCallContext.CancellationToken))
-            .ReturnsAsync(taggedItem);
+        // _mediatorMock
+        //     .Setup(m => m.Send(It.IsAny<Commands.TagItemRequest>(), testServerCallContext.CancellationToken))
+        //     .ReturnsAsync(taggedItem);
 
         // Act
         var response = await _tagService.TagItem(tagItemRequest, testServerCallContext);

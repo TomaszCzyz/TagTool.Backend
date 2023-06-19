@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using System.Diagnostics;
+using Grpc.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
@@ -32,6 +33,7 @@ public class TagService : Backend.TagService.TagServiceBase
         var tag = TagMapper.MapToDomain(request.Tag);
 
         var command = new Commands.CreateTagRequest { Tag = tag };
+
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
@@ -56,48 +58,108 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var tagBase = TagMapper.MapToDomain(request.Tag);
 
+        var (itemType, itemIdentifier, taggableItem) = request.ItemCase switch
+        {
+            TagItemRequest.ItemOneofCase.File => ("file", request.File.Path, new TaggableFile { Path = request.File.Path } as TaggableItem),
+            TagItemRequest.ItemOneofCase.Folder => ("folder", request.Folder.Path, new TaggableFolder { Path = request.Folder.Path }),
+            _ => throw new UnreachableException()
+        };
+
         var command = new Commands.TagItemRequest
         {
+            TaggableItem = taggableItem,
             Tag = tagBase,
-            ItemType = request.Item.ItemType,
-            Identifier = request.Item.Identifier
+            ItemType = itemType,
+            Identifier = itemIdentifier
         };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new TagItemReply { TaggedItem = new TaggedItem { Item = request.Item, Tags = { item.Tags.Select(TagMapper.MapToDto) } } },
+            item => new TagItemReply
+            {
+                TaggedItem = item.Item switch
+                {
+                    TaggableFile file => new TaggedItem
+                    {
+                        File = new FileDto { Path = file.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
+                    },
+                    TaggableFolder folder => new TaggedItem
+                    {
+                        Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
+                    },
+                    _ => throw new UnreachableException()
+                }
+            },
             errorResponse => new TagItemReply { ErrorMessage = errorResponse.Message });
+        // return response.Match(
+        //     item => new TagItemReply
+        //     {
+        //         TaggedItem = item.ItemType == "file"
+        //             ? new TaggedItem { File = new FileDto { Path = item.UniqueIdentifier }, Tags = { item.Tags.Select(TagMapper.MapToDto) } }
+        //             : new TaggedItem { Folder = new FolderDto { Path = item.UniqueIdentifier }, Tags = { item.Tags.Select(TagMapper.MapToDto) } }
+        //     },
+        //     errorResponse => new TagItemReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
         var tagBase = TagMapper.MapToDomain(request.Tag);
 
+        var (itemType, itemIdentifier) = request.ItemCase switch
+        {
+            UntagItemRequest.ItemOneofCase.File => ("file", request.File.Path),
+            UntagItemRequest.ItemOneofCase.Folder => ("file", request.Folder.Path),
+            _ => throw new UnreachableException()
+        };
+
         var command = new Commands.UntagItemRequest
         {
             Tag = tagBase,
-            ItemType = request.Item.ItemType,
-            Identifier = request.Item.Identifier
+            ItemType = itemType,
+            Identifier = itemIdentifier
         };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new UntagItemReply { TaggedItem = new TaggedItem { Item = request.Item, Tags = { item.Tags.Select(TagMapper.MapToDto) } } },
+            item => new UntagItemReply
+            {
+                TaggedItem = item.ItemType == "file"
+                    ? new TaggedItem { File = new FileDto { Path = item.UniqueIdentifier }, Tags = { item.Tags.Select(TagMapper.MapToDto) } }
+                    : new TaggedItem { Folder = new FolderDto { Path = item.UniqueIdentifier }, Tags = { item.Tags.Select(TagMapper.MapToDto) } }
+            },
             errorResponse => new UntagItemReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
     {
-        var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
+        var (itemType, itemIdentifier) = request.ItemCase switch
+        {
+            GetItemRequest.ItemOneofCase.Folder => ("file", request.Folder.Path),
+            GetItemRequest.ItemOneofCase.File => ("file", request.File.Path),
+            _ => throw new UnreachableException()
+        };
+
         var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
-            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier);
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == itemIdentifier);
 
         return existingItem is null
-            ? new GetItemReply { ErrorMessage = $"Requested item {request.Item} does not exists." }
-            : new GetItemReply { TaggedItem = new TaggedItem { Item = request.Item, Tags = { existingItem.Tags.Select(TagMapper.MapToDto) } } };
+            ? new GetItemReply { ErrorMessage = $"Requested item {(itemType, itemIdentifier)} does not exists." }
+            : new GetItemReply
+            {
+                TaggedItem = existingItem.ItemType == "file"
+                    ? new TaggedItem
+                    {
+                        File = new FileDto { Path = existingItem.UniqueIdentifier }, Tags = { existingItem.Tags.Select(TagMapper.MapToDto) }
+                    }
+                    : new TaggedItem
+                    {
+                        Folder = new FolderDto { Path = existingItem.UniqueIdentifier },
+                        Tags = { existingItem.Tags.Select(TagMapper.MapToDto) }
+                    }
+            };
     }
 
     public override async Task<GetItemsByTagsV2Reply> GetItemsByTagsV2(GetItemsByTagsV2Request request, ServerCallContext context)
@@ -116,12 +178,11 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(getItemsByTagsV2Query);
 
         var results = response
-            .Select(item =>
-                new TaggedItem
-                {
-                    Item = new Item { ItemType = item.ItemType, Identifier = item.UniqueIdentifier },
-                    Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                })
+            .Select(item
+                => item.ItemType == "file"
+                    ? new TaggedItem { File = new FileDto { Path = item.UniqueIdentifier }, Tags = { item.Tags.Select(TagMapper.MapToDto) } }
+                    : new TaggedItem { Folder = new FolderDto { Path = item.UniqueIdentifier }, Tags = { item.Tags.Select(TagMapper.MapToDto) } }
+            )
             .ToArray();
 
         return new GetItemsByTagsV2Reply { TaggedItems = { results } };
@@ -129,9 +190,15 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
     {
-        var (itemType, identifier) = (request.Item.ItemType, request.Item.Identifier);
+        var (itemType, itemIdentifier) = request.ItemCase switch
+        {
+            DoesItemExistsRequest.ItemOneofCase.Folder => ("file", request.Folder.Path),
+            DoesItemExistsRequest.ItemOneofCase.File => ("file", request.File.Path),
+            _ => throw new UnreachableException()
+        };
+
         var existingItem = await _dbContext.TaggedItems
-            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier, context.CancellationToken);
+            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == itemIdentifier, context.CancellationToken);
 
         return new DoesItemExistsReply { Exists = existingItem is not null };
     }

@@ -28,6 +28,12 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<TaggedItem> TaggedItems => Set<TaggedItem>();
 
+    public DbSet<TaggedItemBase> TaggedItemsBase => Set<TaggedItemBase>();
+
+    public DbSet<TaggableFile> TaggableFiles => Set<TaggableFile>();
+
+    public DbSet<TaggableFolder> TaggableFolders => Set<TaggableFolder>();
+
     public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
     {
         ChangeTracker.StateChanged += UpdateTimestamps;
@@ -42,12 +48,13 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
         modelBuilder
             .Entity<TagBase>()
-            .Property(tag => tag.FormattedName);
+            .HasIndex(tag => tag.FormattedName)
+            .IsUnique();
 
         modelBuilder
             .Entity<TagBase>()
-            .HasIndex(tag => tag.FormattedName)
-            .IsUnique();
+            .Property(tag => tag.FormattedName)
+            .UseCollation("NOCASE");
 
         modelBuilder
             .Entity<NormalTag>()
@@ -60,17 +67,21 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .HasConversion<int>();
 
         modelBuilder
-            .Entity<TagBase>()
-            .Property(tag => tag.FormattedName)
-            .UseCollation("NOCASE");
-
-        modelBuilder
             .Entity<DayTag>()
             .HasData(Enum.GetValues<DayOfWeek>().Select(day => new DayTag { Id = 1000 + (int)day, DayOfWeek = day }));
 
         modelBuilder
             .Entity<MonthTag>()
             .HasData(Enumerable.Range(1, 12).Select(month => new MonthTag { Id = 2000 + month, Month = month }));
+
+        modelBuilder
+            .Entity<TaggableItem>(
+                entity =>
+                {
+                    entity.UseTptMappingStrategy();
+                    entity.HasKey(e => e.Id);
+                    // entity.HasIndex(taggedItemBase => taggedItemBase.Id);
+                });
     }
 
     private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)

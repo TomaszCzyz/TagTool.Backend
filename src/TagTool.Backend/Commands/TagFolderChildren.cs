@@ -62,8 +62,11 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
             var tagItemRequest = new TagItemRequest
             {
                 Tag = request.Tag,
-                ItemType = info is FileInfo ? "file" : "folder",
-                Identifier = info.FullName
+                ItemType = info is FileInfo
+                    ? "file"
+                    : "folder",
+                Identifier = info.FullName,
+                TaggableItem = null
             };
 
             var response = await _mediator.Send(tagItemRequest, cancellationToken);
@@ -76,7 +79,7 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
                     errorResponse.Message);
             }
 
-            responses.Add(response);
+            // responses.Add(response);
         }
 
         // todo: introduce aggregated error message or list of tagItem errors or something...

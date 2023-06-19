@@ -87,7 +87,10 @@ message TagItemRequest {
   // The Tag to be added to the item.
   google.protobuf.Any tag = 1;
   // The Item to tag.
-  Item item = 2;
+  oneof item {
+    FileDto file = 2;
+    FolderDto folder = 3;
+  };
 }
 
 // The reply indicating whether tagging was successful or not.
@@ -105,7 +108,10 @@ message UntagItemRequest {
   // The Tag to be removed from the item.
   google.protobuf.Any tag = 1;
   // The item to untag
-  Item item = 2;
+  oneof item {
+    FileDto file = 2;
+    FolderDto folder = 3;
+  };
 }
 
 // The reply indicating whether untagging was successful or not.
@@ -121,7 +127,10 @@ message UntagItemReply {
 // The request to get information about an specified Item
 message GetItemRequest {
   // The item for which we want to retrieve information.
-  Item item = 1;
+  oneof item {
+    FileDto file = 2;
+    FolderDto folder = 3;
+  };
 }
 
 // The reply with information about an item or error message 
@@ -171,7 +180,10 @@ message GetItemsByTagsV2Reply {
 // The request to check if given Item exists.
 message DoesItemExistsRequest {
   // The item to check.
-  Item item = 1;
+  oneof item {
+    FileDto file = 1;
+    FolderDto folder = 2;
+  };
 }
 
 // The reply indicating if item exists.

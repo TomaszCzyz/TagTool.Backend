@@ -23,7 +23,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
         {
             var canRenameFileRequest = requestStream.Current;
 
-            var directoryName = Path.GetDirectoryName(canRenameFileRequest.Item.Identifier);
+            var directoryName = Path.GetDirectoryName(canRenameFileRequest.File.Path);
             var query = new Queries.CanRenameFileRequest { NewFullPath = Path.Join(directoryName, canRenameFileRequest.NewFileName) };
 
             var response = await _mediator.Send(query, context.CancellationToken);
@@ -36,7 +36,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
     public override async Task<RenameFileReply> RenameFile(RenameFileRequest request, ServerCallContext context)
     {
-        var command = new Commands.RenameFileRequest { FullPath = request.Item.Identifier, NewFileName = request.NewFileName };
+        var command = new Commands.RenameFileRequest { FullPath = request.File.Path, NewFileName = request.NewFileName };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
@@ -47,7 +47,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
     public override async Task<MoveFileReply> MoveFile(MoveFileRequest request, ServerCallContext context)
     {
-        var command = new Commands.MoveFileRequest { OldFullPath = request.Item.Identifier, NewFullPath = request.Destination };
+        var command = new Commands.MoveFileRequest { OldFullPath = request.File.Path, NewFullPath = request.Destination };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 

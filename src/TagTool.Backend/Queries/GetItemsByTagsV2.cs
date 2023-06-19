@@ -22,7 +22,7 @@ public class GetItemsByTagsV2 : IQueryHandler<GetItemsByTagsV2Query, IEnumerable
         var (includeTags, excludeTags) = SplitTags(request.QuerySegments);
 
         var included = _dbContext.Tags.Where(tagBase => includeTags.Contains(tagBase.FormattedName)).ToArray();
-        var excluded = _dbContext.Tags.Where(tagBase => !excludeTags.Contains(tagBase.FormattedName)).ToArray();
+        var excluded = _dbContext.Tags.Where(tagBase => excludeTags.Contains(tagBase.FormattedName)).ToArray();
 
         var taggedItems = _dbContext.TaggedItems
             .Include(item => item.Tags)

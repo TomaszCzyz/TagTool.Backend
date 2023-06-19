@@ -26,7 +26,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
             var query = new Queries.CanRenameFolderRequest
             {
-                NewFullPath = Path.Join(Path.GetDirectoryName(canRenameFolderRequest.FullName), canRenameFolderRequest.NewFolderName)
+                NewFullPath = Path.Join(Path.GetDirectoryName(canRenameFolderRequest.Folder.Path), canRenameFolderRequest.NewFolderName)
             };
 
             var response = await _mediator.Send(query, context.CancellationToken);
@@ -41,7 +41,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<RenameFolderReply> RenameFolder(RenameFolderRequest request, ServerCallContext context)
     {
-        var command = new Commands.RenameFolderRequest { FullPath = request.FullName, NewFolderName = request.NewFolderName };
+        var command = new Commands.RenameFolderRequest { FullPath = request.Folder.Path, NewFolderName = request.NewFolderName };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
@@ -52,7 +52,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<MoveFolderReply> MoveFolder(MoveFolderRequest request, ServerCallContext context)
     {
-        var command = new Commands.MoveFolderRequest { OldFullPath = request.FullName, NewFullPath = request.Destination };
+        var command = new Commands.MoveFolderRequest { OldFullPath = request.Folder.Path, NewFullPath = request.Destination };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
@@ -72,7 +72,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
         var command = new TagFolderChildrenRequest
         {
-            RootFolder = request.FullName,
+            RootFolder = request.Folder.Path,
             Tag = tagBase,
             Depth = request.Depth,
             TagFilesOnly = request.TagOnlyFiles
@@ -91,7 +91,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
         var command = new UntagFolderChildrenRequest
         {
-            RootFolder = request.FullName,
+            RootFolder = request.Folder.Path,
             Tag = tagBase,
             Depth = request.Depth,
             TagFilesOnly = request.TagOnlyFiles

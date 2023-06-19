@@ -24,8 +24,8 @@ service FolderActionsService {
 
 // The single request checks if given folder name can be used.  
 message CanRenameFolderRequest {
-  // The item to rename.
-  string fullName = 1;
+  // The folder to rename.
+  FolderDto folder = 1;
   // The new filename to check.
   string newFolderName = 2;
 }
@@ -41,8 +41,8 @@ message CanRenameFolderReply {
 
 // The request to rename a given folder
 message RenameFolderRequest {
-  // The item to rename.
-  string fullName = 1;
+  // The folder to rename.
+  FolderDto folder = 1;
   // New filename.
   string newFolderName = 2;
 }
@@ -59,8 +59,8 @@ message RenameFolderReply {
 
 // The request to move folder to a new location.
 message MoveFolderRequest {
-  // The file to move. 
-  string fullName = 1;
+  // The folder to move. 
+  FolderDto folder = 1;
   // The destination path.
   string destination = 2;
 }
@@ -78,7 +78,7 @@ message MoveFolderReply {
 // The request to delete a folder. 
 message DeleteFolderRequest {
   // The folder to be deleted.
-  Item item = 1;
+  FolderDto folder = 1;
   // The flag indicating whether a folder should be recoverable.
   bool recycle = 2;
 }
@@ -98,7 +98,7 @@ message TagChildrenRequest {
   // The Tag to be added to the item.
   google.protobuf.Any tag = 1;
   // The full path to root folder.
-  string fullName = 2;
+  FolderDto folder = 2;
   // The recurse depth, defaults to int.MaxValue
   int32 depth = 3;
   // The flag indicating if only files should be tagged and folder omitted. 
@@ -120,7 +120,7 @@ message UntagChildrenRequest {
   // The Tag to be removed from the item.
   google.protobuf.Any tag = 1;
   // The full path to root folder.
-  string fullName = 2;
+  FolderDto folder = 2;
   // The recurse depth, defaults to int.MaxValue
   int32 depth = 3;
   // The flag indicating if only files should be tagged and folder omitted. 

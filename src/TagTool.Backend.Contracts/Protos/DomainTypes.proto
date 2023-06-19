@@ -14,19 +14,31 @@ message Error {
   string message = 2;
 }
 
-// The message that unambiguously represents taggable item.
-message Item {
-  // The item type, e.g. File, Folder.
-  string itemType = 1;
-  // The value that unambiguously identifies a tagged item, e.g. full file path for File item type.
-  string identifier = 2;
+message FileDto {
+  string path = 1;
 }
+
+message FolderDto {
+  string path = 1;
+}
+
+//// The message that unambiguously represents taggable item.
+//// Only file or folder for now.
+//message Item {
+//  // The item type, e.g. File, Folder.
+//  string itemType = 1;
+//  // The value that unambiguously identifies a tagged item, e.g. full file path for File item type.
+//  string identifier = 2;
+//}
 
 // The message that unambiguously represents taggable item with associated tags.
 // It should be used in replies (does not make sense for requests). 
 message TaggedItem {
-  Item item = 1;
-  repeated google.protobuf.Any tags = 2;
+  repeated google.protobuf.Any tags = 1;
+  oneof item {
+    FileDto file = 2;
+    FolderDto folder = 3;
+  };
 }
 
 // The simple text tag.

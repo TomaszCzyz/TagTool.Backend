@@ -19,7 +19,8 @@ public class UntagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IRev
         {
             Tag = Tag,
             ItemType = ItemType,
-            Identifier = Identifier
+            Identifier = Identifier,
+            TaggableItem = null
         };
 }
 

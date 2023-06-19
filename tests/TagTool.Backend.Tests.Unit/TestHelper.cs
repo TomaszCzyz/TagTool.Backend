@@ -23,9 +23,23 @@ public class TestHelper
     {
         var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
 
-        var tag = new MonthRangeTag { Begin = 1, End = 10 };
+        // var tag = new MonthRangeTag { Begin = 1, End = 10 };
         // var tag = new DayRangeTag { Begin = 1, End = 4 };
+        var tag = new NormalTag { Name = "Note" };
 
         var _ = tagServiceClient.CreateTag(new CreateTagRequest { Tag = Any.Pack(tag) });
+    }
+
+    [Fact]
+    public async Task TagItem_ValidRequest_ReturnsTaggedItem()
+    {
+        var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
+
+        // var tag = new MonthRangeTag { Begin = 1, End = 10 };
+        // var tag = new DayRangeTag { Begin = 1, End = 4 };
+        var tag = new NormalTag { Name = "Note" };
+
+        var _ = tagServiceClient.TagItem(
+            new TagItemRequest { Tag = Any.Pack(tag), File = new FileDto { Path = @"C:\Users\tczyz\MyFiles\FromOec\DigitalSign.gif" } });
     }
 }
