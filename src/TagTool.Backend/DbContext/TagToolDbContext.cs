@@ -26,8 +26,6 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<DayRangeTag> DayRangeTags => Set<DayRangeTag>();
 
-    public DbSet<TaggedItem> TaggedItems => Set<TaggedItem>();
-
     public DbSet<TaggedItemBase> TaggedItemsBase => Set<TaggedItemBase>();
 
     public DbSet<TaggableFile> TaggableFiles => Set<TaggableFile>();
@@ -75,13 +73,9 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .HasData(Enumerable.Range(1, 12).Select(month => new MonthTag { Id = 2000 + month, Month = month }));
 
         modelBuilder
-            .Entity<TaggableItem>(
-                entity =>
-                {
-                    entity.UseTptMappingStrategy();
-                    entity.HasKey(e => e.Id);
-                    // entity.HasIndex(taggedItemBase => taggedItemBase.Id);
-                });
+            .Entity<TaggableItem>()
+            .UseTptMappingStrategy()
+            .HasKey(e => e.Id);
     }
 
     private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)

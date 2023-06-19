@@ -58,8 +58,7 @@ public class MoveFolder : ICommandHandler<MoveFolderRequest, OneOf<SuccessRespon
             return errorResponse;
         }
 
-        var taggedItem = await _dbContext.TaggedItems
-            .FirstOrDefaultAsync(item => item.ItemType == "folder" && item.UniqueIdentifier == oldFullPath, cancellationToken);
+        var taggedItem = await _dbContext.TaggableFolders.FirstOrDefaultAsync(folder => folder.Path == oldFullPath, cancellationToken);
 
         if (taggedItem is not null)
         {
@@ -84,14 +83,14 @@ public class MoveFolder : ICommandHandler<MoveFolderRequest, OneOf<SuccessRespon
         return newFullPath;
     }
 
-    private async Task<string> UpdateItem(TaggedItem taggedItem, string newFullPath, CancellationToken cancellationToken)
+    private async Task<string> UpdateItem(TaggableFolder taggedItem, string newFullPath, CancellationToken cancellationToken)
     {
-        taggedItem.UniqueIdentifier = newFullPath;
+        taggedItem.Path = newFullPath;
 
-        var entityEntry = _dbContext.TaggedItems.Update(taggedItem);
+        var entityEntry = _dbContext.TaggableFolders.Update(taggedItem);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return entityEntry.Entity.UniqueIdentifier;
+        return entityEntry.Entity.Path;
     }
 }

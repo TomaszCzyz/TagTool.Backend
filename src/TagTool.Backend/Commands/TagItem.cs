@@ -12,17 +12,7 @@ public class TagItemRequest : ICommand<OneOf<TaggedItemBase, ErrorResponse>>, IR
 
     public required TaggableItem TaggableItem { get; init; }
 
-    public required string ItemType { get; init; }
-
-    public required string Identifier { get; init; }
-
-    public IReversible GetReverse()
-        => new UntagItemRequest
-        {
-            Tag = Tag,
-            Identifier = Identifier,
-            ItemType = ItemType
-        };
+    public IReversible GetReverse() => new UntagItemRequest { Tag = Tag, TaggableItem = TaggableItem };
 }
 
 [UsedImplicitly]
@@ -71,43 +61,4 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItemBase, Err
 
         return entry.Entity;
     }
-
-    // public async Task<OneOf<TaggedItem, ErrorResponse>> Handle(TagItemRequest request, CancellationToken cancellationToken)
-    // {
-    //     var (tag, itemType, identifier) = (request.Tag, request.ItemType, request.Identifier);
-    //
-    //     var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
-    //     tag = existingTag ?? (await _dbContext.Tags.AddAsync(tag, cancellationToken)).Entity;
-    //     var existingItem = await _dbContext.TaggedItems
-    //         .Include(item => item.Tags)
-    //         .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier, cancellationToken);
-    //
-    //     if (existingItem is not null)
-    //     {
-    //         if (existingItem.Tags.Contains(tag))
-    //         {
-    //             return new ErrorResponse($"Item {request.Identifier} already exists and it is tagged with a tag {tag}");
-    //         }
-    //
-    //         _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
-    //         existingItem.Tags.Add(tag);
-    //
-    //         await _dbContext.SaveChangesAsync(cancellationToken);
-    //
-    //         return existingItem;
-    //     }
-    //
-    //     _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", existingItem, tag);
-    //     var newTaggedItem = new TaggedItem
-    //     {
-    //         ItemType = itemType,
-    //         UniqueIdentifier = identifier,
-    //         Tags = new List<TagBase> { tag }
-    //     };
-    //     var entry = _dbContext.TaggedItems.Add(newTaggedItem);
-    //
-    //     await _dbContext.SaveChangesAsync(cancellationToken);
-    //
-    //     return entry.Entity;
-    // }
 }

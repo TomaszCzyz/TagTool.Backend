@@ -68,8 +68,7 @@ public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<SuccessResponse, 
             return errorResponse;
         }
 
-        var taggedItem = await _dbContext.TaggedItems
-            .FirstOrDefaultAsync(item => item.ItemType == "file" && item.UniqueIdentifier == oldFulPath, cancellationToken);
+        var taggedItem = await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == oldFulPath, cancellationToken);
 
         if (taggedItem is not null)
         {
@@ -94,14 +93,14 @@ public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<SuccessResponse, 
         return newFullPath;
     }
 
-    private async Task<string> UpdateItem(TaggedItem taggedItem, string newFullPath, CancellationToken cancellationToken)
+    private async Task<string> UpdateItem(TaggableFile taggedItem, string newFullPath, CancellationToken cancellationToken)
     {
-        taggedItem.UniqueIdentifier = newFullPath;
+        taggedItem.Path = newFullPath;
 
-        var entityEntry = _dbContext.TaggedItems.Update(taggedItem);
+        var entityEntry = _dbContext.TaggableFiles.Update(taggedItem);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return entityEntry.Entity.UniqueIdentifier;
+        return entityEntry.Entity.Path;
     }
 }

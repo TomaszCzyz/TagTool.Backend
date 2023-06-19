@@ -23,7 +23,7 @@ public abstract class TagBase : IHasTimestamps, ITagBase
 
     public DateTime? Modified { get; set; }
 
-    public ICollection<TaggedItem> TaggedItems { set; get; } = new List<TaggedItem>();
+    public ICollection<TaggedItemBase> TaggedItems { set; get; } = new List<TaggedItemBase>();
 }
 
 public sealed class NormalTag : TagBase

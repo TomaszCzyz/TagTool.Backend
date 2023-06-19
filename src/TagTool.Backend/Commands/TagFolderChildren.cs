@@ -48,7 +48,7 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
             ReturnSpecialDirectories = false
         };
 
-        var responses = new List<OneOf<TaggedItem, ErrorResponse>>();
+        var responses = new List<OneOf<TaggedItemBase, ErrorResponse>>();
 
         _logger.LogInformation(
             "Tagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",
@@ -62,11 +62,7 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
             var tagItemRequest = new TagItemRequest
             {
                 Tag = request.Tag,
-                ItemType = info is FileInfo
-                    ? "file"
-                    : "folder",
-                Identifier = info.FullName,
-                TaggableItem = null
+                TaggableItem = info is FileInfo ? new TaggableFile { Path = info.FullName } : new TaggableFolder { Path = info.FullName }
             };
 
             var response = await _mediator.Send(tagItemRequest, cancellationToken);
@@ -79,7 +75,7 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
                     errorResponse.Message);
             }
 
-            // responses.Add(response);
+            responses.Add(response);
         }
 
         // todo: introduce aggregated error message or list of tagItem errors or something...

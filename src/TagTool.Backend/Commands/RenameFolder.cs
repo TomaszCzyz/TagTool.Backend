@@ -37,17 +37,16 @@ public class RenameFolder : ICommandHandler<RenameFolderRequest, OneOf<string, E
                         ?? throw new ArgumentException("parent directory is null", nameof(request));
         var newFullPath = Path.Combine(parentDir, request.NewFolderName);
 
-        var taggedItem = await _dbContext.TaggedItems
-            .FirstOrDefaultAsync(item => item.ItemType == "folder" && item.UniqueIdentifier == oldFullPath, cancellationToken);
+        var taggedItem = await _dbContext.TaggableFolders.FirstOrDefaultAsync(item => item.Path == oldFullPath, cancellationToken);
 
         if (taggedItem is null)
         {
             return RenameUntrackedFolder(oldFullPath, newFullPath);
         }
 
-        taggedItem.UniqueIdentifier = newFullPath;
+        taggedItem.Path = newFullPath;
 
-        var entityEntry = _dbContext.TaggedItems.Update(taggedItem);
+        var entityEntry = _dbContext.TaggableFolders.Update(taggedItem);
 
         try
         {
@@ -58,11 +57,11 @@ public class RenameFolder : ICommandHandler<RenameFolderRequest, OneOf<string, E
             _logger.LogWarning(
                 ex,
                 "Unable to rename {OldPath} to {NewPath}. Rolling back TaggedItem {@TaggedItem} update",
-                taggedItem.UniqueIdentifier,
+                taggedItem.Path,
                 newFullPath,
                 taggedItem);
 
-            entityEntry.Entity.UniqueIdentifier = oldFullPath;
+            entityEntry.Entity.Path = oldFullPath;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             return new ErrorResponse($"Unable to rename \"{oldFullPath}\".");

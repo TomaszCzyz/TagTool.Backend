@@ -6,26 +6,17 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class UntagItemRequest : ICommand<OneOf<TaggedItem, ErrorResponse>>, IReversible
+public class UntagItemRequest : ICommand<OneOf<TaggedItemBase, ErrorResponse>>, IReversible
 {
     public required TagBase Tag { get; init; }
 
-    public required string ItemType { get; init; }
+    public required TaggableItem TaggableItem { get; init; }
 
-    public required string Identifier { get; init; }
-
-    public IReversible GetReverse()
-        => new TagItemRequest
-        {
-            Tag = Tag,
-            ItemType = ItemType,
-            Identifier = Identifier,
-            TaggableItem = null
-        };
+    public IReversible GetReverse() => new TagItemRequest { Tag = Tag, TaggableItem = TaggableItem };
 }
 
 [UsedImplicitly]
-public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItem, ErrorResponse>>
+public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItemBase, ErrorResponse>>
 {
     private readonly ILogger<UntagItem> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -36,22 +27,22 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItem, Err
         _dbContext = dbContext;
     }
 
-    public async Task<OneOf<TaggedItem, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<TaggedItemBase, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
     {
-        var (tag, itemType, identifier) = (request.Tag, request.ItemType, request.Identifier);
+        var tag = request.Tag;
 
-        var existingItem = await _dbContext.TaggedItems
+        var existingItem = await _dbContext.TaggedItemsBase
             .Include(item => item.Tags)
-            .FirstOrDefaultAsync(item => item.ItemType == itemType && item.UniqueIdentifier == identifier, cancellationToken);
+            .FirstOrDefaultAsync(item => item.Item == request.TaggableItem, cancellationToken);
 
         if (existingItem is null)
         {
-            return new ErrorResponse($"There is no {request.ItemType} item {request.Identifier} in database.");
+            return new ErrorResponse($"There is no {request.TaggableItem} in database.");
         }
 
         if (!existingItem.Tags.Contains(tag))
         {
-            return new ErrorResponse($"{request.ItemType} item does not contain tag {request.Tag}.");
+            return new ErrorResponse($"{request.TaggableItem} item does not contain tag {request.Tag}.");
         }
 
         tag = await _dbContext.Tags.FirstAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);

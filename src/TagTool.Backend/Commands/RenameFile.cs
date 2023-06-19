@@ -37,17 +37,16 @@ public class RenameFile : ICommandHandler<RenameFileRequest, OneOf<string, Error
         var parentDir = Path.GetDirectoryName(oldFullPath)!;
         var newFullPath = Path.Combine(parentDir, request.NewFileName);
 
-        var taggedItem = await _dbContext.TaggedItems
-            .FirstOrDefaultAsync(item => item.ItemType == "file" && item.UniqueIdentifier == oldFullPath, cancellationToken);
+        var taggedItem = await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == oldFullPath, cancellationToken);
 
         if (taggedItem is null)
         {
             return RenameUntrackedFile(oldFullPath, newFullPath);
         }
 
-        taggedItem.UniqueIdentifier = newFullPath;
+        taggedItem.Path = newFullPath;
 
-        var entityEntry = _dbContext.TaggedItems.Update(taggedItem);
+        var entityEntry = _dbContext.TaggableFiles.Update(taggedItem);
 
         try
         {
@@ -58,11 +57,11 @@ public class RenameFile : ICommandHandler<RenameFileRequest, OneOf<string, Error
             _logger.LogWarning(
                 ex,
                 "Unable to rename {OldPath} to {NewPath}. Rolling back TaggedItem {@TaggedItem} update",
-                taggedItem.UniqueIdentifier,
+                taggedItem.Path,
                 newFullPath,
                 taggedItem);
 
-            entityEntry.Entity.UniqueIdentifier = oldFullPath;
+            entityEntry.Entity.Path = oldFullPath;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             return new ErrorResponse($"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\".");
