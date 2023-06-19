@@ -6,6 +6,7 @@ using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Mappers;
 using TagTool.Backend.Queries;
@@ -74,14 +75,8 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 TaggedItem = item.Item switch
                 {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                    },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { item.Tags.MapToDto() } },
+                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
             },
@@ -108,14 +103,8 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 TaggedItem = item.Item switch
                 {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                    },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { item.Tags.MapToDto() } },
+                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
             },
@@ -131,25 +120,20 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new UnreachableException()
         };
 
-        var existingItem = await _dbContext.TaggedItemsBase
-            .Include(item => item.Tags)
+        var taggedItem = await _dbContext.TaggedItemsBase
+            .Include(taggedItemBase => taggedItemBase.Tags)
             .Include(taggedItemBase => taggedItemBase.Item)
             .FirstOrDefaultAsync(item => item.Item == taggableItem);
 
-        return existingItem is null
+        return taggedItem is null
             ? new GetItemReply { ErrorMessage = $"Requested item {taggableItem} does not exists." }
             : new GetItemReply
             {
-                TaggedItem = existingItem.Item switch
+                TaggedItem = taggedItem.Item switch
                 {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { existingItem.Tags.Select(TagMapper.MapToDto) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { existingItem.Tags.Select(TagMapper.MapToDto) }
-                    },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { taggedItem.Tags.MapToDto() } },
+                    TaggableFolder folder
+                        => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { taggedItem.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
             };
@@ -180,14 +164,8 @@ public class TagService : Backend.TagService.TagServiceBase
             .Select(item
                 => item.Item switch
                 {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.Select(TagMapper.MapToDto) }
-                    },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { item.Tags.MapToDto() } },
+                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 })
             .ToArray();

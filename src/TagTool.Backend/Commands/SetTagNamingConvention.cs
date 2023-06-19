@@ -31,6 +31,7 @@ public class SetTagNamingConvention : ICommandHandler<SetTagNamingConventionComm
         _tagNameProvider = tagNameProvider;
     }
 
+    // todo: expand functionality to the rest of tag types
     public async Task<OneOf<None, ErrorResponse>> Handle(SetTagNamingConventionCommand request, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Setting naming convention {NamingConvention}", request.NewNamingConvention);
