@@ -161,9 +161,14 @@ public class TagService : Backend.TagService.TagServiceBase
             .Select(tagQueryParam
                 => new TagQuerySegment
                 {
-                    Include = tagQueryParam.Include,
-                    MustBePresent = tagQueryParam.MustBePresent,
-                    Tag = TagMapper.MapToDomain(tagQueryParam.Tag) //MapToTag(tagQueryParam.TagType, tagQueryParam.Params.ToArray()),
+                    State = tagQueryParam.State switch
+                    {
+                        GetItemsByTagsV2Request.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
+                        GetItemsByTagsV2Request.Types.QuerySegmentState.Include => QuerySegmentState.Include,
+                        GetItemsByTagsV2Request.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
+                        _ => throw new UnreachableException()
+                    },
+                    Tag = TagMapper.MapToDomain(tagQueryParam.Tag),
                 })
             .ToList();
 

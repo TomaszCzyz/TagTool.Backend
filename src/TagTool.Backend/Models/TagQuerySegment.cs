@@ -1,18 +1,15 @@
 ﻿namespace TagTool.Backend.Models;
 
-// todo: consider using the following enum in TagQuerySegment
-// public enum TagAppearanceType
-// {
-//     Exclude,
-//     Include,
-//     MustBePresent
-// }
+public enum QuerySegmentState
+{
+    Exclude = 0,
+    Include = 1,
+    MustBePresent = 2
+}
 
 public class TagQuerySegment
 {
-    public required bool Include { get; init; }
-
-    public required bool MustBePresent { get; init; }
+    public QuerySegmentState State { get; init; } = QuerySegmentState.Include;
 
     public required TagBase Tag { get; init; }
 }

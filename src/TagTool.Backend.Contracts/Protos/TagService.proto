@@ -161,14 +161,19 @@ message GetItemsByTagsV2Request {
 
   // Defines single segment of a tag search query.
   message TagQueryParam {
-    // The flag indicating if searched item can contain given tag.
-    // If flag is false, then returned items cannot by tagged if the tag.
-    // Defaults to true.
-    bool include = 1;
-    // When true, then all returned items must contain given tag.
-    bool mustBePresent = 2;
+    // The segment's state.
+    QuerySegmentState state = 1;
     // The tag, e.g. normal, date range, size range, e.t.c.
     google.protobuf.Any tag = 3;
+  }
+  
+  enum QuerySegmentState {
+    // The option indicating that results of search should not contain the tag.
+    Exclude = 0;
+    // The option indicating that searched item can contain given tag.
+    Include = 1;
+    // The option indicating that all returned items must contain given tag.
+    MustBePresent = 2;
   }
 }
 

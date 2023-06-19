@@ -19,27 +19,29 @@ public class GetItemsByTagsV2 : IQueryHandler<GetItemsByTagsV2Query, IEnumerable
 
     public Task<IEnumerable<TaggedItemBase>> Handle(GetItemsByTagsV2Query request, CancellationToken cancellationToken)
     {
-        var (includeTags, excludeTags) = SplitTags(request.QuerySegments);
+        var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
-        var included = _dbContext.Tags.Where(tagBase => includeTags.Contains(tagBase.FormattedName)).ToArray();
-        var excluded = _dbContext.Tags.Where(tagBase => excludeTags.Contains(tagBase.FormattedName)).ToArray();
+        var taggedItems = _dbContext.TaggedItemsBase.Include(item => item.Tags).AsQueryable();
 
-        var taggedItems = _dbContext.TaggedItemsBase
-            .Include(item => item.Tags)
-            .Where(item => item.Tags.Any(tag => included.Contains(tag)))
-            .Where(item => !item.Tags.Any(tag => excluded.Contains(tag)))
-            .ToArray();
+        if (splittedTags.TryGetValue(QuerySegmentState.MustBePresent, out var mustByPresentTags))
+        {
+            taggedItems = taggedItems.Where(item => item.Tags.Any(tag => mustByPresentTags.Contains(tag)));
+        }
+        else if (splittedTags.TryGetValue(QuerySegmentState.Include, out var included))
+        {
+            taggedItems = taggedItems.Where(item => item.Tags.Any(tag => included.Contains(tag)));
+        }
+
+        if (splittedTags.TryGetValue(QuerySegmentState.Exclude, out var excluded))
+        {
+            taggedItems = taggedItems.Where(item => !item.Tags.Any(tag => excluded.Contains(tag)));
+        }
 
         return Task.FromResult<IEnumerable<TaggedItemBase>>(taggedItems);
     }
 
-    private static (string?[] includeTags, string?[] excludeTags) SplitTags(IEnumerable<TagQuerySegment> request)
-    {
-        var groups = request.GroupBy(segment => segment.Include).ToArray();
-
-        var includeTags = groups.Where(b => b.Key).SelectMany(segments => segments).Select(segment => segment.Tag.FormattedName).ToArray();
-        var excludeTags = groups.Where(b => !b.Key).SelectMany(segments => segments).Select(segment => segment.Tag.FormattedName).ToArray();
-
-        return (includeTags, excludeTags);
-    }
+    private static Dictionary<QuerySegmentState, IEnumerable<TagBase>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request) =>
+        request
+            .GroupBy(segment => segment.State)
+            .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.Tag));
 }
