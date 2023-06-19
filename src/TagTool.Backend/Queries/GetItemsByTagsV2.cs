@@ -21,27 +21,39 @@ public class GetItemsByTagsV2 : IQueryHandler<GetItemsByTagsV2Query, IEnumerable
     {
         var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
-        var taggedItems = _dbContext.TaggedItemsBase.Include(item => item.Tags).AsQueryable();
+        var taggedItems = _dbContext.TaggedItemsBase
+            .Include(taggedItemBase => taggedItemBase.Tags)
+            .Include(taggedItemBase => taggedItemBase.Item)
+            .AsQueryable();
 
         if (splittedTags.TryGetValue(QuerySegmentState.MustBePresent, out var mustByPresentTags))
         {
-            taggedItems = taggedItems.Where(item => item.Tags.Any(tag => mustByPresentTags.Contains(tag)));
+            taggedItems = taggedItems
+                .Where(item => item.Tags
+                    .Select(tagBase => tagBase.FormattedName)
+                    .Any(tag => mustByPresentTags.Contains(tag)));
         }
         else if (splittedTags.TryGetValue(QuerySegmentState.Include, out var included))
         {
-            taggedItems = taggedItems.Where(item => item.Tags.Any(tag => included.Contains(tag)));
+            taggedItems = taggedItems
+                .Where(item => item.Tags
+                    .Select(tagBase => tagBase.FormattedName)
+                    .Any(tag => included.Contains(tag)));
         }
 
         if (splittedTags.TryGetValue(QuerySegmentState.Exclude, out var excluded))
         {
-            taggedItems = taggedItems.Where(item => !item.Tags.Any(tag => excluded.Contains(tag)));
+            taggedItems = taggedItems
+                .Where(item => !item.Tags
+                    .Select(tagBase => tagBase.FormattedName)
+                    .Any(tag => excluded.Contains(tag)));
         }
 
-        return Task.FromResult<IEnumerable<TaggedItemBase>>(taggedItems);
+        return Task.FromResult<IEnumerable<TaggedItemBase>>(taggedItems.ToArray());
     }
 
-    private static Dictionary<QuerySegmentState, IEnumerable<TagBase>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request) =>
+    private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request) =>
         request
             .GroupBy(segment => segment.State)
-            .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.Tag));
+            .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.Tag.FormattedName));
 }
