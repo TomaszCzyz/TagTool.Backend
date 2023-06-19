@@ -74,7 +74,7 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
         modelBuilder
             .Entity<TaggableItem>()
-            .UseTptMappingStrategy()
+            .UseTpcMappingStrategy()
             .HasKey(e => e.Id);
     }
 
