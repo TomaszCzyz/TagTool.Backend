@@ -14,22 +14,17 @@ message Error {
   string message = 2;
 }
 
+// The message representing file unambiguously.
 message FileDto {
+  // The full path of the file
   string path = 1;
 }
 
+// The message representing folder unambiguously.
 message FolderDto {
+  // The full path of the folder
   string path = 1;
 }
-
-//// The message that unambiguously represents taggable item.
-//// Only file or folder for now.
-//message Item {
-//  // The item type, e.g. File, Folder.
-//  string itemType = 1;
-//  // The value that unambiguously identifies a tagged item, e.g. full file path for File item type.
-//  string identifier = 2;
-//}
 
 // The message that unambiguously represents taggable item with associated tags.
 // It should be used in replies (does not make sense for requests). 
