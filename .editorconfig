@@ -1,9 +1,5 @@
-# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
-###############################
-# Core EditorConfig Options   #
-###############################
 root = true
-# All files
+
 [*]
 indent_style = space
 insert_final_newline = true
@@ -15,6 +11,10 @@ indent_size = 2
 # .NET Coding Conventions     #
 ###############################
 [*.cs]
+# ReSharper properties
+resharper_keep_existing_expr_member_arrangement = false
+resharper_csharp_wrap_before_binary_opsign = true
+resharper_wrap_before_arrow_with_expressions = true
 # Organize usings
 dotnet_sort_system_directives_first = true
 # this. preferences
@@ -45,6 +45,7 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
 dotnet_style_prefer_auto_properties = true:warning
 dotnet_style_prefer_conditional_expression_over_assignment = true:warning
 dotnet_style_prefer_conditional_expression_over_return = true:warning
+
 ###############################
 # Naming Conventions          #
 ###############################
@@ -211,7 +212,6 @@ csharp_space_between_square_brackets = false
 csharp_space_within_single_line_array_initializer_braces = true
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
-
 
 ###############################
 # C# Analyzers rules          #
@@ -412,7 +412,7 @@ dotnet_diagnostic.RCS0053.severity = warning
 dotnet_diagnostic.RCS1123.severity = none
 
 [**/obj/**.cs]
-dotnet_diagnostic.CS8019.severity = none
+dotnet_diagnostic.cs8019.severity = none
 
 [**/Migrations/**.cs]
 generated_code = true
