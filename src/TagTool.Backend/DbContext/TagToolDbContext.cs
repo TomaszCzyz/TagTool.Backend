@@ -76,6 +76,16 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .Entity<TaggableItem>()
             .UseTpcMappingStrategy()
             .HasKey(e => e.Id);
+
+        modelBuilder
+            .Entity<TaggableFile>()
+            .HasIndex(file => file.Path)
+            .IsUnique();
+
+        modelBuilder
+            .Entity<TaggableFolder>()
+            .HasIndex(folder => folder.Path)
+            .IsUnique();
     }
 
     private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)
