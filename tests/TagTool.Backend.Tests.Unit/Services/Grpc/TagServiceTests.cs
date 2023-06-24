@@ -33,8 +33,7 @@ public class TagServiceTests
         _tagService = new Backend.Services.Grpc.TagService(
             loggerMock.Object,
             _mediatorMock.Object,
-            _commandsHistoryMock.Object,
-            _dbContextMock);
+            _commandsHistoryMock.Object);
     }
 
     private const string TestItemType = "TestItemType";

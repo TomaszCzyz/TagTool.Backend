@@ -1,10 +1,8 @@
 ﻿using System.Diagnostics;
 using Grpc.Core;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.Commands;
-using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
@@ -18,14 +16,12 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
-    private readonly TagToolDbContext _dbContext;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, TagToolDbContext dbContext)
+    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory)
     {
         _logger = logger;
         _mediator = mediator;
         _commandsHistory = commandsHistory;
-        _dbContext = dbContext;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -121,7 +117,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var getItemQuery = new GetItemQuery { TaggableItem = taggableItem };
 
-        var response = await _mediator.Send(getItemQuery);
+        var response = await _mediator.Send(getItemQuery, context.CancellationToken);
 
         return response.Match(
             taggedItem => new GetItemReply
@@ -146,7 +142,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var getItemsByTagsV2Query = new GetItemsByTagsV2Query { QuerySegments = querySegments };
 
-        var response = await _mediator.Send(getItemsByTagsV2Query);
+        var response = await _mediator.Send(getItemsByTagsV2Query, context.CancellationToken);
 
         var results = response
             .Select(item
@@ -170,19 +166,22 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new UnreachableException()
         };
 
-        var existingItem = await _dbContext.TaggedItemsBase.FirstOrDefaultAsync(item => item.Item == taggableItem, context.CancellationToken);
+        var doesItemExistsQuery = new DoesItemExistsQuery { TaggableItem = taggableItem };
 
-        return new DoesItemExistsReply { Exists = existingItem is not null };
+        var response = await _mediator.Send(doesItemExistsQuery, context.CancellationToken);
+
+        return new DoesItemExistsReply { Exists = response };
     }
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
         var tag = TagMapper.MapToDomain(request.Tag);
 
-        var existingItem = await _dbContext.Tags
-            .FirstOrDefaultAsync(tagBase => tagBase.FormattedName == tag.FormattedName, context.CancellationToken);
+        var doesTagExistsQuery = new DoesTagExistsQuery { TagBase = tag };
 
-        return new DoesTagExistsReply { Exists = existingItem is not null };
+        var response = await _mediator.Send(doesTagExistsQuery, context.CancellationToken);
+
+        return new DoesTagExistsReply { Exists = response };
     }
 
     public override async Task SearchTags(
@@ -260,11 +259,11 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var setTagNamingConventionCommand = new SetTagNamingConventionCommand { NewNamingConvention = Map(request.Convention) };
 
-        var oneOf = await _mediator.Send(setTagNamingConventionCommand);
+        var response = await _mediator.Send(setTagNamingConventionCommand, context.CancellationToken);
 
-        return oneOf.Match(
+        return response.Match(
             _ => new SetTagNamingConventionReply(),
-            response => new SetTagNamingConventionReply { Error = new Error { Message = response.Message } });
+            errorResponse => new SetTagNamingConventionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
