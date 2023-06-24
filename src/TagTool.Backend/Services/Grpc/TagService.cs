@@ -10,7 +10,6 @@ using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Mappers;
 using TagTool.Backend.Queries;
-using TaggedItem = TagTool.Backend.DomainTypes.TaggedItem;
 
 namespace TagTool.Backend.Services.Grpc;
 
@@ -120,14 +119,12 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new UnreachableException()
         };
 
-        var taggedItem = await _dbContext.TaggedItemsBase
-            .Include(taggedItemBase => taggedItemBase.Tags)
-            .Include(taggedItemBase => taggedItemBase.Item)
-            .FirstOrDefaultAsync(item => item.Item == taggableItem);
+        var getItemQuery = new GetItemQuery { TaggableItem = taggableItem };
 
-        return taggedItem is null
-            ? new GetItemReply { ErrorMessage = $"Requested item {taggableItem} does not exists." }
-            : new GetItemReply
+        var response = await _mediator.Send(getItemQuery);
+
+        return response.Match(
+            taggedItem => new GetItemReply
             {
                 TaggedItem = taggedItem.Item switch
                 {
@@ -136,7 +133,8 @@ public class TagService : Backend.TagService.TagServiceBase
                         => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { taggedItem.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
-            };
+            },
+            errorResponse => new GetItemReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<GetItemsByTagsV2Reply> GetItemsByTagsV2(GetItemsByTagsV2Request request, ServerCallContext context)
