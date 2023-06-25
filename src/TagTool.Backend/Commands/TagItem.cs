@@ -34,12 +34,22 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItemBase, Err
         var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
         tag = existingTag ?? (await _dbContext.Tags.AddAsync(tag, cancellationToken)).Entity;
 
-        var existingItem = await _dbContext.TaggedItemsBase
-            .Include(item => item.Tags)
-            .FirstOrDefaultAsync(item => item.Item == request.TaggableItem, cancellationToken);
-
-        if (existingItem is not null)
+        TaggableItem? taggableItem = request.TaggableItem switch
         {
+            TaggableFile taggableFile
+                => await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == taggableFile.Path, cancellationToken),
+            TaggableFolder taggableFolder
+                => await _dbContext.TaggableFolders.FirstOrDefaultAsync(file => file.Path == taggableFolder.Path, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(request))
+        };
+
+        if (taggableItem is not null)
+        {
+            var existingItem = await _dbContext.TaggedItemsBase
+                .Include(item => item.Item)
+                .Include(item => item.Tags)
+                .FirstAsync(item => item.Item.Id == request.TaggableItem.Id, cancellationToken);
+
             if (existingItem.Tags.Contains(tag))
             {
                 return new ErrorResponse($"Item {request.TaggableItem} already exists and it is tagged with a tag {tag}");
@@ -53,7 +63,7 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItemBase, Err
             return existingItem;
         }
 
-        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", existingItem, tag);
+        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, tag);
         var newTaggedItem = new TaggedItemBase { Item = request.TaggableItem, Tags = new List<TagBase> { tag } };
         var entry = _dbContext.TaggedItemsBase.Add(newTaggedItem);
 

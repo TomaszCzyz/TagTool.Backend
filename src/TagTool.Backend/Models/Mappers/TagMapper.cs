@@ -15,40 +15,43 @@ public static class TagMapper
 {
     public static TagBase MapToDomain(Any tag)
     {
-        TagBase? tagBase = null;
-
         if (tag.Is(DomainTypes.NormalTag.Descriptor))
         {
             var normalTag = tag.Unpack<DomainTypes.NormalTag>();
-            tagBase = new NormalTag { Name = normalTag.Name };
-        }
-        else if (tag.Is(DomainTypes.YearTag.Descriptor))
-        {
-            var yearTag = tag.Unpack<DomainTypes.YearTag>();
-            tagBase = new YearTag { DateOnly = new DateOnly(yearTag.Year, 1, 1) };
-        }
-        else if (tag.Is(DomainTypes.DayTag.Descriptor))
-        {
-            var dayTag = tag.Unpack<DomainTypes.DayTag>();
-            tagBase = new DayTag { DayOfWeek = (DayOfWeek)dayTag.Day };
-        }
-        else if (tag.Is(DomainTypes.DayRangeTag.Descriptor))
-        {
-            var dayRangeTag = tag.Unpack<DomainTypes.DayRangeTag>();
-            tagBase = new DayRangeTag { Begin = (DayOfWeek)dayRangeTag.Begin, End = (DayOfWeek)dayRangeTag.End };
-        }
-        else if (tag.Is(DomainTypes.MonthTag.Descriptor))
-        {
-            var monthTag = tag.Unpack<DomainTypes.MonthTag>();
-            tagBase = new MonthTag { Month = monthTag.Month };
-        }
-        else if (tag.Is(DomainTypes.MonthRangeTag.Descriptor))
-        {
-            var monthTag = tag.Unpack<DomainTypes.MonthRangeTag>();
-            tagBase = new MonthRangeTag { Begin = monthTag.Begin, End = monthTag.End };
+            return new NormalTag { Name = normalTag.Name };
         }
 
-        return tagBase ?? throw new ArgumentException("Unable to match tag type");
+        if (tag.Is(DomainTypes.YearTag.Descriptor))
+        {
+            var yearTag = tag.Unpack<DomainTypes.YearTag>();
+            return new YearTag { DateOnly = new DateOnly(yearTag.Year, 1, 1) };
+        }
+
+        if (tag.Is(DomainTypes.DayTag.Descriptor))
+        {
+            var dayTag = tag.Unpack<DomainTypes.DayTag>();
+            return new DayTag { DayOfWeek = (DayOfWeek)dayTag.Day };
+        }
+
+        if (tag.Is(DomainTypes.DayRangeTag.Descriptor))
+        {
+            var dayRangeTag = tag.Unpack<DomainTypes.DayRangeTag>();
+            return new DayRangeTag { Begin = (DayOfWeek)dayRangeTag.Begin, End = (DayOfWeek)dayRangeTag.End };
+        }
+
+        if (tag.Is(DomainTypes.MonthTag.Descriptor))
+        {
+            var monthTag = tag.Unpack<DomainTypes.MonthTag>();
+            return new MonthTag { Month = monthTag.Month };
+        }
+
+        if (tag.Is(DomainTypes.MonthRangeTag.Descriptor))
+        {
+            var monthTag = tag.Unpack<DomainTypes.MonthRangeTag>();
+            return new MonthRangeTag { Begin = monthTag.Begin, End = monthTag.End };
+        }
+
+        throw new ArgumentException("Unable to match tag type");
     }
 
     public static Any MapToDto(TagBase tag)

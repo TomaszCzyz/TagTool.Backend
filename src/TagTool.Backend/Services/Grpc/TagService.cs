@@ -110,8 +110,8 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var taggableItem = request.ItemCase switch
         {
-            GetItemRequest.ItemOneofCase.Folder => new TaggableFile { Path = request.File.Path } as TaggableItem,
-            GetItemRequest.ItemOneofCase.File => new TaggableFolder { Path = request.Folder.Path },
+            GetItemRequest.ItemOneofCase.File => new TaggableFile { Path = request.File.Path } as TaggableItem,
+            GetItemRequest.ItemOneofCase.Folder => new TaggableFolder { Path = request.Folder.Path },
             _ => throw new UnreachableException()
         };
 

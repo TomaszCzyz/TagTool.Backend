@@ -31,16 +31,27 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItemBase,
     {
         var tag = request.Tag;
 
-        var existingItem = await _dbContext.TaggedItemsBase
-            .Include(item => item.Tags)
-            .FirstOrDefaultAsync(item => item.Item == request.TaggableItem, cancellationToken);
+        TaggableItem? taggableItem = request.TaggableItem switch
+        {
+            TaggableFile taggableFile
+                => await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == taggableFile.Path, cancellationToken),
+            TaggableFolder taggableFolder
+                => await _dbContext.TaggableFolders.FirstOrDefaultAsync(file => file.Path == taggableFolder.Path, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(request))
+        };
 
-        if (existingItem is null)
+        if (taggableItem is null)
         {
             return new ErrorResponse($"There is no {request.TaggableItem} in database.");
         }
 
-        if (!existingItem.Tags.Contains(tag))
+        var existingItem = await _dbContext.TaggedItemsBase
+            .Include(item => item.Item)
+            .Include(item => item.Tags)
+            .FirstAsync(item => item.Item.Id == taggableItem.Id, cancellationToken);
+
+        // todo: get rid off ".Select(@base => @base.FormattedName)" by overloading equals or adding comparer
+        if (!existingItem.Tags.Select(@base => @base.FormattedName).Contains(tag.FormattedName))
         {
             return new ErrorResponse($"{request.TaggableItem} item does not contain tag {request.Tag}.");
         }
