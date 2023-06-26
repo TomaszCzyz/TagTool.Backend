@@ -191,7 +191,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var (value, limit) = (request.SearchText, request.ResultsLimit);
 
-        IStreamRequest<(TagBase, IEnumerable<MatchedPart>)> query = request.SearchType switch
+        IStreamRequest<(TagBase, IEnumerable<TextSlice>)> query = request.SearchType switch
         {
             SearchTagsRequest.Types.SearchType.Wildcard => new SearchTagsWildcardRequest { Value = value, ResultsLimit = limit },
             SearchTagsRequest.Types.SearchType.StartsWith => new SearchTagsStartsWithRequest { Value = value, ResultsLimit = limit },

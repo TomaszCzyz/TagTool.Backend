@@ -8,7 +8,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsFuzzyRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsFuzzyRequest : IStreamRequest<(TagBase, IEnumerable<TextSlice>)>
 {
     public required string Value { get; init; }
 
@@ -16,36 +16,42 @@ public class SearchTagsFuzzyRequest : IStreamRequest<(TagBase, IEnumerable<Match
 }
 
 [UsedImplicitly]
-public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (TagBase, IEnumerable<TextSlice>)>
 {
     private readonly TagToolDbContext _dbContext;
 
     public SearchTagsFuzzy(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
+    public async IAsyncEnumerable<(TagBase, IEnumerable<TextSlice>)> Handle(
         SearchTagsFuzzyRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var ahoCorasick = new AhoCorasick(request.Value.Substrings().Distinct());
+        var results = new List<(TagBase Tag, TextSlice[] Slices)>();
 
         var counter = 0;
         await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             if (counter == request.ResultsLimit) break;
-            counter++;
 
             var tagName = tag.FormattedName[(tag.FormattedName.IndexOf(':') + 1)..];
 
-            var matchedParts = ahoCorasick
+            var textSlices = ahoCorasick
                 .Search(tagName) // todo: safeguard for very long tagNames would be nice
                 .ExcludeOverlaying(tagName)
-                .Select(match => new MatchedPart(match.Index, match.Word.Length))
+                .Select(match => new TextSlice(match.Index, match.Word.Length))
                 .OrderByDescending(match => match.Length)
                 .ToArray();
 
-            if (matchedParts.Length == 0) continue;
+            if (textSlices.Length == 0) continue;
 
-            yield return (tag, matchedParts);
+            results.Add((tag, textSlices));
+            counter++;
+        }
+
+        foreach (var (tag, matches) in results.OrderByDescending(result => result.Slices[0].Length))
+        {
+            yield return (tag, matches);
         }
     }
 }

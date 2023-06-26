@@ -6,7 +6,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsWildcardRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsWildcardRequest : IStreamRequest<(TagBase, IEnumerable<TextSlice>)>
 {
     public required string Value { get; init; }
 
@@ -14,13 +14,13 @@ public class SearchTagsWildcardRequest : IStreamRequest<(TagBase, IEnumerable<Ma
 }
 
 [UsedImplicitly]
-public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardRequest, (TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardRequest, (TagBase, IEnumerable<TextSlice>)>
 {
     private readonly TagToolDbContext _dbContext;
 
     public SearchTagsWildcard(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
+    public async IAsyncEnumerable<(TagBase, IEnumerable<TextSlice>)> Handle(
         SearchTagsWildcardRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -32,7 +32,7 @@ public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardReques
             if (counter == request.ResultsLimit) break;
             counter++;
 
-            yield return (tag, new[] { new MatchedPart(0, tag.FormattedName.Length) });
+            yield return (tag, new[] { new TextSlice(0, tag.FormattedName.Length) });
         }
     }
 }

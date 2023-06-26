@@ -7,7 +7,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class SearchTagsStartsWithRequest : IStreamRequest<(TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsStartsWithRequest : IStreamRequest<(TagBase, IEnumerable<TextSlice>)>
 {
     public required string Value { get; init; }
 
@@ -15,13 +15,13 @@ public class SearchTagsStartsWithRequest : IStreamRequest<(TagBase, IEnumerable<
 }
 
 [UsedImplicitly]
-public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRequest, (TagBase, IEnumerable<MatchedPart>)>
+public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRequest, (TagBase, IEnumerable<TextSlice>)>
 {
     private readonly TagToolDbContext _dbContext;
 
     public SearchTagsStartsWith(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async IAsyncEnumerable<(TagBase, IEnumerable<MatchedPart>)> Handle(
+    public async IAsyncEnumerable<(TagBase, IEnumerable<TextSlice>)> Handle(
         SearchTagsStartsWithRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -36,7 +36,7 @@ public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRe
             if (counter == request.ResultsLimit) break;
             counter++;
 
-            var matchedPart = new MatchedPart(0, tag.FormattedName.IndexOf(request.Value.Last()));
+            var matchedPart = new TextSlice(0, tag.FormattedName.IndexOf(request.Value.Last()));
             yield return (tag, new[] { matchedPart });
         }
     }
