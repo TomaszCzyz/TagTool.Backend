@@ -5,25 +5,55 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class GetItemsByTagsRequest : IQuery<IEnumerable<TaggedItemBase>>
+public class GetItemsByTagsQuery : IQuery<IEnumerable<TaggedItemBase>>
 {
-    public required string[] TagNames { get; init; }
+    public required IEnumerable<TagQuerySegment> QuerySegments { get; init; }
 }
 
 [UsedImplicitly]
-public class GetItemsByTags : IQueryHandler<GetItemsByTagsRequest, IEnumerable<TaggedItemBase>>
+public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<TaggedItemBase>>
 {
     private readonly TagToolDbContext _dbContext;
 
     public GetItemsByTags(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public async Task<IEnumerable<TaggedItemBase>> Handle(GetItemsByTagsRequest request, CancellationToken cancellationToken)
-        => await _dbContext.TaggedItemsBase
-            .Include(item => item.Tags)
-            .Where(item => item.Tags.OfType<NormalTag>().Any(tag => request.TagNames.Contains(tag.Name)))
-            .Select(item
-                => new { Item = item, CommonTagsCount = item.Tags.OfType<NormalTag>().Count(tag => request.TagNames.Contains(tag.Name)) })
-            .OrderByDescending(arg => arg.CommonTagsCount)
-            .Select(arg => arg.Item)
-            .ToArrayAsync(cancellationToken);
+    public Task<IEnumerable<TaggedItemBase>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
+    {
+        var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
+
+        var taggedItems = _dbContext.TaggedItemsBase
+            .Include(taggedItemBase => taggedItemBase.Tags)
+            .Include(taggedItemBase => taggedItemBase.Item)
+            .AsQueryable();
+
+        if (splittedTags.TryGetValue(QuerySegmentState.MustBePresent, out var mustByPresentTags))
+        {
+            taggedItems = taggedItems
+                .Where(item => item.Tags
+                    .Select(tagBase => tagBase.FormattedName)
+                    .Any(tag => mustByPresentTags.Contains(tag)));
+        }
+        else if (splittedTags.TryGetValue(QuerySegmentState.Include, out var included))
+        {
+            taggedItems = taggedItems
+                .Where(item => item.Tags
+                    .Select(tagBase => tagBase.FormattedName)
+                    .Any(tag => included.Contains(tag)));
+        }
+
+        if (splittedTags.TryGetValue(QuerySegmentState.Exclude, out var excluded))
+        {
+            taggedItems = taggedItems
+                .Where(item => !item.Tags
+                    .Select(tagBase => tagBase.FormattedName)
+                    .Any(tag => excluded.Contains(tag)));
+        }
+
+        return Task.FromResult<IEnumerable<TaggedItemBase>>(taggedItems.ToArray());
+    }
+
+    private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request) =>
+        request
+            .GroupBy(segment => segment.State)
+            .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.Tag.FormattedName));
 }

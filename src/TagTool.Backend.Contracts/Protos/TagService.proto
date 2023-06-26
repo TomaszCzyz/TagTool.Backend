@@ -23,10 +23,8 @@ service TagService {
 
   // Gets an info about an item if one exists.
   rpc GetItem(GetItemRequest) returns (GetItemReply);
-  // Gets items which are tagged with one or more of supplied tags.
-  rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
   // Gets items which tags are meet the request conditions.
-  rpc GetItemsByTagsV2(GetItemsByTagsV2Request) returns (GetItemsByTagsV2Reply);
+  rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
 
   // Checks if given items exists in tagged items database. 
   // The purpose of this endpoint is to avoid transfer and allocation Item information just to check existence.  
@@ -143,20 +141,9 @@ message GetItemReply {
   }
 }
 
-// The request to retrieve all tags that are tagged with given tags.
-message GetItemsByTagsRequest {
-  // The tags.
-  repeated google.protobuf.Any tags = 1;
-}
-
-// The reply containing an item with associated tags.
-message GetItemsByTagsReply {
-  repeated TaggedItem taggedItems = 1;
-}
-
 // The request to retrieve all tags that meet tags conditions,
 // e.g. include tag 'Tag1' and exclude 'Tag2'.
-message GetItemsByTagsV2Request {
+message GetItemsByTagsRequest {
   repeated TagQueryParam queryParams = 1;
 
   // Defines single segment of a tag search query.
@@ -178,7 +165,7 @@ message GetItemsByTagsV2Request {
 }
 
 // The reply containing tagged items than met query conditions.
-message GetItemsByTagsV2Reply {
+message GetItemsByTagsReply {
   repeated TaggedItem taggedItems = 1;
 }
 

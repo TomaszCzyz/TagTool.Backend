@@ -133,16 +133,16 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new GetItemReply { ErrorMessage = errorResponse.Message });
     }
 
-    public override async Task<GetItemsByTagsV2Reply> GetItemsByTagsV2(GetItemsByTagsV2Request request, ServerCallContext context)
+    public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
     {
         var querySegments = request.QueryParams
             .Select(tagQueryParam
                 => new TagQuerySegment { State = MapQuerySegmentState(tagQueryParam), Tag = TagMapper.MapToDomain(tagQueryParam.Tag) })
             .ToList();
 
-        var getItemsByTagsV2Query = new GetItemsByTagsV2Query { QuerySegments = querySegments };
+        var getItemsByTagsQuery = new GetItemsByTagsQuery { QuerySegments = querySegments };
 
-        var response = await _mediator.Send(getItemsByTagsV2Query, context.CancellationToken);
+        var response = await _mediator.Send(getItemsByTagsQuery, context.CancellationToken);
 
         var results = response
             .Select(item
@@ -154,7 +154,7 @@ public class TagService : Backend.TagService.TagServiceBase
                 })
             .ToArray();
 
-        return new GetItemsByTagsV2Reply { TaggedItems = { results } };
+        return new GetItemsByTagsReply { TaggedItems = { results } };
     }
 
     public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
@@ -277,12 +277,12 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
         };
 
-    private static QuerySegmentState MapQuerySegmentState(GetItemsByTagsV2Request.Types.TagQueryParam tagQueryParam)
+    private static QuerySegmentState MapQuerySegmentState(GetItemsByTagsRequest.Types.TagQueryParam tagQueryParam)
         => tagQueryParam.State switch
         {
-            GetItemsByTagsV2Request.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
-            GetItemsByTagsV2Request.Types.QuerySegmentState.Include => QuerySegmentState.Include,
-            GetItemsByTagsV2Request.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
+            GetItemsByTagsRequest.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
+            GetItemsByTagsRequest.Types.QuerySegmentState.Include => QuerySegmentState.Include,
+            GetItemsByTagsRequest.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
             _ => throw new UnreachableException()
         };
 }
