@@ -4,7 +4,7 @@ public static class StringExtensions // todo: optimize with span<char>
 {
     public static string[] Substrings(this string word)
     {
-        var substrings = new string[((1 + word.Length) * word.Length) / 2];
+        var substrings = new string[(1 + word.Length) * word.Length / 2];
 
         var counter = 0;
         for (var substringLength = 1; substringLength <= word.Length; ++substringLength)
@@ -24,6 +24,6 @@ public static class StringExtensions // todo: optimize with span<char>
         var pathDirectory = Path.GetDirectoryName(path);
         var pathFileName = Path.GetFileName(path);
 
-        return pathDirectory.SequenceEqual(parentDir) && pathFileName.SequenceEqual(dirName) || parentDir.StartsWith(path);
+        return (pathDirectory.SequenceEqual(parentDir) && pathFileName.SequenceEqual(dirName)) || parentDir.StartsWith(path);
     }
 }

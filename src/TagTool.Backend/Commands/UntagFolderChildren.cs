@@ -15,13 +15,14 @@ public class UntagFolderChildrenRequest : ICommand<OneOf<string, ErrorResponse>>
 
     public bool TagFilesOnly { get; init; } = true;
 
-    public IReversible GetReverse() => new TagFolderChildrenRequest
-    {
-        RootFolder = RootFolder,
-        Tag = Tag,
-        Depth = Depth,
-        TagFilesOnly = TagFilesOnly
-    };
+    public IReversible GetReverse()
+        => new TagFolderChildrenRequest
+        {
+            RootFolder = RootFolder,
+            Tag = Tag,
+            Depth = Depth,
+            TagFilesOnly = TagFilesOnly
+        };
 }
 
 [UsedImplicitly]

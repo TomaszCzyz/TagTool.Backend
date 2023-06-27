@@ -139,12 +139,14 @@ csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = true:warning
 # Expression-bodied members
+csharp_style_expression_bodied_constructors = false:silent
 csharp_style_expression_bodied_methods = when_on_single_line:silent
-csharp_style_expression_bodied_constructors = when_on_single_line:silent
 csharp_style_expression_bodied_operators = when_on_single_line:silent
 csharp_style_expression_bodied_properties = when_on_single_line:warning
 csharp_style_expression_bodied_indexers = when_on_single_line:warning
 csharp_style_expression_bodied_accessors = when_on_single_line:warning
+csharp_style_expression_bodied_lambdas = when_on_single_line:silent
+csharp_style_expression_bodied_local_functions = when_on_single_line:warning
 # Pattern matching preferences
 csharp_style_pattern_matching_over_is_with_cast_check = true:warning
 csharp_style_pattern_matching_over_as_with_null_check = true:warning
@@ -250,25 +252,10 @@ dotnet_diagnostic.SA1633.severity = none
 dotnet_diagnostic.SX1101.severity = warning
 dotnet_diagnostic.SX1309.severity = warning
 dotnet_diagnostic.VSTHRD111.severity = none
-
-# SA1629: Documentation text should end with a period
-dotnet_diagnostic.SA1629.severity = none
-
-
-# IDE0021: Use expression body for constructors
-dotnet_diagnostic.IDE0021.severity = silent
-
-csharp_style_expression_bodied_lambdas = when_on_single_line:silent
-csharp_style_expression_bodied_local_functions = false:warning
+dotnet_diagnostic.SA1629.severity = warning # SA1629: Documentation text should end with a period
 dotnet_diagnostic.xUnit1004.severity = silent
-
-# IDE0058: Expression value is never used
-dotnet_diagnostic.IDE0058.severity = silent
-
-# IDE0022: Use expression body for methods
-dotnet_diagnostic.IDE0022.severity = silent
-
-# IDE2000: C#
+dotnet_diagnostic.IDE0058.severity = silent # IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0022.severity = silent # IDE0022: Use expression body for methods
 dotnet_diagnostic.IDE2000.severity = warning
 
 # IDE2000: C#
@@ -296,7 +283,7 @@ roslynator.RCS0027.invert = true
 roslynator.RCS0028.invert = true
 
 # Add newline after expression-body arrow instead of before it.
-roslynator.RCS0032.invert = true
+roslynator.RCS0032.invert = false
 
 # Remove newline between closing brace and 'while' keyword.
 roslynator.RCS0051.invert = true

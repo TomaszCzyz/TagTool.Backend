@@ -19,7 +19,10 @@ public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRe
 {
     private readonly TagToolDbContext _dbContext;
 
-    public SearchTagsStartsWith(TagToolDbContext dbContext) => _dbContext = dbContext;
+    public SearchTagsStartsWith(TagToolDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public async IAsyncEnumerable<(TagBase, IEnumerable<TextSlice>)> Handle(
         SearchTagsStartsWithRequest request,

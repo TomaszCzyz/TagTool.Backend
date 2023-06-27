@@ -99,8 +99,7 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
     }
 
     private static FileSystemSearchRequestBase MapToSearchRequest(SearchRequest request)
-    {
-        return request.SearchTypeCase switch
+        => request.SearchTypeCase switch
         {
             SearchRequest.SearchTypeOneofCase.Exact
                 => new FileSystemExactSearchRequest
@@ -131,5 +130,4 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
                 },
             _ => throw new ArgumentOutOfRangeException(nameof(request), "Unknown search type")
         };
-    }
 }

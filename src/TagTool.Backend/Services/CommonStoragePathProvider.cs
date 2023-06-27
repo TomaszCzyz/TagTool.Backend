@@ -42,15 +42,31 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
     /// </returns>
     public OneOf<string, None> GetPathForFile(string fileName)
     {
-        if (string.IsNullOrWhiteSpace(fileName)) return new None();
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return new None();
+        }
 
         var ext = Path.HasExtension(fileName) ? Path.GetExtension(fileName.AsSpan())[1..] : "_noExtension";
         var newFileDir = Path.Join(_options.Files, ext);
 
-        if (!TryCreateDir(newFileDir)) return new None();
+        if (!TryCreateDir(newFileDir))
+        {
+            return new None();
+        }
 
         return Path.Join(_options.Files, ext, fileName);
     }
+
+    /// <summary>
+    ///     Construct a path based on input path.
+    /// </summary>
+    /// <returns>
+    ///     Path in a following format:
+    ///     [CommonStorageFilesPath]/[originalDirectoryName]
+    /// </returns>
+    public OneOf<string, None> GetPathForFolder(string fullName)
+        => Path.Join(_options.Directories, Path.GetFileName(Path.TrimEndingDirectorySeparator(fullName.AsSpan())));
 
     private bool TryCreateDir(string path)
     {
@@ -66,14 +82,4 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
 
         return false;
     }
-
-    /// <summary>
-    ///     Construct a path based on input path.
-    /// </summary>
-    /// <returns>
-    ///     Path in a following format:
-    ///     [CommonStorageFilesPath]/[originalDirectoryName]
-    /// </returns>
-    public OneOf<string, None> GetPathForFolder(string fullName)
-        => Path.Join(_options.Directories, Path.GetFileName(Path.TrimEndingDirectorySeparator(fullName.AsSpan())));
 }

@@ -6,7 +6,7 @@ public enum NamingConvention
     CamelCase = 1,
     PascalCase = 2,
     KebabCase = 3,
-    SnakeCase = 4,
+    SnakeCase = 4
 }
 
 public class TagsOptions

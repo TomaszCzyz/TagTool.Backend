@@ -33,9 +33,7 @@ public class CommonStorage : ICommonStorage
     }
 
     public OneOf<CommonStorageInfo, ErrorResponse> GetPath(string fullName, bool overwrite)
-    {
-        return Directory.Exists(fullName) ? CanStoreFolder(fullName, overwrite) : GetPathForFile(fullName, overwrite);
-    }
+        => Directory.Exists(fullName) ? CanStoreFolder(fullName, overwrite) : GetPathForFile(fullName, overwrite);
 
     private OneOf<CommonStorageInfo, ErrorResponse> CanStoreFolder(string fullName, bool overwrite)
     {

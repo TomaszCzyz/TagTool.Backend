@@ -62,9 +62,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
     }
 
     public override Task<DeleteFolderReply> DeleteFolder(DeleteFolderRequest request, ServerCallContext context)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public override async Task<TagChildrenReply> TagChildren(TagChildrenRequest request, ServerCallContext context)
     {

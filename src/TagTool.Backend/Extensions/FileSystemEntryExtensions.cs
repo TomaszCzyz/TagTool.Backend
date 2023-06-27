@@ -5,7 +5,7 @@ namespace TagTool.Backend.Extensions;
 public static class FileSystemEntryExtensions
 {
     /// <summary>
-    /// This wrapper is created because <see cref="FileSystemEntry"/> struct is not unit testable.
+    ///     This wrapper is created because <see cref="FileSystemEntry" /> struct is not unit testable.
     /// </summary>
     /// <param name="entry"></param>
     /// <param name="path"></param>

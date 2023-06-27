@@ -240,7 +240,10 @@ public class TagService : Backend.TagService.TagServiceBase
 
     private async Task<OneOf<string, ErrorResponse>> InvokeCommand(string undoOrRedo, IReversible? command)
     {
-        if (command is null) return new ErrorResponse($"Nothing to {undoOrRedo}.");
+        if (command is null)
+        {
+            return new ErrorResponse($"Nothing to {undoOrRedo}.");
+        }
 
         var response = await _mediator.Send(command);
 

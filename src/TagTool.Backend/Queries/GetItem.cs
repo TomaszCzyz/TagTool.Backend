@@ -32,7 +32,10 @@ public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggableItem, ErrorResp
             _ => throw new ArgumentOutOfRangeException(nameof(request))
         };
 
-        if (taggableItem is null) return new ErrorResponse($"TaggableItem {request.TaggableItem} was not found in tagged items collection");
+        if (taggableItem is null)
+        {
+            return new ErrorResponse($"TaggableItem {request.TaggableItem} was not found in tagged items collection");
+        }
 
         return await _dbContext.TaggedItems
             .Include(taggedItemBase => taggedItemBase.Tags)

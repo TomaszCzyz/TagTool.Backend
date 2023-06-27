@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace TagTool.Backend.Models;
 
 public abstract class TaggableItem

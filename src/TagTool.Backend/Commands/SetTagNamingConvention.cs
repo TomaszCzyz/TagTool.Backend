@@ -37,7 +37,10 @@ public class SetTagNamingConvention : ICommandHandler<SetTagNamingConventionComm
         _logger.LogInformation("Setting naming convention {NamingConvention}", request.NewNamingConvention);
         // todo: set naming convention in a configuration
 
-        if (!request.ApplyToExisting) return new None();
+        if (!request.ApplyToExisting)
+        {
+            return new None();
+        }
 
         _logger.LogInformation("Applying naming convention {NamingConvention} to existing tags", request.NewNamingConvention);
 

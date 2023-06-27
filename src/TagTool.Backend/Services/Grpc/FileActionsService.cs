@@ -57,9 +57,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
     }
 
     public override Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context)
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotImplementedException();
 
     public override async Task<OpenFileReply> OpenFile(OpenFileRequest request, ServerCallContext context)
     {

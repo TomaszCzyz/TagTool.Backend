@@ -15,7 +15,10 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
 {
     private readonly TagToolDbContext _dbContext;
 
-    public GetItemsByTags(TagToolDbContext dbContext) => _dbContext = dbContext;
+    public GetItemsByTags(TagToolDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public Task<IEnumerable<TaggableItem>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
     {
@@ -51,8 +54,8 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
         return Task.FromResult<IEnumerable<TaggableItem>>(taggedItems.ToArray());
     }
 
-    private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request) =>
-        request
+    private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request)
+        => request
             .GroupBy(segment => segment.State)
             .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.Tag.FormattedName));
 }

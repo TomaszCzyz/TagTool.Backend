@@ -14,6 +14,8 @@ namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 
 public class TagServiceTests
 {
+    private const string TestItemType = "TestItemType";
+    private const string TestItemIdentifier = "TestItemIdentifier";
     private readonly Backend.Services.Grpc.TagService _tagService;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<ICommandsHistory> _commandsHistoryMock;
@@ -26,7 +28,7 @@ public class TagServiceTests
         _mediatorMock = new Mock<IMediator>();
         _commandsHistoryMock = new Mock<ICommandsHistory>();
 
-        var optionsBuilder = new DbContextOptionsBuilder<TagToolDbContext>().UseInMemoryDatabase(databaseName: "TagToolDb").Options;
+        var optionsBuilder = new DbContextOptionsBuilder<TagToolDbContext>().UseInMemoryDatabase("TagToolDb").Options;
 
         _dbContextMock = new TagToolDbContext(optionsBuilder);
 
@@ -36,9 +38,6 @@ public class TagServiceTests
             _commandsHistoryMock.Object);
     }
 
-    private const string TestItemType = "TestItemType";
-    private const string TestItemIdentifier = "TestItemIdentifier";
-
     [Fact]
     public async Task TagItem_ValidRequest_ReturnsTaggedItem()
     {
@@ -46,10 +45,7 @@ public class TagServiceTests
         var testServerCallContext = TestServerCallContext.Create();
 
         var tagItemRequest
-            = new TagItemRequest
-            {
-                File = new FileDto{Path = TestItemIdentifier}, Tag = Any.Pack(new YearTagDto { Year = 4022 })
-            };
+            = new TagItemRequest { File = new FileDto { Path = TestItemIdentifier }, Tag = Any.Pack(new YearTagDto { Year = 4022 }) };
 
         // var taggedItem = new TaggedItemDto
         // {

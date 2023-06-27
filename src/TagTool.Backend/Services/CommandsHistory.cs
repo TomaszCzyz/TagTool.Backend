@@ -16,10 +16,7 @@ public class CommandsHistory : ICommandsHistory
     private readonly Stack<IReversible> _undoCommands = new();
     private readonly Stack<IReversible> _redoCommands = new();
 
-    public void Push(IReversible command)
-    {
-        _undoCommands.Push(command.GetReverse());
-    }
+    public void Push(IReversible command) => _undoCommands.Push(command.GetReverse());
 
     public IReversible? GetUndoCommand()
     {

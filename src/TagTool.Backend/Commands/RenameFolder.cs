@@ -12,10 +12,11 @@ public class RenameFolderRequest : ICommand<OneOf<string, ErrorResponse>>, IReve
 
     public required string NewFolderName { get; init; }
 
-    public IReversible GetReverse() => new RenameFolderRequest
-    {
-        NewFolderName = Path.GetFileName(FullPath), FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, NewFolderName)
-    };
+    public IReversible GetReverse()
+        => new RenameFolderRequest
+        {
+            NewFolderName = Path.GetFileName(FullPath), FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, NewFolderName)
+        };
 }
 
 [UsedImplicitly]

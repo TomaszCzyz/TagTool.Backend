@@ -17,13 +17,13 @@ public abstract class TagBase : IHasTimestamps, ITagBase
     // 'No backing field could be found for property 'TagBase.FormattedName' and the property does not have a setter.'
     public string FormattedName { get; protected set; } = null!;
 
+    public ICollection<TaggableItem> TaggedItems { set; get; } = new List<TaggableItem>();
+
     public DateTime? Added { get; set; }
 
     public DateTime? Deleted { get; set; }
 
     public DateTime? Modified { get; set; }
-
-    public ICollection<TaggableItem> TaggedItems { set; get; } = new List<TaggableItem>();
 }
 
 public sealed class NormalTag : TagBase
