@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
@@ -32,22 +33,13 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, E
     {
         var (tag, taggableItem) = await FindExistingEntities(request.Tag, request.TaggableItem, cancellationToken);
 
-        if (taggableItem is null)
+        if (!AreEntitiesNotNull(tag, taggableItem, out var errorMessage))
         {
-            return new ErrorResponse($"There is no item {request.TaggableItem} in database.");
-        }
-
-        if (tag is null)
-        {
-            return new ErrorResponse($"There is no tag {request.Tag} in database.");
-        }
-
-        if (!taggableItem.Tags.Contains(tag))
-        {
-            return new ErrorResponse($"{request.TaggableItem} item does not contain tag {request.Tag}.");
+            return new ErrorResponse(errorMessage);
         }
 
         _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, taggableItem);
+
         var isRemoved = taggableItem.Tags.Remove(tag);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -72,5 +64,21 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, E
         };
 
         return (await existingTag, existingTaggableItem);
+    }
+
+    private static bool AreEntitiesNotNull(
+        [NotNullWhen(true)] TagBase? tag,
+        [NotNullWhen(true)] TaggableItem? taggableItem,
+        [NotNullWhen(false)] out string? errorMessage)
+    {
+        errorMessage = (tag, taggableItem) switch
+        {
+            (null, null) => $"There is no item {taggableItem} or tag {tag} in database.",
+            (not null, null) => $"There is no item {taggableItem} in database.",
+            (null, not null) => $"There is no item {taggableItem} in database.",
+            _ => null
+        };
+
+        return errorMessage is null;
     }
 }
