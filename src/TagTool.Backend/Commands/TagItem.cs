@@ -30,9 +30,9 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
 
     public async Task<OneOf<TaggableItem, ErrorResponse>> Handle(TagItemRequest request, CancellationToken cancellationToken)
     {
-        var (existingTag, taggableItem) = await FindExistingEntities(request.Tag, request.TaggableItem, cancellationToken);
+        var (tag, taggableItem) = await FindExistingEntities(request.Tag, request.TaggableItem, cancellationToken);
 
-        switch ((existingTag, taggableItem))
+        switch ((tag, taggableItem))
         {
             case (null, null):
                 _logger.LogInformation("Tagging new item {@TaggedItem} with new tag {@Tag}", taggableItem, request.Tag);
@@ -45,7 +45,7 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
             case (not null, null):
                 _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, request.Tag);
                 request.TaggableItem.Id = Guid.NewGuid();
-                request.TaggableItem.Tags.Add(existingTag);
+                request.TaggableItem.Tags.Add(tag);
 
                 await _dbContext.TaggedItems.AddAsync(request.TaggableItem, cancellationToken);
                 break;
@@ -57,14 +57,14 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
                 _dbContext.TaggedItems.Update(taggableItem);
                 break;
             case (not null, not null):
-                if (taggableItem.Tags.Contains(existingTag))
+                if (taggableItem.Tags.Contains(tag))
                 {
                     _logger.LogInformation("Existing item {@TaggedItem} is already tagged with tag {@Tag}", taggableItem, request.Tag);
                     return new ErrorResponse($"Item {request.TaggableItem} already exists and it is tagged with a tag {request.Tag}");
                 }
 
-                _logger.LogInformation("Tagging item {@TaggedItem} with tag {@Tag}", taggableItem, existingTag);
-                taggableItem.Tags.Add(existingTag);
+                _logger.LogInformation("Tagging item {@TaggedItem} with tag {@Tag}", taggableItem, tag);
+                taggableItem.Tags.Add(tag);
                 break;
         }
 

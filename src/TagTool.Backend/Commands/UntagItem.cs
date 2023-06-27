@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Diagnostics;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -29,39 +30,47 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, E
 
     public async Task<OneOf<TaggableItem, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
     {
-        var tag = request.Tag;
+        var (tag, taggableItem) = await FindExistingEntities(request.Tag, request.TaggableItem, cancellationToken);
 
-        TaggableItem? taggableItem = request.TaggableItem switch
+        if (taggableItem is null)
+        {
+            return new ErrorResponse($"There is no item {request.TaggableItem} in database.");
+        }
+
+        if (tag is null)
+        {
+            return new ErrorResponse($"There is no tag {request.Tag} in database.");
+        }
+
+        if (!taggableItem.Tags.Contains(tag))
+        {
+            return new ErrorResponse($"{request.TaggableItem} item does not contain tag {request.Tag}.");
+        }
+
+        _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, taggableItem);
+        var isRemoved = taggableItem.Tags.Remove(tag);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return isRemoved ? taggableItem : new ErrorResponse($"Unable to remove tag {tag} from item {taggableItem}.");
+    }
+
+    private async Task<(TagBase?, TaggableItem?)> FindExistingEntities(
+        TagBase tag,
+        TaggableItem taggableItem,
+        CancellationToken cancellationToken)
+    {
+        var existingTag = _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
+
+        TaggableItem? existingTaggableItem = taggableItem switch
         {
             TaggableFile taggableFile
                 => await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == taggableFile.Path, cancellationToken),
             TaggableFolder taggableFolder
                 => await _dbContext.TaggableFolders.FirstOrDefaultAsync(file => file.Path == taggableFolder.Path, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(request))
+            _ => throw new UnreachableException()
         };
 
-        if (taggableItem is null)
-        {
-            return new ErrorResponse($"There is no {request.TaggableItem} in database.");
-        }
-
-        var existingItem = await _dbContext.TaggedItems
-            .Include(item => item.Tags)
-            .FirstAsync(item => item.Id == taggableItem.Id, cancellationToken);
-
-        // todo: get rid off ".Select(@base => @base.FormattedName)" by overloading equals or adding comparer
-        if (!existingItem.Tags.Select(@base => @base.FormattedName).Contains(tag.FormattedName))
-        {
-            return new ErrorResponse($"{request.TaggableItem} item does not contain tag {request.Tag}.");
-        }
-
-        tag = await _dbContext.Tags.FirstAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
-
-        _logger.LogInformation("Removing tag {@Tag} from item {@TaggedItem}", tag, existingItem);
-        var isRemoved = existingItem.Tags.Remove(tag);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return isRemoved ? existingItem : new ErrorResponse($"Unable to remove tag {tag} from item {existingItem}.");
+        return (await existingTag, existingTaggableItem);
     }
 }
