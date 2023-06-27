@@ -21,7 +21,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
     {
         var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
-        var taggedItems = _dbContext.TaggedItemsBase
+        var taggedItems = _dbContext.TaggedItems
             .Include(taggedItemBase => taggedItemBase.Tags)
             .AsQueryable();
 

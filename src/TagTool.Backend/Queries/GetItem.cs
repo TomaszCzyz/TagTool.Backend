@@ -34,7 +34,7 @@ public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggableItem, ErrorResp
 
         if (taggableItem is null) return new ErrorResponse($"TaggableItem {request.TaggableItem} was not found in tagged items collection");
 
-        return await _dbContext.TaggedItemsBase
+        return await _dbContext.TaggedItems
             .Include(taggedItemBase => taggedItemBase.Tags)
             .FirstAsync(taggedItemBase => taggedItemBase.Id == taggableItem.Id, cancellationToken);
     }

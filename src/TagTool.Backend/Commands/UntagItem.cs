@@ -45,7 +45,7 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, E
             return new ErrorResponse($"There is no {request.TaggableItem} in database.");
         }
 
-        var existingItem = await _dbContext.TaggedItemsBase
+        var existingItem = await _dbContext.TaggedItems
             .Include(item => item.Tags)
             .FirstAsync(item => item.Id == taggableItem.Id, cancellationToken);
 

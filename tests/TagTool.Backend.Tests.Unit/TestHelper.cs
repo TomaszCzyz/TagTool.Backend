@@ -37,9 +37,10 @@ public class TestHelper
 
         // var tag = new MonthRangeTag { Begin = 1, End = 10 };
         // var tag = new DayRangeTag { Begin = 1, End = 4 };
-        var tag = new NormalTag { Name = "Note" };
+        // var tag = new NormalTag { Name = "Photo" };
+        var tag = new DayTag { Day = 1 };
 
         var _ = tagServiceClient.TagItem(
-            new TagItemRequest { Tag = Any.Pack(tag), File = new FileDto { Path = @"C:\Users\tczyz\MyFiles\FromOec\DigitalSign.gif" } });
+            new TagItemRequest { Tag = Any.Pack(tag), File = new FileDto { Path = @"C:\Users\tczyz\MyFiles\FromOec\Digital2.gif" } });
     }
 }

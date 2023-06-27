@@ -26,7 +26,7 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<DayRangeTag> DayRangeTags => Set<DayRangeTag>();
 
-    public DbSet<TaggableItem> TaggedItemsBase => Set<TaggableItem>();
+    public DbSet<TaggableItem> TaggedItems => Set<TaggableItem>();
 
     public DbSet<TaggableFile> TaggableFiles => Set<TaggableFile>();
 

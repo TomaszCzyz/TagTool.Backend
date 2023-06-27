@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Diagnostics;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
@@ -29,48 +30,64 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
 
     public async Task<OneOf<TaggableItem, ErrorResponse>> Handle(TagItemRequest request, CancellationToken cancellationToken)
     {
-        var tag = request.Tag;
-        var reqTaggableItem = request.TaggableItem;
+        var (existingTag, taggableItem) = await FindExistingEntities(request.Tag, request.TaggableItem, cancellationToken);
 
-        var existingTag = await _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
-        tag = existingTag ?? (await _dbContext.Tags.AddAsync(tag, cancellationToken)).Entity;
+        switch ((existingTag, taggableItem))
+        {
+            case (null, null):
+                _logger.LogInformation("Tagging new item {@TaggedItem} with new tag {@Tag}", taggableItem, request.Tag);
+                request.TaggableItem.Id = Guid.NewGuid();
+                request.TaggableItem.Tags.Add(request.Tag);
 
-        TaggableItem? taggableItem = reqTaggableItem switch
+                await _dbContext.Tags.AddAsync(request.Tag, cancellationToken);
+                await _dbContext.TaggedItems.AddAsync(request.TaggableItem, cancellationToken);
+                break;
+            case (not null, null):
+                _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, request.Tag);
+                request.TaggableItem.Id = Guid.NewGuid();
+                request.TaggableItem.Tags.Add(existingTag);
+
+                await _dbContext.TaggedItems.AddAsync(request.TaggableItem, cancellationToken);
+                break;
+            case (null, not null):
+                _logger.LogInformation("Tagging item {@TaggedItem} with new tag {@Tag}", taggableItem, request.Tag);
+                taggableItem.Tags.Add(request.Tag);
+
+                await _dbContext.Tags.AddAsync(request.Tag, cancellationToken);
+                _dbContext.TaggedItems.Update(taggableItem);
+                break;
+            case (not null, not null):
+                if (taggableItem.Tags.Contains(existingTag))
+                {
+                    _logger.LogInformation("Existing item {@TaggedItem} is already tagged with tag {@Tag}", taggableItem, request.Tag);
+                    return new ErrorResponse($"Item {request.TaggableItem} already exists and it is tagged with a tag {request.Tag}");
+                }
+
+                _logger.LogInformation("Tagging item {@TaggedItem} with tag {@Tag}", taggableItem, existingTag);
+                taggableItem.Tags.Add(existingTag);
+                break;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return request.TaggableItem;
+    }
+
+    private async Task<(TagBase?, TaggableItem?)> FindExistingEntities(
+        TagBase tag,
+        TaggableItem taggableItem,
+        CancellationToken cancellationToken)
+    {
+        var existingTag = _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
+
+        TaggableItem? existingTaggableItem = taggableItem switch
         {
             TaggableFile taggableFile
                 => await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == taggableFile.Path, cancellationToken),
             TaggableFolder taggableFolder
                 => await _dbContext.TaggableFolders.FirstOrDefaultAsync(file => file.Path == taggableFolder.Path, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(request))
+            _ => throw new UnreachableException()
         };
 
-        if (taggableItem is not null)
-        {
-            var existingItem = await _dbContext.TaggedItemsBase
-                .Include(item => item.Tags)
-                .FirstAsync(item => item.Id == request.TaggableItem.Id, cancellationToken);
-
-            if (existingItem.Tags.Contains(tag))
-            {
-                return new ErrorResponse($"Item {request.TaggableItem} already exists and it is tagged with a tag {tag}");
-            }
-
-            _logger.LogInformation("Tagging exiting item {@TaggedItem} with tag {@Tag}", existingItem, tag);
-            existingItem.Tags.Add(tag);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            return existingItem;
-        }
-
-        _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, tag);
-
-        request.TaggableItem.Id = Guid.NewGuid();
-        request.TaggableItem.Tags.Add(tag);
-
-        var entry = _dbContext.TaggedItemsBase.Add(request.TaggableItem);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        return entry.Entity;
+        return (await existingTag, existingTaggableItem);
     }
 }
