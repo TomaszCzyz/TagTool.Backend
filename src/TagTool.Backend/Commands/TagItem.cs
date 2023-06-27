@@ -64,11 +64,10 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggedItemBase, Err
         }
 
         _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, tag);
-        var newTaggedItem = new TaggedItemBase { Item = request.TaggableItem, Tags = new List<TagBase> { tag } };
-        var entry = _dbContext.TaggedItemsBase.Add(newTaggedItem);
+        request.TaggableItem.Id = Guid.NewGuid();
+        var entry = _dbContext.TaggedItemsBase.Add(new TaggedItemBase { Item = request.TaggableItem, Tags = new List<TagBase> { tag } });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-
         return entry.Entity;
     }
 }

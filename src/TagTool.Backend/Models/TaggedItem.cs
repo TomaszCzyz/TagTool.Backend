@@ -11,7 +11,7 @@ public class TaggedItemBase
 
 public abstract class TaggableItem
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 }
 
 public class TaggableFile : TaggableItem
