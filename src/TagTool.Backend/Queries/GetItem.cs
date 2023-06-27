@@ -6,13 +6,13 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class GetItemQuery : IQuery<OneOf<TaggedItemBase, ErrorResponse>>
+public class GetItemQuery : IQuery<OneOf<TaggableItem, ErrorResponse>>
 {
     public required TaggableItem TaggableItem { get; init; }
 }
 
 [UsedImplicitly]
-public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggedItemBase, ErrorResponse>>
+public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggableItem, ErrorResponse>>
 {
     private readonly TagToolDbContext _dbContext;
 
@@ -21,7 +21,7 @@ public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggedItemBase, ErrorRe
         _dbContext = dbContext;
     }
 
-    public async Task<OneOf<TaggedItemBase, ErrorResponse>> Handle(GetItemQuery request, CancellationToken cancellationToken)
+    public async Task<OneOf<TaggableItem, ErrorResponse>> Handle(GetItemQuery request, CancellationToken cancellationToken)
     {
         TaggableItem? taggableItem = request.TaggableItem switch
         {
@@ -36,7 +36,6 @@ public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggedItemBase, ErrorRe
 
         return await _dbContext.TaggedItemsBase
             .Include(taggedItemBase => taggedItemBase.Tags)
-            .Include(taggedItemBase => taggedItemBase.Item)
-            .FirstAsync(taggedItemBase => taggedItemBase.Item.Id == taggableItem.Id, cancellationToken);
+            .FirstAsync(taggedItemBase => taggedItemBase.Id == taggableItem.Id, cancellationToken);
     }
 }

@@ -68,10 +68,10 @@ public class TagService : Backend.TagService.TagServiceBase
         return response.Match(
             item => new TagItemReply
             {
-                TaggedItem = item.Item switch
+                TaggedItem = item switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { item.Tags.MapToDto() } },
-                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
+                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
             },
@@ -96,10 +96,10 @@ public class TagService : Backend.TagService.TagServiceBase
         return response.Match(
             item => new UntagItemReply
             {
-                TaggedItem = item.Item switch
+                TaggedItem = item switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { item.Tags.MapToDto() } },
-                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
+                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
             },
@@ -122,11 +122,11 @@ public class TagService : Backend.TagService.TagServiceBase
         return response.Match(
             taggedItem => new GetItemReply
             {
-                TaggedItem = taggedItem.Item switch
+                TaggedItem = taggedItem switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { taggedItem.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
                     TaggableFolder folder
-                        => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { taggedItem.Tags.MapToDto() } },
+                        => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 }
             },
@@ -146,10 +146,10 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var results = response
             .Select(item
-                => item.Item switch
+                => item switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { item.Tags.MapToDto() } },
-                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { item.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
+                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
                     _ => throw new UnreachableException()
                 })
             .ToArray();

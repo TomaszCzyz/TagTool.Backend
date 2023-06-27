@@ -5,25 +5,24 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Queries;
 
-public class GetItemsByTagsQuery : IQuery<IEnumerable<TaggedItemBase>>
+public class GetItemsByTagsQuery : IQuery<IEnumerable<TaggableItem>>
 {
     public required IEnumerable<TagQuerySegment> QuerySegments { get; init; }
 }
 
 [UsedImplicitly]
-public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<TaggedItemBase>>
+public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<TaggableItem>>
 {
     private readonly TagToolDbContext _dbContext;
 
     public GetItemsByTags(TagToolDbContext dbContext) => _dbContext = dbContext;
 
-    public Task<IEnumerable<TaggedItemBase>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
+    public Task<IEnumerable<TaggableItem>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
     {
         var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
         var taggedItems = _dbContext.TaggedItemsBase
             .Include(taggedItemBase => taggedItemBase.Tags)
-            .Include(taggedItemBase => taggedItemBase.Item)
             .AsQueryable();
 
         if (splittedTags.TryGetValue(QuerySegmentState.MustBePresent, out var mustByPresentTags))
@@ -49,7 +48,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
                     .Any(tag => excluded.Contains(tag)));
         }
 
-        return Task.FromResult<IEnumerable<TaggedItemBase>>(taggedItems.ToArray());
+        return Task.FromResult<IEnumerable<TaggableItem>>(taggedItems.ToArray());
     }
 
     private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request) =>

@@ -6,7 +6,7 @@ using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Commands;
 
-public class UntagItemRequest : ICommand<OneOf<TaggedItemBase, ErrorResponse>>, IReversible
+public class UntagItemRequest : ICommand<OneOf<TaggableItem, ErrorResponse>>, IReversible
 {
     public required TagBase Tag { get; init; }
 
@@ -16,7 +16,7 @@ public class UntagItemRequest : ICommand<OneOf<TaggedItemBase, ErrorResponse>>, 
 }
 
 [UsedImplicitly]
-public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItemBase, ErrorResponse>>
+public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, ErrorResponse>>
 {
     private readonly ILogger<UntagItem> _logger;
     private readonly TagToolDbContext _dbContext;
@@ -27,7 +27,7 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItemBase,
         _dbContext = dbContext;
     }
 
-    public async Task<OneOf<TaggedItemBase, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<TaggableItem, ErrorResponse>> Handle(UntagItemRequest request, CancellationToken cancellationToken)
     {
         var tag = request.Tag;
 
@@ -46,9 +46,8 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggedItemBase,
         }
 
         var existingItem = await _dbContext.TaggedItemsBase
-            .Include(item => item.Item)
             .Include(item => item.Tags)
-            .FirstAsync(item => item.Item.Id == taggableItem.Id, cancellationToken);
+            .FirstAsync(item => item.Id == taggableItem.Id, cancellationToken);
 
         // todo: get rid off ".Select(@base => @base.FormattedName)" by overloading equals or adding comparer
         if (!existingItem.Tags.Select(@base => @base.FormattedName).Contains(tag.FormattedName))

@@ -48,7 +48,7 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
             ReturnSpecialDirectories = false
         };
 
-        var responses = new List<OneOf<TaggedItemBase, ErrorResponse>>();
+        var responses = new List<OneOf<TaggableItem, ErrorResponse>>();
 
         _logger.LogInformation(
             "Tagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",

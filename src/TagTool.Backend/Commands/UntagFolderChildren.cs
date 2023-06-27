@@ -47,7 +47,7 @@ public class UntagFolderChildren : ICommandHandler<UntagFolderChildrenRequest, O
             ReturnSpecialDirectories = false
         };
 
-        var responses = new List<OneOf<TaggedItemBase, ErrorResponse>>();
+        var responses = new List<OneOf<TaggableItem, ErrorResponse>>();
 
         _logger.LogInformation(
             "Untagging items in folder {FolderPath} using enumeration options {@EnumerationOptions}",
