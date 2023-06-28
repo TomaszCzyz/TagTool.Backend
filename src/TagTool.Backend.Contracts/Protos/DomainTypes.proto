@@ -76,3 +76,9 @@ message MonthRangeTag {
   // The end of a range; the day is included.
   int32 end = 2;
 }
+
+// The tag representing type of taggable item, e.g. TaggableFile, TaggableFolder.
+message TypeTag {
+  // The identifier for a type.
+  string type = 1;
+}

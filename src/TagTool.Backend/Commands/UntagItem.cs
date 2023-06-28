@@ -57,9 +57,13 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, E
         TaggableItem? existingTaggableItem = taggableItem switch
         {
             TaggableFile taggableFile
-                => await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == taggableFile.Path, cancellationToken),
+                => await _dbContext.TaggableFiles
+                    .Include(file => file.Tags)
+                    .FirstOrDefaultAsync(file => file.Path == taggableFile.Path, cancellationToken),
             TaggableFolder taggableFolder
-                => await _dbContext.TaggableFolders.FirstOrDefaultAsync(file => file.Path == taggableFolder.Path, cancellationToken),
+                => await _dbContext.TaggableFolders
+                    .Include(folder => folder.Tags)
+                    .FirstOrDefaultAsync(folder => folder.Path == taggableFolder.Path, cancellationToken),
             _ => throw new UnreachableException()
         };
 

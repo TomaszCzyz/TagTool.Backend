@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
+using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;
 
@@ -20,11 +21,13 @@ public class TagItemRequest : ICommand<OneOf<TaggableItem, ErrorResponse>>, IRev
 public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, ErrorResponse>>
 {
     private readonly ILogger<TagItem> _logger;
+    private readonly IImplicitTagsProvider _implicitTagsProvider;
     private readonly TagToolDbContext _dbContext;
 
-    public TagItem(ILogger<TagItem> logger, TagToolDbContext dbContext)
+    public TagItem(ILogger<TagItem> logger, IImplicitTagsProvider implicitTagsProvider, TagToolDbContext dbContext)
     {
         _logger = logger;
+        _implicitTagsProvider = implicitTagsProvider;
         _dbContext = dbContext;
     }
 
@@ -32,20 +35,26 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
     {
         var (tag, taggableItem) = await FindExistingEntities(request.Tag, request.TaggableItem, cancellationToken);
 
+        var extraTags = taggableItem is null or { Tags.Count: 0 }
+            ? _implicitTagsProvider.GetImplicitTags(request.TaggableItem)
+            : Enumerable.Empty<TagBase>();
+
         switch ((tag, taggableItem))
         {
             case (null, null):
-                _logger.LogInformation("Tagging new item {@TaggedItem} with new tag {@Tag}", taggableItem, request.Tag);
                 request.TaggableItem.Id = Guid.NewGuid();
-                request.TaggableItem.Tags.Add(request.Tag);
+                request.TaggableItem.Tags.AddRange(extraTags.Append(request.Tag));
+
+                _logger.LogInformation("Tagging new item {@TaggedItem} with new tags {@Tag}", taggableItem, request.Tag);
 
                 await _dbContext.Tags.AddAsync(request.Tag, cancellationToken);
                 await _dbContext.TaggedItems.AddAsync(request.TaggableItem, cancellationToken);
                 break;
             case (not null, null):
-                _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, request.Tag);
                 request.TaggableItem.Id = Guid.NewGuid();
-                request.TaggableItem.Tags.Add(tag);
+                request.TaggableItem.Tags.AddRange(extraTags.Append(tag));
+
+                _logger.LogInformation("Tagging new item {@TaggedItem} with tag {@Tag}", taggableItem, request.Tag);
 
                 await _dbContext.TaggedItems.AddAsync(request.TaggableItem, cancellationToken);
                 break;
@@ -64,7 +73,7 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
                 }
 
                 _logger.LogInformation("Tagging item {@TaggedItem} with tag {@Tag}", taggableItem, tag);
-                taggableItem.Tags.Add(tag);
+                taggableItem.Tags.AddRange(extraTags.Append(tag));
                 break;
         }
 

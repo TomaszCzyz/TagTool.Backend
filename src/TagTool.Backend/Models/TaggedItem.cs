@@ -4,7 +4,7 @@ public abstract class TaggableItem
 {
     public Guid Id { get; set; }
 
-    public ICollection<TagBase> Tags { get; set; } = new List<TagBase>();
+    public List<TagBase> Tags { get; set; } = new();
 }
 
 public class TaggableFile : TaggableItem

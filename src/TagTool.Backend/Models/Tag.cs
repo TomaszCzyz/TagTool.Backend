@@ -41,18 +41,19 @@ public sealed class NormalTag : TagBase
     }
 }
 
-public sealed class ItemTypeTag : TagBase
+public sealed class FileTypeTag : TagBase
 {
-    private string? _type;
-
-    public string? Type
+    public FileTypeTag()
     {
-        get => _type;
-        set
-        {
-            _type = value;
-            FormattedName = nameof(ItemTypeTag) + Type;
-        }
+        FormattedName = "ItemTypeTag:" + nameof(TaggableFile);
+    }
+}
+
+public sealed class FolderTypeTag : TagBase
+{
+    public FolderTypeTag()
+    {
+        FormattedName = "ItemTypeTag:" + nameof(TaggableFolder);
     }
 }
 

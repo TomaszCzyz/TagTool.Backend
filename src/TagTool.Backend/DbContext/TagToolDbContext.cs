@@ -14,8 +14,6 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<SizeRangeTag> SizeRangeTags => Set<SizeRangeTag>();
 
-    public DbSet<ItemTypeTag> ItemTypeTags => Set<ItemTypeTag>();
-
     public DbSet<YearTag> YearTags => Set<YearTag>();
 
     public DbSet<MonthTag> MonthTags => Set<MonthTag>();
@@ -71,6 +69,12 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
         modelBuilder
             .Entity<MonthTag>()
             .HasData(Enumerable.Range(1, 12).Select(month => new MonthTag { Id = 2000 + month, Month = month }));
+
+        modelBuilder.Entity<FileTypeTag>()
+            .HasData(new FileTypeTag { Id = 3000 });
+
+        modelBuilder.Entity<FolderTypeTag>()
+            .HasData(new FolderTypeTag { Id = 3001 });
 
         modelBuilder
             .Entity<TaggableItem>()

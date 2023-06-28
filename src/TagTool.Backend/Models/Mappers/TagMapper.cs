@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿using System.Diagnostics;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace TagTool.Backend.Models.Mappers;
@@ -51,6 +52,18 @@ public static class TagMapper
             return new MonthRangeTag { Begin = monthTag.Begin, End = monthTag.End };
         }
 
+        if (tag.Is(DomainTypes.TypeTag.Descriptor))
+        {
+            var typeTag = tag.Unpack<DomainTypes.TypeTag>();
+            TagBase tagBase = typeTag.Type switch
+            {
+                nameof(TaggableFile) => new FileTypeTag(),
+                nameof(TaggableFolder) => new FolderTypeTag(),
+                _ => throw new UnreachableException()
+            };
+            return tagBase;
+        }
+
         throw new ArgumentException("Unable to match tag type");
     }
 
@@ -64,6 +77,8 @@ public static class TagMapper
             MonthRangeTag monthRangeTag => new DomainTypes.MonthRangeTag { Begin = monthRangeTag.Begin, End = monthRangeTag.End },
             DayTag dayTag => new DomainTypes.DayTag { Day = (int)dayTag.DayOfWeek },
             DayRangeTag dayRangeTag => new DomainTypes.DayRangeTag { Begin = (int)dayRangeTag.Begin, End = (int)dayRangeTag.End },
+            FileTypeTag => new DomainTypes.TypeTag { Type = nameof(TaggableFile) },
+            FolderTypeTag => new DomainTypes.TypeTag { Type = nameof(TaggableFolder) },
             _ => throw new ArgumentOutOfRangeException(nameof(tag), tag, null)
         };
 

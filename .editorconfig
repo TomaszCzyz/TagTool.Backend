@@ -7,6 +7,7 @@ charset = utf-8
 end_of_line = crlf
 indent_size = 2
 max_line_length = 150
+roslynator_max_line_length = 150
 
 [*.{xml,xaml,appxmanifest}]
 space_before_self_closing = true
@@ -258,7 +259,6 @@ dotnet_diagnostic.IDE2000.severity = warning
 ###############################
 # Roslynator                  #
 ###############################
-roslynator.max_line_length = 150 # Max line length.
 roslynator.RCS0011.invert = true # Remove empty line between single-line accessors.
 roslynator.RCS0015.invert = true # Remove empty line between using directives with different root namespace.
 roslynator.RCS0027.invert = true # Add newline after binary operator instead of before it.
