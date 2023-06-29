@@ -1,6 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using TagTool.Backend.DomainTypes;
+using Type = System.Type;
 
 namespace TagTool.Backend.Models.Mappers;
 
@@ -12,8 +16,54 @@ namespace TagTool.Backend.Models.Mappers;
 ///     It can be achieved by registering all tag types from assemblies (mark by something or in given namespace).
 ///     The registration should cache all type and not using reflection, for performance reasons.
 /// </remarks>
-public static class TagMapper
+public class TagMapper
 {
+    private static readonly TypeRegistry? _typeRegistry = TypeRegistry.FromFiles(TypeTag.Descriptor.File);
+
+    private readonly ConcurrentDictionary<Type, ITagFromDtoMapper> _fromDtoMappers = new();
+    private readonly ConcurrentDictionary<Type, ITagToDtoMapper> _toDtoMappers = new();
+
+    // ReSharper disable once ParameterTypeCanBeEnumerable.Local
+    // Reason: mappers collection is registered as IReadOnlyCollection and it has to be retrieved as such.
+    public TagMapper(IReadOnlyCollection<ITagFromDtoMapper> tagFromDtoMappers, IReadOnlyCollection<ITagToDtoMapper> tagToDtoMappers)
+    {
+        foreach (var tagFromDtoMapper in tagFromDtoMappers)
+        {
+            var mapperBaseType = tagFromDtoMapper.GetType().BaseType;
+            if (mapperBaseType?.GenericTypeArguments is not [_, var dtoType])
+            {
+                throw new NotSupportedException($"Only mappers derived from {typeof(TagDtoMapper<,>).Name} are supported");
+            }
+
+            _fromDtoMappers.AddOrUpdate(dtoType, _ => tagFromDtoMapper, (_, _) => tagFromDtoMapper);
+        }
+
+        foreach (var tagToDtoMapper in tagToDtoMappers)
+        {
+            var mapperBaseType = tagToDtoMapper.GetType().BaseType;
+            if (mapperBaseType?.GenericTypeArguments is not [var tagType, _])
+            {
+                throw new NotSupportedException($"Only mappers derived from {typeof(TagDtoMapper<,>).Name} are supported");
+            }
+
+            _toDtoMappers.AddOrUpdate(tagType, _ => tagToDtoMapper, (_, _) => tagToDtoMapper);
+        }
+    }
+
+    public TagBase MapFromDto(Any anyTag)
+    {
+        var tagDto = anyTag.Unpack(_typeRegistry) ?? throw new ArgumentException("unable to unpack tag", nameof(anyTag));
+
+        return _fromDtoMappers[tagDto.GetType()].FromDto(tagDto);
+    }
+
+    public Any MapToDto2(TagBase tag)
+    {
+        var message = _toDtoMappers[tag.GetType()].ToDto(tag);
+
+        return Any.Pack(message);
+    }
+
     public static TagBase MapToDomain(Any tag)
     {
         if (tag.Is(DomainTypes.NormalTag.Descriptor))
@@ -52,9 +102,9 @@ public static class TagMapper
             return new MonthRangeTag { Begin = monthTag.Begin, End = monthTag.End };
         }
 
-        if (tag.Is(DomainTypes.TypeTag.Descriptor))
+        if (tag.Is(TypeTag.Descriptor))
         {
-            var typeTag = tag.Unpack<DomainTypes.TypeTag>();
+            var typeTag = tag.Unpack<TypeTag>();
             TagBase tagBase = typeTag.Type switch
             {
                 nameof(TaggableFile) => new FileTypeTag(),
@@ -77,8 +127,8 @@ public static class TagMapper
             MonthRangeTag monthRangeTag => new DomainTypes.MonthRangeTag { Begin = monthRangeTag.Begin, End = monthRangeTag.End },
             DayTag dayTag => new DomainTypes.DayTag { Day = (int)dayTag.DayOfWeek },
             DayRangeTag dayRangeTag => new DomainTypes.DayRangeTag { Begin = (int)dayRangeTag.Begin, End = (int)dayRangeTag.End },
-            FileTypeTag => new DomainTypes.TypeTag { Type = nameof(TaggableFile) },
-            FolderTypeTag => new DomainTypes.TypeTag { Type = nameof(TaggableFolder) },
+            FileTypeTag => new TypeTag { Type = nameof(TaggableFile) },
+            FolderTypeTag => new TypeTag { Type = nameof(TaggableFolder) },
             _ => throw new ArgumentOutOfRangeException(nameof(tag), tag, null)
         };
 

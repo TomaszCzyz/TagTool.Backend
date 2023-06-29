@@ -16,16 +16,19 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
+    private readonly TagMapper _tagMapper;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory)
+    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, TagMapper tagMapper)
     {
         _logger = logger;
         _mediator = mediator;
         _commandsHistory = commandsHistory;
+        _tagMapper = tagMapper;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
+        var tagBase = _tagMapper.MapFromDto(request.Tag);
         var tag = TagMapper.MapToDomain(request.Tag);
 
         var command = new Commands.CreateTagRequest { Tag = tag };

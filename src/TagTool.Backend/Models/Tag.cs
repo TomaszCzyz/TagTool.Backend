@@ -8,7 +8,7 @@ public interface ITagBase
 }
 
 [DebuggerDisplay("{FormattedName}")]
-public abstract class TagBase : IHasTimestamps, ITagBase
+public abstract class TagBase : ITagBase, IHasTimestamps
 {
     public int Id { get; set; }
 
@@ -24,21 +24,6 @@ public abstract class TagBase : IHasTimestamps, ITagBase
     public DateTime? Deleted { get; set; }
 
     public DateTime? Modified { get; set; }
-}
-
-public sealed class NormalTag : TagBase
-{
-    private string _name = null!;
-
-    public string Name
-    {
-        get => _name;
-        set
-        {
-            _name = value;
-            FormattedName = nameof(NormalTag) + ":" + _name;
-        }
-    }
 }
 
 public sealed class FileTypeTag : TagBase

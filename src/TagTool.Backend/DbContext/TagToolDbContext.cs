@@ -10,20 +10,6 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<NormalTag> NormalTags => Set<NormalTag>();
 
-    public DbSet<DateRangeTag> DateRangeTags => Set<DateRangeTag>();
-
-    public DbSet<SizeRangeTag> SizeRangeTags => Set<SizeRangeTag>();
-
-    public DbSet<YearTag> YearTags => Set<YearTag>();
-
-    public DbSet<MonthTag> MonthTags => Set<MonthTag>();
-
-    public DbSet<MonthRangeTag> MonthRangeTags => Set<MonthRangeTag>();
-
-    public DbSet<DayTag> DayTags => Set<DayTag>();
-
-    public DbSet<DayRangeTag> DayRangeTags => Set<DayRangeTag>();
-
     public DbSet<TaggableItem> TaggedItems => Set<TaggableItem>();
 
     public DbSet<TaggableFile> TaggableFiles => Set<TaggableFile>();

@@ -32,10 +32,10 @@ public class TagServiceTests
 
         _dbContextMock = new TagToolDbContext(optionsBuilder);
 
-        _tagService = new Backend.Services.Grpc.TagService(
-            loggerMock.Object,
-            _mediatorMock.Object,
-            _commandsHistoryMock.Object);
+        // _tagService = new Backend.Services.Grpc.TagService(
+        //     loggerMock.Object,
+        //     _mediatorMock.Object,
+        //     _commandsHistoryMock.Object);
     }
 
     [Fact]

@@ -10,6 +10,7 @@ using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Mappers;
 using TagTool.Backend.Services;
 using TagTool.Backend.Services.Grpc;
 
@@ -37,6 +38,8 @@ if (!Directory.Exists(path))
     Directory.CreateDirectory(path);
 }
 
+builder.Services.AddTagDtoMappers(typeof(Program));
+builder.Services.AddSingleton<TagMapper>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
