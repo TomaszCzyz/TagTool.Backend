@@ -4,7 +4,6 @@ using MediatR;
 using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
-using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Mappers;
 using TagTool.Backend.Queries;
@@ -16,9 +15,9 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
-    private readonly TagMapper _tagMapper;
+    private readonly ITagMapper _tagMapper;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, TagMapper tagMapper)
+    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, ITagMapper tagMapper)
     {
         _logger = logger;
         _mediator = mediator;
@@ -28,21 +27,20 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
-        var tagBase = _tagMapper.MapFromDto(request.Tag);
-        var tag = TagMapper.MapToDomain(request.Tag);
+        var tag = _tagMapper.MapFromDto(request.Tag);
 
         var command = new Commands.CreateTagRequest { Tag = tag };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            newTagName => new CreateTagReply { CreatedTagName = newTagName.FormattedName },
+            tagBase => new CreateTagReply { CreatedTagName = tagBase.FormattedName },
             errorResponse => new CreateTagReply { ErrorMessage = errorResponse.Message });
     }
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        var tag = TagMapper.MapToDomain(request.Tag);
+        var tag = _tagMapper.MapFromDto(request.Tag);
 
         var command = new Commands.DeleteTagRequest { Tag = tag };
 
@@ -55,7 +53,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.MapToDomain(request.Tag);
+        var tagBase = _tagMapper.MapFromDto(request.Tag);
 
         var taggableItem = request.ItemCase switch
         {
@@ -73,8 +71,14 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 TaggedItem = item switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
-                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem
+                    {
+                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
+                    TaggableFolder folder => new TaggedItem
+                    {
+                        Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
                     _ => throw new UnreachableException()
                 }
             },
@@ -83,7 +87,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.MapToDomain(request.Tag);
+        var tagBase = _tagMapper.MapFromDto(request.Tag);
 
         var taggableItem = request.ItemCase switch
         {
@@ -101,8 +105,14 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 TaggedItem = item switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
-                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem
+                    {
+                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
+                    TaggableFolder folder => new TaggedItem
+                    {
+                        Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
                     _ => throw new UnreachableException()
                 }
             },
@@ -127,9 +137,15 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 TaggedItem = taggedItem switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem
+                    {
+                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
                     TaggableFolder folder
-                        => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
+                        => new TaggedItem
+                        {
+                            Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                        },
                     _ => throw new UnreachableException()
                 }
             },
@@ -140,7 +156,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var querySegments = request.QueryParams
             .Select(tagQueryParam
-                => new TagQuerySegment { State = MapQuerySegmentState(tagQueryParam), Tag = TagMapper.MapToDomain(tagQueryParam.Tag) })
+                => new TagQuerySegment { State = MapQuerySegmentState(tagQueryParam), Tag = _tagMapper.MapFromDto(tagQueryParam.Tag) })
             .ToList();
 
         var getItemsByTagsQuery = new GetItemsByTagsQuery { QuerySegments = querySegments };
@@ -151,8 +167,14 @@ public class TagService : Backend.TagService.TagServiceBase
             .Select(item
                 => item switch
                 {
-                    TaggableFile file => new TaggedItem { File = new FileDto { Path = file.Path }, Tags = { file.Tags.MapToDto() } },
-                    TaggableFolder folder => new TaggedItem { Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.MapToDto() } },
+                    TaggableFile file => new TaggedItem
+                    {
+                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
+                    TaggableFolder folder => new TaggedItem
+                    {
+                        Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                    },
                     _ => throw new UnreachableException()
                 })
             .ToArray();
@@ -178,7 +200,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
-        var tag = TagMapper.MapToDomain(request.Tag);
+        var tag = _tagMapper.MapFromDto(request.Tag);
 
         var doesTagExistsQuery = new DoesTagExistsQuery { TagBase = tag };
 
@@ -208,11 +230,10 @@ public class TagService : Backend.TagService.TagServiceBase
                 .Select(part => new SearchTagsReply.Types.MatchedPart { StartIndex = part.StartIndex, Length = part.Length })
                 .ToArray();
 
+            var dto = _tagMapper.MapToDto(tag);
             var matchTagsReply = new SearchTagsReply
             {
-                Tag = TagMapper.MapToDto(tag),
-                MatchedPart = { matchedParts },
-                IsExactMatch = matchedParts[0].Length == tag.FormattedName.Length
+                Tag = dto, MatchedPart = { matchedParts }, IsExactMatch = matchedParts[0].Length == tag.FormattedName.Length
             };
 
             await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);

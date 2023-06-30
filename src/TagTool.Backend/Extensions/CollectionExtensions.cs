@@ -1,6 +1,4 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using TagTool.Backend.Models;
-using TagTool.Backend.Models.Mappers;
+﻿using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Extensions;
 
@@ -16,7 +14,5 @@ public static class CollectionExtensions
         }
     }
 
-    public static string?[] Names(this IEnumerable<TagBase> tagCollection) => tagCollection.Select(tag => tag.ToString()).ToArray();
-
-    public static IEnumerable<Any> MapToDto(this IEnumerable<TagBase> tagBases) => tagBases.Select(TagMapper.MapToDto);
+    public static string?[] Names(this IEnumerable<TagBase> tagCollection) => tagCollection.Select(tag => tag.FormattedName).ToArray();
 }

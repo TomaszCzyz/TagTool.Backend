@@ -24,8 +24,8 @@ public class TestHelper
         var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
 
         // var tag = new MonthRangeTag { Begin = 1, End = 10 };
-        // var tag = new DayRangeTag { Begin = 1, End = 4 };
-        var tag = new NormalTag { Name = "Note" };
+        var tag = new DayRangeTag { Begin = 1, End = 4 };
+        // var tag = new NormalTag { Name = "College3" };
 
         var _ = tagServiceClient.CreateTag(new CreateTagRequest { Tag = Any.Pack(tag) });
         return Task.CompletedTask;

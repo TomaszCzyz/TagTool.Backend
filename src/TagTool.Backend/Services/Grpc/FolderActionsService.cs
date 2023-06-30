@@ -9,10 +9,12 @@ namespace TagTool.Backend.Services.Grpc;
 public class FolderActionsService : Backend.FolderActionsService.FolderActionsServiceBase
 {
     private readonly IMediator _mediator;
+    private readonly ITagMapper _tagMapper;
 
-    public FolderActionsService(IMediator mediator)
+    public FolderActionsService(IMediator mediator, ITagMapper tagMapper)
     {
         _mediator = mediator;
+        _tagMapper = tagMapper;
     }
 
     public override async Task CanRenameFolder(
@@ -66,7 +68,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<TagChildrenReply> TagChildren(TagChildrenRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.MapToDomain(request.Tag);
+        var tagBase = _tagMapper.MapFromDto(request.Tag);
 
         var command = new TagFolderChildrenRequest
         {
@@ -85,7 +87,7 @@ public class FolderActionsService : Backend.FolderActionsService.FolderActionsSe
 
     public override async Task<UntagChildrenReply> UntagChildren(UntagChildrenRequest request, ServerCallContext context)
     {
-        var tagBase = TagMapper.MapToDomain(request.Tag);
+        var tagBase = _tagMapper.MapFromDto(request.Tag);
 
         var command = new UntagFolderChildrenRequest
         {

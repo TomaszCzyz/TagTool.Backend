@@ -39,7 +39,7 @@ if (!Directory.Exists(path))
 }
 
 builder.Services.AddTagDtoMappers(typeof(Program));
-builder.Services.AddSingleton<TagMapper>();
+builder.Services.AddSingleton<ITagMapper, TagMapper>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
