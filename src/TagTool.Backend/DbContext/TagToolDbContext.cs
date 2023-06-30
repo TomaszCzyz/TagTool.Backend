@@ -9,7 +9,7 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
     public DbSet<TagBase> Tags => Set<TagBase>();
 
-    public DbSet<NormalTag> NormalTags => Set<NormalTag>();
+    public DbSet<TextTag> NormalTags => Set<TextTag>();
 
     public DbSet<TaggableItem> TaggedItems => Set<TaggableItem>();
 
@@ -40,8 +40,8 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .UseCollation("NOCASE");
 
         modelBuilder
-            .Entity<NormalTag>()
-            .Property(tag => tag.Name)
+            .Entity<TextTag>()
+            .Property(tag => tag.Text)
             .UseCollation("NOCASE");
 
         modelBuilder

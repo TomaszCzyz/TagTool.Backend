@@ -14,13 +14,13 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
     private readonly Dictionary<string, TagBase[]> _extensionsToTagsMap
         = new()
         {
-            { ".txt", new TagBase[] { new NormalTag { Name = "TXT" }, new NormalTag { Name = "Text" } } },
-            { ".jpg", new TagBase[] { new NormalTag { Name = "JPG" }, new NormalTag { Name = "Photo" }, new NormalTag { Name = "Graphics" } } },
-            { ".png", new TagBase[] { new NormalTag { Name = "PNG" }, new NormalTag { Name = "Graphics" } } },
-            { ".pdf", new TagBase[] { new NormalTag { Name = "PDF" }, new NormalTag { Name = "Document" } } },
-            { ".svg", new TagBase[] { new NormalTag { Name = "SVG" }, new NormalTag { Name = "Graphics" } } },
-            { ".docx", new TagBase[] { new NormalTag { Name = "DOCX" }, new NormalTag { Name = "Document" }, new NormalTag { Name = "Text" } } },
-            { ".doc", new TagBase[] { new NormalTag { Name = "DOC" }, new NormalTag { Name = "Document" }, new NormalTag { Name = "Text" } } }
+            { ".txt", new TagBase[] { new TextTag { Text = "TXT" }, new TextTag { Text = "Text" } } },
+            { ".jpg", new TagBase[] { new TextTag { Text = "JPG" }, new TextTag { Text = "Photo" }, new TextTag { Text = "Graphics" } } },
+            { ".png", new TagBase[] { new TextTag { Text = "PNG" }, new TextTag { Text = "Graphics" } } },
+            { ".pdf", new TagBase[] { new TextTag { Text = "PDF" }, new TextTag { Text = "Document" } } },
+            { ".svg", new TagBase[] { new TextTag { Text = "SVG" }, new TextTag { Text = "Graphics" } } },
+            { ".docx", new TagBase[] { new TextTag { Text = "DOCX" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" } } },
+            { ".doc", new TagBase[] { new TextTag { Text = "DOC" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" } } }
         };
 
     private readonly TagToolDbContext _dbContext;

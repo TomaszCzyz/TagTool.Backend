@@ -46,7 +46,7 @@ public class SetTagNamingConvention : ICommandHandler<SetTagNamingConventionComm
 
         await foreach (var tag in _dbContext.NormalTags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
-            tag.Name = _tagNameProvider.GetName(tag.Name, request.NewNamingConvention);
+            tag.Text = _tagNameProvider.GetName(tag.Text, request.NewNamingConvention);
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
