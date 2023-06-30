@@ -5,6 +5,7 @@ using MediatR;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.Queries;
 

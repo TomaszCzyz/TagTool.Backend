@@ -4,8 +4,9 @@ using MediatR;
 using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
-using TagTool.Backend.Models.Mappers;
+using TagTool.Backend.Models.Tags;
 using TagTool.Backend.Queries;
 
 namespace TagTool.Backend.Services.Grpc;

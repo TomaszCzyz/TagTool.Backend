@@ -1,6 +1,7 @@
 using Google.Protobuf;
+using TagTool.Backend.Models.Tags;
 
-namespace TagTool.Backend.Models.Mappers;
+namespace TagTool.Backend.Mappers;
 
 public interface ITagFromDtoMapper
 {

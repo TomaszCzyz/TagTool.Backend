@@ -2,7 +2,7 @@
 using MediatR;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
-using TagTool.Backend.Models.Mappers;
+using TagTool.Backend.Mappers;
 
 namespace TagTool.Backend.Services.Grpc;
 

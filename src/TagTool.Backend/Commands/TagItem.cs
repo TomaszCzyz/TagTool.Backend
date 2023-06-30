@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OneOf;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Tags;
 using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;

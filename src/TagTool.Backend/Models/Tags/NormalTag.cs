@@ -1,8 +1,7 @@
-using Google.Protobuf;
 using JetBrains.Annotations;
-using TagTool.Backend.Models.Mappers;
+using TagTool.Backend.Mappers;
 
-namespace TagTool.Backend.Models;
+namespace TagTool.Backend.Models.Tags;
 
 public sealed class NormalTag : TagBase
 {
@@ -20,7 +19,7 @@ public sealed class NormalTag : TagBase
 }
 
 [UsedImplicitly]
-public class NormalTagDtoMapper : TagDtoMapper<NormalTag, DomainTypes.NormalTag>
+public class NormalTagMapper : TagDtoMapper<NormalTag, DomainTypes.NormalTag>
 {
     protected override NormalTag MapFromDto(DomainTypes.NormalTag dto) => new() { Name = dto.Name };
 

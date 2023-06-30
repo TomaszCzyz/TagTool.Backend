@@ -1,3 +1,5 @@
+using TagTool.Backend.Models.Tags;
+
 namespace TagTool.Backend.Models;
 
 public abstract class TaggableItem

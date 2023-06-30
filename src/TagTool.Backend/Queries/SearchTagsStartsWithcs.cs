@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.Queries;
 

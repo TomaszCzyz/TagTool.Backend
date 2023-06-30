@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.DbContext;
 

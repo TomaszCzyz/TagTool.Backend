@@ -2,9 +2,10 @@
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Models.Tags;
 using Type = System.Type;
 
-namespace TagTool.Backend.Models.Mappers;
+namespace TagTool.Backend.Mappers;
 
 public interface ITagMapper
 {

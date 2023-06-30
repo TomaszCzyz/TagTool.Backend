@@ -1,4 +1,6 @@
-﻿namespace TagTool.Backend.Models;
+﻿using TagTool.Backend.Models.Tags;
+
+namespace TagTool.Backend.Models;
 
 public enum QuerySegmentState
 {
