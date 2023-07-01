@@ -203,11 +203,13 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var tag = _tagMapper.MapFromDto(request.Tag);
 
-        var doesTagExistsQuery = new DoesTagExistsQuery { TagBase = tag };
+        var doesTagExistsQuery = new GetTagQuery { TagBase = tag };
 
         var response = await _mediator.Send(doesTagExistsQuery, context.CancellationToken);
 
-        return new DoesTagExistsReply { Exists = response };
+        return response is null
+            ? new DoesTagExistsReply()
+            : new DoesTagExistsReply { Tag = _tagMapper.MapToDto(tag) };
     }
 
     public override async Task SearchTags(

@@ -192,8 +192,10 @@ message DoesTagExistsRequest {
 
 // The reply indicating if given tag exists.
 message DoesTagExistsReply {
-  // The Tag's name.
-  bool exists = 1;
+  oneof result {
+    // The tag.
+    google.protobuf.Any tag = 1;
+  }
 }
 
 // The request to find tags, which match or partially match 'searchText'.
