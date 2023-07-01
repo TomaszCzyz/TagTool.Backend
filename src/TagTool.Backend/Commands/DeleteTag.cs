@@ -17,12 +17,12 @@ public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversi
 }
 
 [UsedImplicitly]
-public class DeleteTag<T> : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>> where T : TagBase
+public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>>
 {
-    private readonly ILogger<DeleteTag<T>> _logger;
+    private readonly ILogger<DeleteTag> _logger;
     private readonly TagToolDbContext _dbContext;
 
-    public DeleteTag(ILogger<DeleteTag<T>> logger, TagToolDbContext dbContext)
+    public DeleteTag(ILogger<DeleteTag> logger, TagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;
@@ -30,7 +30,7 @@ public class DeleteTag<T> : ICommandHandler<DeleteTagRequest, OneOf<string, Erro
 
     public async Task<OneOf<string, ErrorResponse>> Handle(DeleteTagRequest request, CancellationToken cancellationToken)
     {
-        var existingTag = await _dbContext.Set<T>()
+        var existingTag = await _dbContext.Tags
             .Include(tag => tag.TaggedItems)
             .FirstOrDefaultAsync(tag => tag.FormattedName == request.Tag.FormattedName, cancellationToken);
 
