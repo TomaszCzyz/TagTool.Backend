@@ -16,6 +16,9 @@ service TagService {
   // Updates a tag
   //  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagReply);
 
+  // Inserts new or updates existing tag association, which describes additional relation between tags.
+  rpc UpsertTagsAssociation (UpsertTagsAssociationRequest) returns (UpsertTagsAssociationReply);
+
   // Tags an item.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
   // Untags an item if one exists.
@@ -78,6 +81,25 @@ message DeleteTagReply {
     // The Error message in case of a failure.
     string errorMessage = 2;
   };
+}
+
+message UpsertTagsAssociationRequest {
+  google.protobuf.Any firstTag = 1;
+  google.protobuf.Any secondTag = 2;
+  AssociationType associationType = 3;
+
+  enum AssociationType {
+    None = 0;
+    Synonyms = 1;
+    IsSubtype = 2;
+  }
+}
+
+message UpsertTagsAssociationReply {
+  oneof result {
+    string successMessage = 1;
+    Error error = 2;
+  }
 }
 
 // The request to tag a given item.
@@ -153,7 +175,7 @@ message GetItemsByTagsRequest {
     // The tag, e.g. normal, date range, size range, e.t.c.
     google.protobuf.Any tag = 3;
   }
-  
+
   enum QuerySegmentState {
     // The option indicating that results of search should not contain the tag.
     Exclude = 0;

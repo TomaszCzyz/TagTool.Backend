@@ -52,6 +52,28 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new DeleteTagReply { ErrorMessage = errorResponse.Message });
     }
 
+    public override async Task<UpsertTagsAssociationReply> UpsertTagsAssociation(UpsertTagsAssociationRequest request, ServerCallContext context)
+    {
+        var command = new Commands.UpsertTagsAssociationRequest
+        {
+            FirstTag = _tagMapper.MapFromDto(request.FirstTag),
+            SecondTag = _tagMapper.MapFromDto(request.SecondTag),
+            AssociationType = request.AssociationType switch
+            {
+                UpsertTagsAssociationRequest.Types.AssociationType.None => AssociationType.None,
+                UpsertTagsAssociationRequest.Types.AssociationType.Synonyms => AssociationType.Synonyms,
+                UpsertTagsAssociationRequest.Types.AssociationType.IsSubtype => AssociationType.IsSubtype,
+                _ => throw new UnreachableException()
+            }
+        };
+
+        var response = await _mediator.Send(command);
+
+        return response.Match(
+            s => new UpsertTagsAssociationReply { SuccessMessage = s },
+            errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
+    }
+
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
         var tagBase = _tagMapper.MapFromDto(request.Tag);
