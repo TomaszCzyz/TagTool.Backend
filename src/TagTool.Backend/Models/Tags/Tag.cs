@@ -1,4 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace TagTool.Backend.Models.Tags;
 
@@ -23,4 +26,22 @@ public abstract class TagBase : ITagBase, IHasTimestamps
     public DateTime? Deleted { get; set; }
 
     public DateTime? Modified { get; set; }
+}
+
+public sealed class TagBaseDeconstructPolicy : IDestructuringPolicy
+{
+    public bool TryDestructure(object value, ILogEventPropertyValueFactory propertyValueFactory, [UnscopedRef] out LogEventPropertyValue result)
+    {
+        if (value == null) throw new ArgumentNullException(nameof(value));
+
+        if (value is not TagBase tag)
+        {
+            result = null!;
+            return false;
+        }
+
+        var projected = new { tag.Id, tag.FormattedName };
+        result = propertyValueFactory.CreatePropertyValue(projected, destructureObjects: true);
+        return true;
+    }
 }

@@ -19,8 +19,9 @@ var builder = WebApplication.CreateBuilder(args); // todo: check if this would n
 
 builder.Host.UseSerilog((_, configuration) =>
     configuration
-        .Destructure.ByTransforming<TaggableItem>(item => new { Item = item, Tags = item.Tags.Names() })
-        .Destructure.ByTransforming<TagBase>(tag => new { Name = tag.FormattedName, TaggedItem = tag.TaggedItems })
+        .Destructure.ByTransforming<TextTag>(tag => new { tag.Id, tag.Text, TaggedItemCount = tag.TaggedItems.Count }) // order matters
+        .Destructure.With<TagBaseDeconstructPolicy>()
+        .Destructure.ByTransforming<TaggableItem>(item => new { ItemId = item.Id, Tags = item.Tags.Names() })
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .ReadFrom.Configuration(builder.Configuration)
