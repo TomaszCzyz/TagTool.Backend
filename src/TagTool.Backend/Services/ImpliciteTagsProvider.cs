@@ -75,42 +75,22 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
 
     private IQueryable<TagBase> GetItemDependentTags(TaggableItem taggableItem)
     {
-        var newTags = new List<TagBase>();
+        var newTags = new List<TagBase> { new ItemTypeTag { Type = taggableItem.GetType() } };
 
-        switch (taggableItem)
+        if (taggableItem is TaggableFile file && _extensionsToTagsMap.TryGetValue(Path.GetExtension(file.Path), out var tags))
         {
-            case TaggableFile file:
-                newTags.Add(new FileTypeTag());
-
-                if (_extensionsToTagsMap.TryGetValue(Path.GetExtension(file.Path), out var tags))
-                {
-                    newTags.AddRange(tags);
-                }
-
-                break;
-            case TaggableFolder:
-                newTags.Add(new FolderTypeTag());
-                break;
+            newTags.AddRange(tags);
         }
 
         return _dbContext.Tags.Where(tagBase => newTags.Select(@base => @base.FormattedName).Contains(tagBase.FormattedName));
     }
 
     private IEnumerable<TagBase> GetAssociatedTags(IEnumerable<TagBase> tags)
-    {
-        foreach (var tag in tags)
-        {
-            var tagsAssociation = _dbContext.Associations
+        => tags
+            .Select(tag => _dbContext.Associations
                 .Include(associations => associations.Descriptions)
                 .ThenInclude(tagAssociation => tagAssociation.Tag)
-                .FirstOrDefault(assoc => assoc.Tag == tag);
-
-            if (tagsAssociation is null) continue;
-
-            foreach (var association in tagsAssociation.Descriptions)
-            {
-                yield return association.Tag;
-            }
-        }
-    }
+                .FirstOrDefault(assoc => assoc.Tag == tag))
+            .Where(tagsAssociation => tagsAssociation is not null)
+            .SelectMany(tagsAssociation => tagsAssociation!.Descriptions, (_, association) => association.Tag);
 }

@@ -61,11 +61,12 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
             .Entity<MonthTag>()
             .HasData(Enumerable.Range(1, 12).Select(month => new MonthTag { Id = 2000 + month, Month = month }));
 
-        modelBuilder.Entity<FileTypeTag>()
-            .HasData(new FileTypeTag { Id = 3000 });
+        modelBuilder
+            .Entity<ItemTypeTag>()
+            .Ignore(tag => tag.Type);
 
-        modelBuilder.Entity<FolderTypeTag>()
-            .HasData(new FolderTypeTag { Id = 3001 });
+        modelBuilder.Entity<ItemTypeTag>()
+            .HasData(new ItemTypeTag { Id = 3002, Type = typeof(TaggableFile) }, new ItemTypeTag { Id = 3003, Type = typeof(TaggableFolder) });
 
         modelBuilder
             .Entity<TaggableItem>()

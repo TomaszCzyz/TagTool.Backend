@@ -4,23 +4,23 @@ using TagTool.Backend.Mappers;
 
 namespace TagTool.Backend.Models.Tags;
 
-public abstract class ItemTypeTag : TagBase
+public class ItemTypeTag : TagBase
 {
-}
+    private string _typeName = null!;
 
-public sealed class FileTypeTag : ItemTypeTag
-{
-    public FileTypeTag()
+    public Type Type
     {
-        FormattedName = "ItemTypeTag:" + nameof(TaggableFile);
-    }
-}
+        get => Type.GetType(_typeName)!;
+        set
+        {
+            if (!value.IsAssignableTo(typeof(TaggableItem)))
+            {
+                throw new ArgumentException($"Only types derived from {nameof(TaggableItem)} can be use.", nameof(value));
+            }
 
-public sealed class FolderTypeTag : ItemTypeTag
-{
-    public FolderTypeTag()
-    {
-        FormattedName = "ItemTypeTag:" + nameof(TaggableFolder);
+            _typeName = value.AssemblyQualifiedName!;
+            FormattedName = nameof(ItemTypeTag) + ":" + value.Name;
+        }
     }
 }
 
@@ -28,18 +28,19 @@ public sealed class FolderTypeTag : ItemTypeTag
 public class ItemTypeTagMapper : TagDtoMapper<ItemTypeTag, TypeTag>
 {
     protected override ItemTypeTag MapFromDto(TypeTag dto)
-        => dto.Type switch
+    {
+        if (dto.Type == typeof(TaggableFile).FullName)
         {
-            nameof(TaggableFile) => new FileTypeTag(),
-            nameof(TaggableFolder) => new FolderTypeTag(),
-            _ => throw new ArgumentOutOfRangeException(nameof(dto))
-        };
+            return new ItemTypeTag { Type = typeof(TaggableFile) };
+        }
 
-    protected override TypeTag MapToDto(ItemTypeTag tag)
-        => tag switch
+        if (dto.Type == typeof(TaggableFolder).FullName)
         {
-            FileTypeTag => new TypeTag { Type = nameof(TaggableFile) },
-            FolderTypeTag => new TypeTag { Type = nameof(TaggableFolder) },
-            _ => throw new ArgumentOutOfRangeException(nameof(tag))
-        };
+            return new ItemTypeTag { Type = typeof(TaggableFolder) };
+        }
+
+        throw new NotSupportedException($"TypeTag {dto} contains unknown type of taggable item");
+    }
+
+    protected override TypeTag MapToDto(ItemTypeTag tag) => new() { Type = tag.Type.FullName };
 }
