@@ -35,7 +35,7 @@ public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<TagBase, ErrorR
             return new ErrorResponse($"Tag {request.Tag} already exists.");
         }
 
-        _logger.LogInformation("Creating new tag {@TagName}", request.Tag);
+        _logger.LogInformation("Creating new tag {@Tag}", request.Tag);
 
         await _dbContext.Tags.AddAsync(request.Tag, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);

@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Mappers;
 
 namespace TagTool.Backend.Models.Tags;
@@ -19,9 +20,9 @@ public sealed class TextTag : TagBase
 }
 
 [UsedImplicitly]
-public class TextTagMapper : TagDtoMapper<TextTag, DomainTypes.NormalTag>
+public class TextTagMapper : TagDtoMapper<TextTag, NormalTag>
 {
-    protected override TextTag MapFromDto(DomainTypes.NormalTag dto) => new() { Text = dto.Name };
+    protected override TextTag MapFromDto(NormalTag dto) => new() { Text = dto.Name };
 
-    protected override DomainTypes.NormalTag MapToDto(TextTag tag) => new() { Name = tag.Text };
+    protected override NormalTag MapToDto(TextTag tag) => new() { Name = tag.Text };
 }
