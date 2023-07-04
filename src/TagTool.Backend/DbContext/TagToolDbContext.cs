@@ -63,7 +63,9 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
         modelBuilder
             .Entity<ItemTypeTag>()
-            .Ignore(tag => tag.Type);
+            .Property(tag => tag.Type)
+            .HasConversion<string>(type => type.AssemblyQualifiedName!, s => Type.GetType(s)!)
+            .UsePropertyAccessMode(PropertyAccessMode.Property);
 
         modelBuilder.Entity<ItemTypeTag>()
             .HasData(new ItemTypeTag { Id = 3002, Type = typeof(TaggableFile) }, new ItemTypeTag { Id = 3003, Type = typeof(TaggableFolder) });
