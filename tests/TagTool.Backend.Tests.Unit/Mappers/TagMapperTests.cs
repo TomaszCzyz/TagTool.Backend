@@ -25,7 +25,7 @@ public class TagMapperTests
     {
         // Arrange
         var type = typeof(TaggableFile);
-        var tag = new TypeTag { Type = type.FullName };
+        var tag = new TypeTag { Type = type.Name };
 
         // Act
         var tagBase = _tagMapper.MapFromDto(Any.Pack(tag));
@@ -39,7 +39,7 @@ public class TagMapperTests
     {
         // Arrange
         var type = typeof(TaggableFolder);
-        var tag = new TypeTag { Type = type.FullName };
+        var tag = new TypeTag { Type = type.Name };
 
         // Act
         var tagBase = _tagMapper.MapFromDto(Any.Pack(tag));
@@ -64,7 +64,7 @@ public class TagMapperTests
         var tagDto = UnpackHelper(anyTag);
 
         // Assert
-        tagDto.Should().BeOfType<TypeTag>().Which.Type.Should().Be(type.FullName);
+        tagDto.Should().BeOfType<TypeTag>().Which.Type.Should().Be(type.Name);
     }
 
     [Fact]
@@ -79,6 +79,6 @@ public class TagMapperTests
         var tagDto = UnpackHelper(anyTag);
 
         // Assert
-        tagDto.Should().BeOfType<TypeTag>().Which.Type.Should().Be(type.FullName);
+        tagDto.Should().BeOfType<TypeTag>().Which.Type.Should().Be(type.Name);
     }
 }

@@ -29,18 +29,13 @@ public class ItemTypeTagMapper : TagDtoMapper<ItemTypeTag, TypeTag>
 {
     protected override ItemTypeTag MapFromDto(TypeTag dto)
     {
-        if (dto.Type == typeof(TaggableFile).FullName)
+        return dto.Type switch
         {
-            return new ItemTypeTag { Type = typeof(TaggableFile) };
-        }
-
-        if (dto.Type == typeof(TaggableFolder).FullName)
-        {
-            return new ItemTypeTag { Type = typeof(TaggableFolder) };
-        }
-
-        throw new NotSupportedException($"TypeTag {dto} contains unknown type of taggable item");
+            nameof(TaggableFile) => new ItemTypeTag { Type = typeof(TaggableFile) },
+            nameof(TaggableFolder) => new ItemTypeTag { Type = typeof(TaggableFolder) },
+            _ => throw new NotSupportedException($"TypeTag {dto} contains unknown type of taggable item")
+        };
     }
 
-    protected override TypeTag MapToDto(ItemTypeTag tag) => new() { Type = tag.Type.FullName };
+    protected override TypeTag MapToDto(ItemTypeTag tag) => new() { Type = tag.Type.Name };
 }
