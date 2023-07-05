@@ -46,6 +46,8 @@ service TagService {
   // Sets convention of tag names. The convention is applied when tag is created 
   // and tag name is stored in given format.
   rpc SetTagNamingConvention(SetTagNamingConventionRequest) returns (SetTagNamingConventionReply);
+
+  rpc ExecuteLinkedAction(ExecuteLinkedActionRequest) returns (ExecuteLinkedActionReply);
 }
 
 // The request to create a new tag.
@@ -302,6 +304,19 @@ message SetTagNamingConventionRequest {
 message SetTagNamingConventionReply {
   // The result indicating opening was successful.
   // None if operation was successful. 
+  oneof result {
+    Error error = 1;
+  }
+}
+
+message ExecuteLinkedActionRequest {
+  oneof item {
+    FileDto file = 1;
+    FolderDto folder = 2;
+  };
+}
+
+message ExecuteLinkedActionReply {
   oneof result {
     Error error = 1;
   }

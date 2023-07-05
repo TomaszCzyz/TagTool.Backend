@@ -318,6 +318,34 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new SetTagNamingConventionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
+    public override Task<ExecuteLinkedActionReply> ExecuteLinkedAction(ExecuteLinkedActionRequest request, ServerCallContext context)
+    {
+        switch (request.ItemCase)
+        {
+            case ExecuteLinkedActionRequest.ItemOneofCase.Folder:
+                Process.Start("explorer.exe", request.Folder.Path);
+
+                return Task.FromResult(new ExecuteLinkedActionReply());
+            case ExecuteLinkedActionRequest.ItemOneofCase.File:
+                if (!File.Exists(request.File.Path))
+                {
+                    return Task.FromResult(new ExecuteLinkedActionReply { Error = new Error { Message = "Specified file does not exists." } });
+                }
+
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = request.File.Path;
+                    process.StartInfo.UseShellExecute = true;
+
+                    process.Start();
+                }
+
+                return Task.FromResult(new ExecuteLinkedActionReply());
+            default:
+                throw new UnreachableException();
+        }
+    }
+
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
         => requestConvention switch
         {
