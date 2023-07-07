@@ -74,6 +74,23 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
     }
 
+    public override async Task GetAllTagsAssociations(
+        GetAllTagsAssociationsRequest request,
+        IServerStreamWriter<GetAllTagsAssociationsReply> responseStream,
+        ServerCallContext context)
+    {
+        var query = new GetAllTagsAssociationsQuery { TagBase = _tagMapper.MapFromDto(request.Tag) };
+
+        var response = await _mediator.Send(query, context.CancellationToken);
+
+        var synonyms = response.Synonyms.Select(@base => _tagMapper.MapToDto(@base));
+        var higherTags = response.HigherTags.Select(@base => _tagMapper.MapToDto(@base));
+
+        await responseStream.WriteAsync(
+            new GetAllTagsAssociationsReply { TagSynonymsGroup = { synonyms }, HigherTags = { higherTags } },
+            context.CancellationToken);
+    }
+
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
         var tagBase = _tagMapper.MapFromDto(request.Tag);

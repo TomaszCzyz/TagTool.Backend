@@ -15,7 +15,7 @@ using TagTool.Backend.Models.Tags;
 using TagTool.Backend.Services;
 using TagTool.Backend.Services.Grpc;
 
-var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder();
+var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
 
 builder.Host.UseSerilog((_, configuration) =>
     configuration

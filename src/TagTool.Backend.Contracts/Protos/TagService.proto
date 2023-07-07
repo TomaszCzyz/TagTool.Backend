@@ -18,6 +18,8 @@ service TagService {
 
   // Inserts new or updates existing tag association, which describes additional relation between tags.
   rpc UpsertTagsAssociation (UpsertTagsAssociationRequest) returns (UpsertTagsAssociationReply);
+  // Get tag synonyms groups with every base tag in hierarchy, e.g. (Cat, Pussy) -> Animal, Creature 
+  rpc GetAllTagsAssociations (GetAllTagsAssociationsRequest) returns (stream GetAllTagsAssociationsReply);
 
   // Tags an item.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
@@ -102,6 +104,18 @@ message UpsertTagsAssociationReply {
     string successMessage = 1;
     Error error = 2;
   }
+}
+
+message GetAllTagsAssociationsRequest {
+  // If None will be provided, then all associations will be returned
+  oneof singleTag {
+    google.protobuf.Any tag = 1;
+  }
+}
+
+message GetAllTagsAssociationsReply {
+  repeated google.protobuf.Any tagSynonymsGroup = 1;
+  repeated google.protobuf.Any higherTags = 2;
 }
 
 // The request to tag a given item.
