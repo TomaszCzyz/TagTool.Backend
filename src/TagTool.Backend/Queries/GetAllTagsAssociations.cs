@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -10,6 +11,7 @@ public class GetAllTagsAssociationsQuery : IQuery<(TagBase[] Synonyms, TagBase[]
     public required TagBase TagBase { get; init; }
 }
 
+[UsedImplicitly]
 public class GetAllTagsAssociations : IQueryHandler<GetAllTagsAssociationsQuery, (TagBase[], TagBase[])>
 {
     private readonly TagToolDbContext _dbContext;
@@ -31,7 +33,7 @@ public class GetAllTagsAssociations : IQueryHandler<GetAllTagsAssociationsQuery,
             .ThenInclude(description => description.Tag)
             .FirstAsync(associations => associations.Tag == tagBase, cancellationToken);
 
-        var tagSynonyms = tagAssociations.Descriptions.Where(d => d.AssociationType == AssociationType.Synonyms).Select(d => d.Tag);
+        var tagSynonyms = tagAssociations.Descriptions.Where(d => d.AssociationType == Models.AssociationType.Synonyms).Select(d => d.Tag);
         var higherTags = await FindHigherTags(tagAssociations, cancellationToken);
 
         return (tagSynonyms.ToArray(), higherTags.ToArray());
@@ -41,7 +43,7 @@ public class GetAllTagsAssociations : IQueryHandler<GetAllTagsAssociationsQuery,
     {
         var results = new List<TagBase>();
 
-        foreach (var description in tagAssociations.Descriptions.Where(d => d.AssociationType == AssociationType.IsSubtype))
+        foreach (var description in tagAssociations.Descriptions.Where(d => d.AssociationType == Models.AssociationType.IsSubtype))
         {
             results.Add(description.Tag);
 

@@ -15,7 +15,7 @@ public class UpsertTagsAssociationRequest : ICommand<OneOf<string, ErrorResponse
 
     public required TagBase SecondTag { get; init; }
 
-    public required AssociationType AssociationType { get; init; }
+    public required Models.AssociationType AssociationType { get; init; }
 }
 
 [UsedImplicitly]
@@ -36,9 +36,9 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
 
         switch (request.AssociationType)
         {
-            case AssociationType.Synonyms:
+            case Models.AssociationType.Synonyms:
                 return await UpsertSynonymAssociationToBothTags(firstTag, secondTag, cancellationToken);
-            case AssociationType.IsSubtype:
+            case Models.AssociationType.IsSubtype:
                 return await UpsertSubtypeAssociationToSupTag(firstTag, secondTag, cancellationToken);
         }
 
@@ -83,7 +83,7 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
 
         var allSynonyms = associationsOfFirstTag.Descriptions
             .Concat(associationsOfSecondTag.Descriptions)
-            .Where(d => d.AssociationType == AssociationType.Synonyms)
+            .Where(d => d.AssociationType == Models.AssociationType.Synonyms)
             .Select(d => d.Tag)
             .Append(firstTag)
             .Append(secondTag)
@@ -116,8 +116,12 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
         {
             if (tagSynonym == tagAssociation.Tag) continue;
 
-            tagAssociation.Descriptions.Add(
-                new AssociationDescription { Tag = tagSynonym, AssociationType = AssociationType.Synonyms, TagAssociationsId = tagAssociation.Id });
+            var associationDescription = new AssociationDescription
+            {
+                Tag = tagSynonym, AssociationType = Models.AssociationType.Synonyms, TagAssociationsId = tagAssociation.Id
+            };
+
+            tagAssociation.Descriptions.Add(associationDescription);
         }
     }
 
@@ -152,37 +156,6 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
         return (associationsOfFirstTag, associationsOfSecondTag);
     }
 
-    /// <summary>
-    ///     There cannot be the following situations:
-    ///     1. given association description already exists
-    ///     2. tags are in a Sub/Sup type association
-    /// </summary>
-    private bool CanAddSynonymAssociation(TagBase firstTag, TagBase secondTag, [NotNullWhen(false)] out ErrorResponse? error)
-    {
-        var associationsOfFirstTagWithSecondTag = AssociationsOfTagContainingCertainTag(firstTag, secondTag);
-        var associationsOfSecondTagWithFirstTag = AssociationsOfTagContainingCertainTag(secondTag, firstTag);
-
-        var descriptionWithSecondTag = associationsOfFirstTagWithSecondTag?.Descriptions.First(description => description.Tag == secondTag);
-        var descriptionWithFirstTag = associationsOfSecondTagWithFirstTag?.Descriptions.First(description => description.Tag == firstTag);
-
-        foreach (var description in new[] { descriptionWithFirstTag, descriptionWithSecondTag }.Where(d => d is not null))
-        {
-            switch (description!.AssociationType)
-            {
-                case AssociationType.Synonyms:
-                    error = new ErrorResponse("Given association already exists.");
-                    return false;
-
-                case AssociationType.IsSubtype:
-                    error = new ErrorResponse("The first tag is a subtype of second tag, so it cannot be its synonym.");
-                    return false;
-            }
-        }
-
-        error = null;
-        return true;
-    }
-
     private async Task<OneOf<string, ErrorResponse>> UpsertSubtypeAssociationToSupTag(
         TagBase firstTag,
         TagBase secondTag,
@@ -193,7 +166,7 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
             return errorResponse;
         }
 
-        var newDescription = new AssociationDescription { Tag = secondTag, AssociationType = AssociationType.IsSubtype };
+        var newDescription = new AssociationDescription { Tag = secondTag, AssociationType = Models.AssociationType.IsSubtype };
 
         var associationsOfFirstTag = await _dbContext.Associations
             .Include(associations => associations.Descriptions)
@@ -218,6 +191,29 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
     }
 
     /// <summary>
+    ///     Checks if given tags are not already in a Sub/Sup type association
+    /// </summary>
+    private bool CanAddSynonymAssociation(TagBase firstTag, TagBase secondTag, [NotNullWhen(false)] out ErrorResponse? error)
+    {
+        var associationsOfFirstTagWithSecondTag = AssociationsOfTagContainingCertainTag(firstTag, secondTag);
+        var associationsOfSecondTagWithFirstTag = AssociationsOfTagContainingCertainTag(secondTag, firstTag);
+
+        var descriptionWithSecondTag = associationsOfFirstTagWithSecondTag?.Descriptions.First(description => description.Tag == secondTag);
+        var descriptionWithFirstTag = associationsOfSecondTagWithFirstTag?.Descriptions.First(description => description.Tag == firstTag);
+
+        var associationDescriptions = new[] { descriptionWithFirstTag, descriptionWithSecondTag };
+
+        if (associationDescriptions.Where(d => d is not null).Any(description => description!.AssociationType == Models.AssociationType.IsSubtype))
+        {
+            error = new ErrorResponse("The first tag is a subtype of second tag, so it cannot be its synonym.");
+            return false;
+        }
+
+        error = null;
+        return true;
+    }
+
+    /// <summary>
     ///     There cannot be the following situations:
     ///     1. given association description already exists
     ///     2. the second tag cannot be subtype of first tag (because we want ot add first atg as subtype of the second tag)
@@ -234,13 +230,13 @@ public class UpsertTagsAssociation : ICommandHandler<UpsertTagsAssociationReques
 
         var descriptions = new[] { descriptionOfSecondTagWithFirstTag, descriptionOfFirstTagWithSecondTag };
 
-        if (descriptions.Any(description => description?.AssociationType == AssociationType.Synonyms))
+        if (descriptions.Any(description => description?.AssociationType == Models.AssociationType.Synonyms))
         {
             error = new ErrorResponse("The tags are in synonyms association.");
             return false;
         }
 
-        if (descriptionOfSecondTagWithFirstTag?.AssociationType == AssociationType.IsSubtype)
+        if (descriptionOfSecondTagWithFirstTag?.AssociationType == Models.AssociationType.IsSubtype)
         {
             error = new ErrorResponse("The second tag is a subtype of the first tag, so the first tag cannot be a subtype of the second tag.");
             return false;

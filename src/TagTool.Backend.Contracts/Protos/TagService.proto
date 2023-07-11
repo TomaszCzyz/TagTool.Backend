@@ -16,10 +16,12 @@ service TagService {
   // Updates a tag
   //  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagReply);
 
+  // Get tag synonyms groups with every base tag in hierarchy, e.g. (Cat, Pussy) -> Animal, Creature
+  rpc GetAllTagsAssociations (GetAllTagsAssociationsRequest) returns (stream GetAllTagsAssociationsReply);
   // Inserts new or updates existing tag association, which describes additional relation between tags.
   rpc UpsertTagsAssociation (UpsertTagsAssociationRequest) returns (UpsertTagsAssociationReply);
-  // Get tag synonyms groups with every base tag in hierarchy, e.g. (Cat, Pussy) -> Animal, Creature 
-  rpc GetAllTagsAssociations (GetAllTagsAssociationsRequest) returns (stream GetAllTagsAssociationsReply);
+  // Removes tags association.
+  rpc RemoveTagsAssociation (RemoveTagsAssociationRequest) returns (RemoveTagsAssociationReply);
 
   // Tags an item.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
@@ -87,25 +89,6 @@ message DeleteTagReply {
   };
 }
 
-message UpsertTagsAssociationRequest {
-  google.protobuf.Any firstTag = 1;
-  google.protobuf.Any secondTag = 2;
-  AssociationType associationType = 3;
-
-  enum AssociationType {
-    None = 0;
-    Synonyms = 1;
-    IsSubtype = 2;
-  }
-}
-
-message UpsertTagsAssociationReply {
-  oneof result {
-    string successMessage = 1;
-    Error error = 2;
-  }
-}
-
 message GetAllTagsAssociationsRequest {
   // If None will be provided, then all associations will be returned
   oneof singleTag {
@@ -116,6 +99,38 @@ message GetAllTagsAssociationsRequest {
 message GetAllTagsAssociationsReply {
   repeated google.protobuf.Any tagSynonymsGroup = 1;
   repeated google.protobuf.Any higherTags = 2;
+}
+
+
+enum AssociationType {
+  Synonyms = 0;
+  IsSubtype = 1;
+}
+
+message UpsertTagsAssociationRequest {
+  google.protobuf.Any firstTag = 1;
+  google.protobuf.Any secondTag = 2;
+  AssociationType associationType = 3;
+}
+
+message UpsertTagsAssociationReply {
+  oneof result {
+    string successMessage = 1;
+    Error error = 2;
+  }
+}
+
+message RemoveTagsAssociationRequest {
+  google.protobuf.Any firstTag = 1;
+  google.protobuf.Any secondTag = 2;
+  AssociationType associationType = 3;
+}
+
+message RemoveTagsAssociationReply {
+  oneof result {
+    string successMessage = 1;
+    Error error = 2;
+  }
 }
 
 // The request to tag a given item.

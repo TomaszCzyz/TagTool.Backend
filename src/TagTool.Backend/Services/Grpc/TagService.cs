@@ -52,28 +52,6 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new DeleteTagReply { ErrorMessage = errorResponse.Message });
     }
 
-    public override async Task<UpsertTagsAssociationReply> UpsertTagsAssociation(UpsertTagsAssociationRequest request, ServerCallContext context)
-    {
-        var command = new Commands.UpsertTagsAssociationRequest
-        {
-            FirstTag = _tagMapper.MapFromDto(request.FirstTag),
-            SecondTag = _tagMapper.MapFromDto(request.SecondTag),
-            AssociationType = request.AssociationType switch
-            {
-                UpsertTagsAssociationRequest.Types.AssociationType.None => AssociationType.None,
-                UpsertTagsAssociationRequest.Types.AssociationType.Synonyms => AssociationType.Synonyms,
-                UpsertTagsAssociationRequest.Types.AssociationType.IsSubtype => AssociationType.IsSubtype,
-                _ => throw new UnreachableException()
-            }
-        };
-
-        var response = await _mediator.Send(command);
-
-        return response.Match(
-            s => new UpsertTagsAssociationReply { SuccessMessage = s },
-            errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
-    }
-
     public override async Task GetAllTagsAssociations(
         GetAllTagsAssociationsRequest request,
         IServerStreamWriter<GetAllTagsAssociationsReply> responseStream,
@@ -89,6 +67,48 @@ public class TagService : Backend.TagService.TagServiceBase
         await responseStream.WriteAsync(
             new GetAllTagsAssociationsReply { TagSynonymsGroup = { synonyms }, HigherTags = { higherTags } },
             context.CancellationToken);
+    }
+
+    public override async Task<UpsertTagsAssociationReply> UpsertTagsAssociation(UpsertTagsAssociationRequest request, ServerCallContext context)
+    {
+        var command = new Commands.UpsertTagsAssociationRequest
+        {
+            FirstTag = _tagMapper.MapFromDto(request.FirstTag),
+            SecondTag = _tagMapper.MapFromDto(request.SecondTag),
+            AssociationType = request.AssociationType switch
+            {
+                AssociationType.Synonyms => Models.AssociationType.Synonyms,
+                AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
+                _ => throw new UnreachableException()
+            }
+        };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            s => new UpsertTagsAssociationReply { SuccessMessage = s },
+            errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
+    }
+
+    public override async Task<RemoveTagsAssociationReply> RemoveTagsAssociation(RemoveTagsAssociationRequest request, ServerCallContext context)
+    {
+        var command = new RemoveTagsAssociationCommand
+        {
+            FirstTag = _tagMapper.MapFromDto(request.FirstTag),
+            SecondTag = _tagMapper.MapFromDto(request.SecondTag),
+            AssociationType = request.AssociationType switch
+            {
+                AssociationType.Synonyms => Models.AssociationType.Synonyms,
+                AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
+                _ => throw new UnreachableException()
+            }
+        };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            _ => new RemoveTagsAssociationReply { SuccessMessage = "success" },
+            errorResponse => new RemoveTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
