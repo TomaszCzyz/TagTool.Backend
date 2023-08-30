@@ -1,17 +1,28 @@
 ﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Mappers;
+using TagTool.Backend.Models.Tags;
 using Xunit;
+using Xunit.Abstractions;
+using DayRangeTag = TagTool.Backend.DomainTypes.DayRangeTag;
 
 namespace TagTool.Backend.Tests.Unit;
 
 public class TestHelper
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+    private readonly ITagMapper _mapper;
     private readonly TagToolDbContext _dbContext;
 
-    public TestHelper()
+    public TestHelper(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
+        var fromDto = new ITagFromDtoMapper[] { new ItemTypeTagMapper(), new TextTagMapper() };
+        var toDto = new ITagToDtoMapper[] { new ItemTypeTagMapper(), new TextTagMapper() };
+        _mapper = new TagMapper(fromDto, toDto);
         var dbContextOptions = new DbContextOptionsBuilder<TagToolDbContext>();
         dbContextOptions.UseSqlite($"Data Source={Constants.Constants.DbPath}");
 
@@ -70,12 +81,46 @@ public class TestHelper
 
         var request = new UpsertTagsAssociationRequest
         {
-            FirstTag = Any.Pack(new NormalTag { Name = "Cat3" }),
-            SecondTag = Any.Pack(new NormalTag { Name = "Pussy" }),
-            AssociationType = UpsertTagsAssociationRequest.Types.AssociationType.Synonyms
+            FirstTag = Any.Pack(new NormalTag { Name = "Cat" }),
+            SecondTag = Any.Pack(new NormalTag { Name = "Cat2" }),
+            AssociationType = AssociationType.Synonyms
         };
 
-        var _ = tagServiceClient.UpsertTagsAssociation(request);
+        _ = tagServiceClient.UpsertTagsAssociation(request);
+    }
+
+    [Fact]
+    public async Task GetAllTagsAssociations_ValidRequest_Returns()
+    {
+        var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
+
+        var request = new GetAllTagsAssociationsRequest { Tag = Any.Pack(new NormalTag { Name = "Cat" }) };
+
+        var streamingCall = tagServiceClient.GetAllTagsAssociations(request);
+
+        await foreach (var reply in streamingCall.ResponseStream.ReadAllAsync())
+        {
+            var t1 = string.Join(", ", reply.TagSynonymsGroup.Select(any => _mapper.MapFromDto(any).FormattedName));
+            var t2 = string.Join(", ", reply.HigherTags.Select(any => _mapper.MapFromDto(any).FormattedName));
+            _testOutputHelper.WriteLine($"{t1}\n{t2}");
+        }
+    }
+
+    [Fact]
+    public async Task RemoveTagsAssociation_ValidRequest_Returns()
+    {
+        var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
+
+        var request = new RemoveTagsAssociationRequest
+        {
+            AssociationType = AssociationType.Synonyms,
+            FirstTag = Any.Pack(new NormalTag { Name = "Cat2" }),
+            SecondTag = Any.Pack(new NormalTag { Name = "Cat" })
+        };
+
+        var reply = tagServiceClient.RemoveTagsAssociation(request);
+
+        _testOutputHelper.WriteLine(reply.Error.Message);
     }
 
     [Fact]

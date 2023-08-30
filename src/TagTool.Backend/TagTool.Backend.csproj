@@ -29,6 +29,7 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="Serilog.Sinks.SQLite" />
     <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="TreeCollections" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,6 +49,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

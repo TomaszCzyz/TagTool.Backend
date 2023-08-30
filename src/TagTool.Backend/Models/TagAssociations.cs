@@ -1,6 +1,24 @@
 ﻿using TagTool.Backend.Models.Tags;
 
-namespace TagTool.Backend.Models;
+namespace TagTool.Backend.Models;   
+
+public class TagSynonymsGroup
+{
+    public int Id { get; set; }
+
+    public required string Name { get; set; }
+
+    public required ICollection<TagBase> TagsSynonyms { get; set; }
+}
+
+public class TagsHierarchy
+{
+    public int Id { get; set; }
+
+    public required TagBase BaseTag { get; set; }
+
+    public required ICollection<TagBase> ChildTags { get; set; }
+}
 
 public class TagAssociations
 {
