@@ -21,7 +21,7 @@ public class RemoveSynonym : ICommandHandler<RemoveSynonymRequest, OneOf<string,
     private readonly IAssociationManager _associationManager;
     private readonly TagToolDbContext _dbContext;
 
-    public RemoveSynonym(AssociationManager associationManager, TagToolDbContext dbContext)
+    public RemoveSynonym(IAssociationManager associationManager, TagToolDbContext dbContext)
     {
         _associationManager = associationManager;
         _dbContext = dbContext;

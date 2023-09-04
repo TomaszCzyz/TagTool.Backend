@@ -193,6 +193,7 @@ public class AssociationManager : IAssociationManager
 
                 // UPDATE
                 var tagsHierarchy2 = await _dbContext.TagsHierarchy
+                    .Include(hierarchy => hierarchy.ChildGroups)
                     .FirstOrDefaultAsync(hierarchy => hierarchy.ParentGroup == parentTagGroup, cancellationToken);
 
                 if (tagsHierarchy2 is not null)

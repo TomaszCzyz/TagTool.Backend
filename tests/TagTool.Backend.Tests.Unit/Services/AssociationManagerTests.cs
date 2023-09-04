@@ -65,7 +65,7 @@ public class AssociationManagerTests : IDisposable
         var associationManager = new AssociationManager(_dbContextMock);
 
         // Assert
-        var mutableEntityTreeNode = associationManager.Root;
+        // var mutableEntityTreeNode = associationManager.Root;
     }
 
     public void Dispose()

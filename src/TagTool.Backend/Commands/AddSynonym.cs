@@ -22,7 +22,7 @@ public class AddSynonym : ICommandHandler<AddSynonymRequest, OneOf<string, Error
     private readonly IAssociationManager _associationManager;
     private readonly TagToolDbContext _dbContext;
 
-    public AddSynonym(AssociationManager associationManager, TagToolDbContext dbContext)
+    public AddSynonym(IAssociationManager associationManager, TagToolDbContext dbContext)
     {
         _associationManager = associationManager;
         _dbContext = dbContext;

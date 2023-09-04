@@ -75,18 +75,33 @@ public class TestHelper
     }
 
     [Fact]
-    public void UpsertTagsAssociation_ValidRequest_ReturnsSuccessMessage()
+    public void AddSynonyms_ValidRequest_ReturnsSuccessMessage()
     {
         var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
 
-        var request = new UpsertTagsAssociationRequest
-        {
-            FirstTag = Any.Pack(new NormalTag { Name = "Cat" }),
-            SecondTag = Any.Pack(new NormalTag { Name = "Cat2" }),
-            AssociationType = AssociationType.Synonyms
-        };
+        var animalTag = Any.Pack(new NormalTag { Name = "Animal" });
+        var animalBaseTag = Any.Pack(new NormalTag { Name = "AnimalBase" });
+        var catTag = Any.Pack(new NormalTag { Name = "Cat" });
+        var cat2Tag = Any.Pack(new NormalTag { Name = "Cat2" });
+        var pussyTag = Any.Pack(new NormalTag { Name = "Pussy" });
+        var dogTag = Any.Pack(new NormalTag { Name = "Dog" });
 
-        _ = tagServiceClient.UpsertTagsAssociation(request);
+        var reply1 = tagServiceClient.AddSynonym(new AddSynonymRequest { Tag = catTag, GroupName = "Cat group" });
+        _testOutputHelper.WriteLine($"reply: {reply1}");
+        var reply2 = tagServiceClient.AddChild(new AddChildRequest { ChildTag = catTag, ParentTag = animalTag });
+        _testOutputHelper.WriteLine($"reply: {reply2}");
+        var reply3 = tagServiceClient.AddChild(new AddChildRequest { ChildTag = cat2Tag, ParentTag = animalTag });
+        _testOutputHelper.WriteLine($"reply: {reply3}");
+        var reply4 = tagServiceClient.AddChild(new AddChildRequest { ChildTag = dogTag, ParentTag = animalTag });
+        _testOutputHelper.WriteLine($"reply: {reply4}");
+        var reply5 = tagServiceClient.AddChild(new AddChildRequest { ChildTag = animalTag, ParentTag = animalBaseTag });
+        _testOutputHelper.WriteLine($"reply: {reply5}");
+        var reply6 = tagServiceClient.AddSynonym(new AddSynonymRequest { Tag = dogTag, GroupName = "Dog group" });
+        _testOutputHelper.WriteLine($"reply: {reply6}");
+        var reply7 = tagServiceClient.AddSynonym(new AddSynonymRequest { Tag = pussyTag, GroupName = "Cat group" });
+        _testOutputHelper.WriteLine($"reply: {reply7}");
+        var reply8 = tagServiceClient.AddSynonym(new AddSynonymRequest { Tag = cat2Tag, GroupName = "Cat group" });
+        _testOutputHelper.WriteLine($"reply: {reply8}");
     }
 
     [Fact]
@@ -104,23 +119,6 @@ public class TestHelper
             var t2 = string.Join(", ", reply.HigherTags.Select(any => _mapper.MapFromDto(any).FormattedName));
             _testOutputHelper.WriteLine($"{t1}\n{t2}");
         }
-    }
-
-    [Fact]
-    public async Task RemoveTagsAssociation_ValidRequest_Returns()
-    {
-        var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
-
-        var request = new RemoveTagsAssociationRequest
-        {
-            AssociationType = AssociationType.Synonyms,
-            FirstTag = Any.Pack(new NormalTag { Name = "Cat2" }),
-            SecondTag = Any.Pack(new NormalTag { Name = "Cat" })
-        };
-
-        var reply = tagServiceClient.RemoveTagsAssociation(request);
-
-        _testOutputHelper.WriteLine(reply.Error.Message);
     }
 
     [Fact]

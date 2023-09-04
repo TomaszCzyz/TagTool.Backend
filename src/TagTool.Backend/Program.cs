@@ -44,11 +44,12 @@ builder.Services.AddTagDtoMappers(typeof(Program));
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
+builder.Services.AddScoped<IAssociationManager, AssociationManager>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddScoped<ICommonStorage, CommonStorage>();
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
 builder.Services.AddDbContext<TagToolDbContext>(options
     => options
