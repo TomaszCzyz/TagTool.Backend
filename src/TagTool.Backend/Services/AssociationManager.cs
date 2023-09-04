@@ -4,23 +4,25 @@ using OneOf.Types;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
-using TreeCollections;
 
 namespace TagTool.Backend.Services;
 
-public class RootTagSynonymsGroup : TagSynonymsGroup
-{
-}
-
 /// <summary>
-///     We assume that provided tag always exists.
+///     The interface for managing relation between tags, i.e. tag synonyms and tag child-parent hierarchy.
+///     All modification of such relations should be perform via the interface.
+///     Collection <see cref="TagTool.Backend.DbContext.TagToolDbContext.TagSynonymsGroups" /> and
+///     <see cref="TagTool.Backend.DbContext.TagToolDbContext.TagsHierarchy" />
+///     should not be accessed only from classes implementing this interface.
 /// </summary>
+/// <remarks>We assume that provided tag always exists. Providing non existing tag will cause exception</remarks>
 public interface IAssociationManager
 {
     Task<OneOf<None, ErrorResponse>> AddSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
 
-    // Task<OneOf<None, ErrorResponse>> RemoveSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
+    Task<OneOf<None, ErrorResponse>> RemoveSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
+
     Task<OneOf<None, ErrorResponse>> AddChild(TagBase childTag, TagBase parentTag, CancellationToken cancellationToken);
+
     Task<OneOf<None, ErrorResponse>> RemoveChild(TagBase child, TagBase parent, CancellationToken cancellationToken);
 }
 
@@ -29,37 +31,10 @@ public class AssociationManager : IAssociationManager
     private const string DefaultGroupSuffix = "TempGroup";
 
     private readonly TagToolDbContext _dbContext;
-    public MutableEntityTreeNode<int, TagSynonymsGroup> Root { get; }
 
     public AssociationManager(TagToolDbContext dbContext)
     {
         _dbContext = dbContext;
-
-        var rootNode = new RootTagSynonymsGroup { Id = -1, Name = "", Synonyms = Array.Empty<TagBase>() };
-        Root = new MutableEntityTreeNode<int, TagSynonymsGroup>(c => c.Id, rootNode);
-
-        var tagsHierarchies = _dbContext.TagsHierarchy
-            .Include(tagsHierarchy => tagsHierarchy.ParentGroup)
-            .Include(tagsHierarchy => tagsHierarchy.ChildGroups);
-
-        foreach (var tagsHierarchy in tagsHierarchies)
-        {
-            var treeNode = Root.FirstOrDefault(node => node.Item.Id == tagsHierarchy.ParentGroup.Id) ?? Root.AddChild(tagsHierarchy.ParentGroup);
-
-            foreach (var tagBase in tagsHierarchy.ChildGroups)
-            {
-                treeNode.AddChild(tagBase);
-            }
-        }
-    }
-
-    private async Task<TagSynonymsGroup> CreateDefaultGroup(TagBase tag, CancellationToken cancellationToken)
-    {
-        var tagSynonymsGroup = new TagSynonymsGroup { Name = $"{tag.FormattedName}_{DefaultGroupSuffix}", Synonyms = new List<TagBase> { tag } };
-        var entry = await _dbContext.TagSynonymsGroups.AddAsync(tagSynonymsGroup, cancellationToken);
-        _ = _dbContext.SaveChangesAsync(cancellationToken);
-
-        return entry.Entity;
     }
 
     public async Task<OneOf<None, ErrorResponse>> AddSynonym(TagBase tag, string groupName, CancellationToken cancellationToken)
@@ -70,23 +45,21 @@ public class AssociationManager : IAssociationManager
                 $"Cannot manually add tag to group with name ending with '{DefaultGroupSuffix}', as it is reserved for internal use.");
         }
 
-        var tagBase = await _dbContext.Tags.FirstAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
-        var groupWithRequestedTag = await _dbContext.TagSynonymsGroups
-            .FirstOrDefaultAsync(group => group.Synonyms.Contains(tagBase), cancellationToken);
+        var groupWithRequestedTag = await _dbContext.TagSynonymsGroups.FirstOrDefaultAsync(group => group.Synonyms.Contains(tag), cancellationToken);
 
         if (groupWithRequestedTag is null)
         {
-            return await AddSynonymSimple(tagBase, groupName, cancellationToken);
+            return await AddSynonymSimple(tag, groupName, cancellationToken);
         }
 
         if (groupWithRequestedTag.Name == groupName)
         {
-            return new ErrorResponse($"The tag {tagBase} is already in a group {groupName}.");
+            return new ErrorResponse($"The tag {tag} is already in a group {groupName}.");
         }
 
         if (groupWithRequestedTag.Name != groupName && !IsGroupAutomaticallyCreated(groupWithRequestedTag))
         {
-            return new ErrorResponse($"The tag {tagBase} is already in different synonyms group {groupWithRequestedTag}");
+            return new ErrorResponse($"The tag {tag} is already in different synonyms group {groupWithRequestedTag}");
         }
 
         // We cope with a group created automatically for child-parent relation for group-less tag
@@ -106,7 +79,7 @@ public class AssociationManager : IAssociationManager
 
         // merge [group_Temp] into requested group
         _dbContext.TagSynonymsGroups.Remove(groupWithRequestedTag);
-        synonymsGroup.Synonyms.Add(tagBase);
+        synonymsGroup.Synonyms.Add(tag);
 
         // preserve hierarchy, if exists.
         if (hierarchy?.ChildGroups.Contains(synonymsGroup) == false)
@@ -118,76 +91,26 @@ public class AssociationManager : IAssociationManager
         return new None();
     }
 
-    private static bool IsGroupAutomaticallyCreated(TagSynonymsGroup existingGroup)
-        => existingGroup.Name.EndsWith(DefaultGroupSuffix, StringComparison.CurrentCulture);
-
-    /// <summary>
-    ///     Checks if we can merge two groups.
-    ///     We can if:
-    ///     - both groups have the same parent
-    ///     - one group has no parent (it will inherit parent of other group)
-    /// </summary>
-    /// <param name="group1"></param>
-    /// <param name="group2"></param>
-    /// <param name="cancellationToken"></param>
-    private async Task<(bool, TagsHierarchy?)> CanBeMerged(TagSynonymsGroup group1, TagSynonymsGroup group2, CancellationToken cancellationToken)
+    public async Task<OneOf<None, ErrorResponse>> RemoveSynonym(TagBase tag, string groupName, CancellationToken cancellationToken)
     {
-        var (hierarchy1, hierarchy2) = await GetHierarchies(group1, group2, cancellationToken);
-
-        if (hierarchy1 is null && hierarchy2 is null)
-        {
-            return (true, null);
-        }
-
-        if (hierarchy1 is null && hierarchy2 is not null)
-        {
-            return (true, hierarchy2);
-        }
-
-        if (hierarchy1 is not null && hierarchy2 is null)
-        {
-            return (true, hierarchy1);
-        }
-
-        // are groups siblings?
-        if (hierarchy1?.ParentGroup == hierarchy2?.ParentGroup)
-        {
-            return (true, hierarchy1);
-        }
-
-        return (false, null);
-    }
-
-    private async Task<OneOf<None, ErrorResponse>> AddSynonymSimple(TagBase tagBase, string groupName, CancellationToken cancellationToken)
-    {
-        var (synonymsGroup, justCreated) = await EnsureGroupExists(groupName, cancellationToken);
-
-        if (!justCreated && synonymsGroup.Synonyms.Contains(tagBase))
-        {
-            return new ErrorResponse($"The tag {tagBase} is already in synonyms group {synonymsGroup}");
-        }
-
-        synonymsGroup.Synonyms.Add(tagBase);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return new None();
-    }
-
-    private async Task<(TagSynonymsGroup Group, bool JustCreated)> EnsureGroupExists(string groupName, CancellationToken cancellationToken)
-    {
-        var synonymsGroup = await _dbContext.TagSynonymsGroups
+        var existingGroup = await _dbContext.TagSynonymsGroups
             .Include(group => group.Synonyms)
             .FirstOrDefaultAsync(group => group.Name == groupName, cancellationToken);
 
-        if (synonymsGroup is not null) return (synonymsGroup, false);
+        if (existingGroup is null)
+        {
+            return new ErrorResponse($"The synonyms group with name {groupName} does not exists");
+        }
 
-        synonymsGroup = new TagSynonymsGroup { Name = groupName, Synonyms = new List<TagBase>() };
+        if (!existingGroup.Synonyms.Contains(tag))
+        {
+            return new ErrorResponse($"Synonyms group {existingGroup.Name} does not contain tag {tag}");
+        }
 
-        // _logger.LogInformation("Creating new synonym group with the name {SynonymGroupName}", groupName);
-        var entry = await _dbContext.TagSynonymsGroups.AddAsync(synonymsGroup, cancellationToken);
-        _ = await _dbContext.SaveChangesAsync(cancellationToken);
+        existingGroup.Synonyms.Remove(tag);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return (entry.Entity, true);
+        return new None();
     }
 
     public async Task<OneOf<None, ErrorResponse>> AddChild(TagBase childTag, TagBase parentTag, CancellationToken cancellationToken)
@@ -290,6 +213,110 @@ public class AssociationManager : IAssociationManager
         return new None();
     }
 
+    public async Task<OneOf<None, ErrorResponse>> RemoveChild(TagBase child, TagBase parent, CancellationToken cancellationToken)
+    {
+        var hierarchy = await _dbContext.TagsHierarchy
+            .Include(tagsHierarchy => tagsHierarchy.ChildGroups).ThenInclude(tagSynonymsGroup => tagSynonymsGroup.Synonyms)
+            .FirstOrDefaultAsync(
+                hierarchy => hierarchy.ParentGroup.Synonyms.Contains(parent)
+                             && hierarchy.ChildGroups.Any(group => group.Synonyms.Contains(child)),
+                cancellationToken: cancellationToken);
+
+        if (hierarchy is null)
+        {
+            return new ErrorResponse($"There is no child-parent relation between {child} and {parent}.");
+        }
+
+        var synonymsGroup = hierarchy.ChildGroups.First(group => group.Synonyms.Contains(child));
+        hierarchy.ChildGroups.Remove(synonymsGroup);
+
+        // _dbContext.TagsHierarchy.Update()
+        _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new None();
+    }
+
+    /// <summary>
+    ///     Checks if we can merge two groups.
+    ///     We can if:
+    ///     - both groups have the same parent
+    ///     - one group has no parent (it will inherit parent of other group)
+    /// </summary>
+    /// <param name="group1"></param>
+    /// <param name="group2"></param>
+    /// <param name="cancellationToken"></param>
+    private async Task<(bool, TagsHierarchy?)> CanBeMerged(TagSynonymsGroup group1, TagSynonymsGroup group2, CancellationToken cancellationToken)
+    {
+        var (hierarchy1, hierarchy2) = await GetHierarchies(group1, group2, cancellationToken);
+
+        if (hierarchy1 is null && hierarchy2 is null)
+        {
+            return (true, null);
+        }
+
+        if (hierarchy1 is null && hierarchy2 is not null)
+        {
+            return (true, hierarchy2);
+        }
+
+        if (hierarchy1 is not null && hierarchy2 is null)
+        {
+            return (true, hierarchy1);
+        }
+
+        // are groups siblings?
+        if (hierarchy1?.ParentGroup == hierarchy2?.ParentGroup)
+        {
+            return (true, hierarchy1);
+        }
+
+        return (false, null);
+    }
+
+    private static bool IsGroupAutomaticallyCreated(TagSynonymsGroup existingGroup)
+        => existingGroup.Name.EndsWith(DefaultGroupSuffix, StringComparison.CurrentCulture);
+
+    private async Task<OneOf<None, ErrorResponse>> AddSynonymSimple(TagBase tagBase, string groupName, CancellationToken cancellationToken)
+    {
+        var (synonymsGroup, justCreated) = await EnsureGroupExists(groupName, cancellationToken);
+
+        if (!justCreated && synonymsGroup.Synonyms.Contains(tagBase))
+        {
+            return new ErrorResponse($"The tag {tagBase} is already in synonyms group {synonymsGroup}");
+        }
+
+        synonymsGroup.Synonyms.Add(tagBase);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new None();
+    }
+
+    private async Task<(TagSynonymsGroup Group, bool JustCreated)> EnsureGroupExists(string groupName, CancellationToken cancellationToken)
+    {
+        var synonymsGroup = await _dbContext.TagSynonymsGroups
+            .Include(group => group.Synonyms)
+            .FirstOrDefaultAsync(group => group.Name == groupName, cancellationToken);
+
+        if (synonymsGroup is not null) return (synonymsGroup, false);
+
+        synonymsGroup = new TagSynonymsGroup { Name = groupName, Synonyms = new List<TagBase>() };
+
+        // _logger.LogInformation("Creating new synonym group with the name {SynonymGroupName}", groupName);
+        var entry = await _dbContext.TagSynonymsGroups.AddAsync(synonymsGroup, cancellationToken);
+        _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (entry.Entity, true);
+    }
+
+    private async Task<TagSynonymsGroup> CreateDefaultGroup(TagBase tag, CancellationToken cancellationToken)
+    {
+        var tagSynonymsGroup = new TagSynonymsGroup { Name = $"{tag.FormattedName}_{DefaultGroupSuffix}", Synonyms = new List<TagBase> { tag } };
+        var entry = await _dbContext.TagSynonymsGroups.AddAsync(tagSynonymsGroup, cancellationToken);
+        _ = _dbContext.SaveChangesAsync(cancellationToken);
+
+        return entry.Entity;
+    }
+
     private async Task<(TagsHierarchy? Hierarchy1, TagsHierarchy? Hierarchy2)> GetHierarchies(
         TagSynonymsGroup group1,
         TagSynonymsGroup group2,
@@ -335,10 +362,5 @@ public class AssociationManager : IAssociationManager
         return tagBases[0].FormattedName == childTag.FormattedName
             ? (tagBases[0], tagBases[1])
             : (tagBases[1], tagBases[0]);
-    }
-
-    public Task<OneOf<None, ErrorResponse>> RemoveChild(TagBase child, TagBase parent, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
     }
 }

@@ -69,49 +69,54 @@ public class TagService : Backend.TagService.TagServiceBase
             context.CancellationToken);
     }
 
-    // todo: rename to AddTagsAssociation
-    public override async Task<UpsertTagsAssociationReply> UpsertTagsAssociation(UpsertTagsAssociationRequest request, ServerCallContext context)
+    public override async Task<AddSynonymReply> AddSynonym(AddSynonymRequest request, ServerCallContext context)
     {
-        // var command = new Commands.UpsertTagsAssociationRequest
-        // {
-        //     FirstTag = _tagMapper.MapFromDto(request.FirstTag),
-        //     SecondTag = _tagMapper.MapFromDto(request.SecondTag),
-        //     AssociationType = request.AssociationType switch
-        //     {
-        //         AssociationType.Synonyms => Models.AssociationType.Synonyms,
-        //         AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
-        //         _ => throw new UnreachableException()
-        //     }
-        // };
-        //
-        // var response = await _mediator.Send(command, context.CancellationToken);
-        //
-        // return response.Match(
-        //     s => new UpsertTagsAssociationReply { SuccessMessage = s },
-        //     errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
-        return new UpsertTagsAssociationReply();
+        var command = new Commands.AddSynonymRequest { GroupName = request.GroupName, Tag = _tagMapper.MapFromDto(request.Tag) };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            s => new AddSynonymReply { SuccessMessage = s },
+            errorResponse => new AddSynonymReply { Error = new Error { Message = errorResponse.Message } });
     }
 
-    public override async Task<RemoveTagsAssociationReply> RemoveTagsAssociation(RemoveTagsAssociationRequest request, ServerCallContext context)
+    public override async Task<RemoveSynonymReply> RemoveSynonym(RemoveSynonymRequest request, ServerCallContext context)
     {
-        // // var command = new RemoveTagsAssociationCommand
-        // // {
-        // //     FirstTag = _tagMapper.MapFromDto(request.FirstTag),
-        // //     SecondTag = _tagMapper.MapFromDto(request.SecondTag),
-        // //     AssociationType = request.AssociationType switch
-        // //     {
-        // //         AssociationType.Synonyms => Models.AssociationType.Synonyms,
-        // //         AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
-        // //         _ => throw new UnreachableException()
-        // //     }
-        // // };
-        //
-        // var response = await _mediator.Send(command, context.CancellationToken);
-        //
-        // return response.Match(
-        //     _ => new RemoveTagsAssociationReply { SuccessMessage = "success" },
-        //     errorResponse => new RemoveTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
-        return new RemoveTagsAssociationReply();
+        var command = new Commands.RemoveSynonymRequest { GroupName = request.GroupName, Tag = _tagMapper.MapFromDto(request.Tag) };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            s => new RemoveSynonymReply { SuccessMessage = s },
+            errorResponse => new RemoveSynonymReply { Error = new Error { Message = errorResponse.Message } });
+    }
+
+    public override async Task<AddChildReply> AddChild(AddChildRequest request, ServerCallContext context)
+    {
+        var command = new Commands.AddChildRequest
+        {
+            ChildTag = _tagMapper.MapFromDto(request.ChildTag), ParentTag = _tagMapper.MapFromDto(request.ParentTag)
+        };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            s => new AddChildReply { SuccessMessage = s },
+            errorResponse => new AddChildReply { Error = new Error { Message = errorResponse.Message } });
+    }
+
+    public override async Task<RemoveChildReply> RemoveChild(RemoveChildRequest request, ServerCallContext context)
+    {
+        var command = new Commands.RemoveChildRequest
+        {
+            ChildTag = _tagMapper.MapFromDto(request.ChildTag), ParentTag = _tagMapper.MapFromDto(request.ParentTag)
+        };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            s => new RemoveChildReply { SuccessMessage = s },
+            errorResponse => new RemoveChildReply { Error = new Error { Message = errorResponse.Message } });
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
@@ -387,7 +392,8 @@ public class TagService : Backend.TagService.TagServiceBase
     }
 
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
-        => requestConvention switch
+    {
+        return requestConvention switch
         {
             NamingConvention.None => Models.Options.NamingConvention.Unchanged,
             NamingConvention.CamelCase => Models.Options.NamingConvention.CamelCase,
@@ -396,13 +402,16 @@ public class TagService : Backend.TagService.TagServiceBase
             NamingConvention.SnakeCase => Models.Options.NamingConvention.SnakeCase,
             _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
         };
+    }
 
     private static QuerySegmentState MapQuerySegmentState(GetItemsByTagsRequest.Types.TagQueryParam tagQueryParam)
-        => tagQueryParam.State switch
+    {
+        return tagQueryParam.State switch
         {
             GetItemsByTagsRequest.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
             GetItemsByTagsRequest.Types.QuerySegmentState.Include => QuerySegmentState.Include,
             GetItemsByTagsRequest.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
             _ => throw new UnreachableException()
         };
+    }
 }

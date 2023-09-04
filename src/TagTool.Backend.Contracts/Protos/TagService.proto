@@ -18,10 +18,14 @@ service TagService {
 
   // Get tag synonyms groups with every base tag in hierarchy, e.g. (Cat, Pussy) -> Animal, Creature
   rpc GetAllTagsAssociations (GetAllTagsAssociationsRequest) returns (stream GetAllTagsAssociationsReply);
-  // Inserts new or updates existing tag association, which describes additional relation between tags.
-  rpc UpsertTagsAssociation (UpsertTagsAssociationRequest) returns (UpsertTagsAssociationReply);
-  // Removes tags association.
-  rpc RemoveTagsAssociation (RemoveTagsAssociationRequest) returns (RemoveTagsAssociationReply);
+  // Add new synonym, which describes additional relation between tags.
+  rpc AddSynonym (AddSynonymRequest) returns (AddSynonymReply);
+  // Removes synonym.
+  rpc RemoveSynonym (RemoveSynonymRequest) returns (RemoveSynonymReply);
+  // Adds a child-parent relation between synonyms groups.
+  rpc AddChild (AddChildRequest) returns (AddChildReply);
+  // Removes a relation between synonyms groups.
+  rpc RemoveChild (RemoveChildRequest) returns (RemoveChildReply);
 
   // Tags an item.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
@@ -101,32 +105,48 @@ message GetAllTagsAssociationsReply {
   repeated google.protobuf.Any higherTags = 2;
 }
 
-
-enum AssociationType {
-  Synonyms = 0;
-  IsSubtype = 1;
+message AddSynonymRequest {
+  google.protobuf.Any tag = 1;
+  string groupName = 2;
 }
 
-message UpsertTagsAssociationRequest {
-  google.protobuf.Any firstTag = 1;
-  google.protobuf.Any secondTag = 2;
-  AssociationType associationType = 3;
-}
-
-message UpsertTagsAssociationReply {
+message AddSynonymReply {
   oneof result {
     string successMessage = 1;
     Error error = 2;
   }
 }
 
-message RemoveTagsAssociationRequest {
-  google.protobuf.Any firstTag = 1;
-  google.protobuf.Any secondTag = 2;
-  AssociationType associationType = 3;
+message RemoveSynonymRequest {
+  google.protobuf.Any tag = 1;
+  string groupName = 2;
 }
 
-message RemoveTagsAssociationReply {
+message RemoveSynonymReply {
+  oneof result {
+    string successMessage = 1;
+    Error error = 2;
+  }
+}
+
+message AddChildRequest {
+  google.protobuf.Any childTag = 1;
+  google.protobuf.Any parentTag = 2;
+}
+
+message AddChildReply {
+  oneof result {
+    string successMessage = 1;
+    Error error = 2;
+  }
+}
+
+message RemoveChildRequest {
+  google.protobuf.Any childTag = 1;
+  google.protobuf.Any parentTag = 2;
+}
+
+message RemoveChildReply {
   oneof result {
     string successMessage = 1;
     Error error = 2;
