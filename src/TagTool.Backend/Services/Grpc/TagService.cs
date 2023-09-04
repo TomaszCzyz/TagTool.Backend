@@ -69,46 +69,49 @@ public class TagService : Backend.TagService.TagServiceBase
             context.CancellationToken);
     }
 
+    // todo: rename to AddTagsAssociation
     public override async Task<UpsertTagsAssociationReply> UpsertTagsAssociation(UpsertTagsAssociationRequest request, ServerCallContext context)
     {
-        var command = new Commands.UpsertTagsAssociationRequest
-        {
-            FirstTag = _tagMapper.MapFromDto(request.FirstTag),
-            SecondTag = _tagMapper.MapFromDto(request.SecondTag),
-            AssociationType = request.AssociationType switch
-            {
-                AssociationType.Synonyms => Models.AssociationType.Synonyms,
-                AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
-                _ => throw new UnreachableException()
-            }
-        };
-
-        var response = await _mediator.Send(command, context.CancellationToken);
-
-        return response.Match(
-            s => new UpsertTagsAssociationReply { SuccessMessage = s },
-            errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
+        // var command = new Commands.UpsertTagsAssociationRequest
+        // {
+        //     FirstTag = _tagMapper.MapFromDto(request.FirstTag),
+        //     SecondTag = _tagMapper.MapFromDto(request.SecondTag),
+        //     AssociationType = request.AssociationType switch
+        //     {
+        //         AssociationType.Synonyms => Models.AssociationType.Synonyms,
+        //         AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
+        //         _ => throw new UnreachableException()
+        //     }
+        // };
+        //
+        // var response = await _mediator.Send(command, context.CancellationToken);
+        //
+        // return response.Match(
+        //     s => new UpsertTagsAssociationReply { SuccessMessage = s },
+        //     errorResponse => new UpsertTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
+        return new UpsertTagsAssociationReply();
     }
 
     public override async Task<RemoveTagsAssociationReply> RemoveTagsAssociation(RemoveTagsAssociationRequest request, ServerCallContext context)
     {
-        var command = new RemoveTagsAssociationCommand
-        {
-            FirstTag = _tagMapper.MapFromDto(request.FirstTag),
-            SecondTag = _tagMapper.MapFromDto(request.SecondTag),
-            AssociationType = request.AssociationType switch
-            {
-                AssociationType.Synonyms => Models.AssociationType.Synonyms,
-                AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
-                _ => throw new UnreachableException()
-            }
-        };
-
-        var response = await _mediator.Send(command, context.CancellationToken);
-
-        return response.Match(
-            _ => new RemoveTagsAssociationReply { SuccessMessage = "success" },
-            errorResponse => new RemoveTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
+        // // var command = new RemoveTagsAssociationCommand
+        // // {
+        // //     FirstTag = _tagMapper.MapFromDto(request.FirstTag),
+        // //     SecondTag = _tagMapper.MapFromDto(request.SecondTag),
+        // //     AssociationType = request.AssociationType switch
+        // //     {
+        // //         AssociationType.Synonyms => Models.AssociationType.Synonyms,
+        // //         AssociationType.IsSubtype => Models.AssociationType.IsSubtype,
+        // //         _ => throw new UnreachableException()
+        // //     }
+        // // };
+        //
+        // var response = await _mediator.Send(command, context.CancellationToken);
+        //
+        // return response.Match(
+        //     _ => new RemoveTagsAssociationReply { SuccessMessage = "success" },
+        //     errorResponse => new RemoveTagsAssociationReply { Error = new Error { Message = errorResponse.Message } });
+        return new RemoveTagsAssociationReply();
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)

@@ -68,7 +68,8 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
     public IEnumerable<TagBase> GetImplicitTags(TaggableItem taggableItem)
     {
         var itemDependentTags = GetItemDependentTags(taggableItem);
-        var associatedTags = GetAssociatedTags(taggableItem.Tags.Concat(itemDependentTags));
+        // var associatedTags = GetAssociatedTags(taggableItem.Tags.Concat(itemDependentTags));
+        var associatedTags = Enumerable.Empty<TagBase>();
 
         return taggableItem.Tags.Concat(itemDependentTags).Concat(associatedTags);
     }
@@ -85,12 +86,12 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
         return _dbContext.Tags.Where(tagBase => newTags.Select(@base => @base.FormattedName).Contains(tagBase.FormattedName));
     }
 
-    private IEnumerable<TagBase> GetAssociatedTags(IEnumerable<TagBase> tags)
-        => tags
-            .Select(tag => _dbContext.Associations
-                .Include(associations => associations.Descriptions)
-                .ThenInclude(tagAssociation => tagAssociation.Tag)
-                .FirstOrDefault(assoc => assoc.Tag == tag))
-            .Where(tagsAssociation => tagsAssociation is not null)
-            .SelectMany(tagsAssociation => tagsAssociation!.Descriptions, (_, association) => association.Tag);
+    // private IEnumerable<TagBase> GetAssociatedTags(IEnumerable<TagBase> tags)
+    //     => tags
+    //         .Select(tag => _dbContext.Associations
+    //             .Include(associations => associations.Descriptions)
+    //             .ThenInclude(tagAssociation => tagAssociation.Tag)
+    //             .FirstOrDefault(assoc => assoc.Tag == tag))
+    //         .Where(tagsAssociation => tagsAssociation is not null)
+    //         .SelectMany(tagsAssociation => tagsAssociation!.Descriptions, (_, association) => association.Tag);
 }

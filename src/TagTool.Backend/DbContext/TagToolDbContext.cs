@@ -11,13 +11,9 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<TextTag> NormalTags => Set<TextTag>();
 
-    public DbSet<TagSynonymsGroup> TagSynonymsGroup => Set<TagSynonymsGroup>();
+    public DbSet<TagSynonymsGroup> TagSynonymsGroups => Set<TagSynonymsGroup>();
 
     public DbSet<TagsHierarchy> TagsHierarchy => Set<TagsHierarchy>();
-
-    public DbSet<TagAssociations> Associations => Set<TagAssociations>();
-
-    public DbSet<AssociationDescription> AssociationDescriptions => Set<AssociationDescription>();
 
     public DbSet<TaggableItem> TaggedItems => Set<TaggableItem>();
 
