@@ -115,9 +115,10 @@ public class TestHelper
 
         await foreach (var reply in streamingCall.ResponseStream.ReadAllAsync())
         {
-            var t1 = string.Join(", ", reply.TagSynonymsGroup.Select(any => _mapper.MapFromDto(any).FormattedName));
-            var t2 = string.Join(", ", reply.HigherTags.Select(any => _mapper.MapFromDto(any).FormattedName));
-            _testOutputHelper.WriteLine($"{t1}\n{t2}");
+            var t1 = string.Join(", ", reply.TagsInGroup.Select(any => _mapper.MapFromDto(any).FormattedName));
+            var t2 = string.Join(", ", reply.ParentGroupNames);
+            _testOutputHelper.WriteLine($"group '{reply.GroupName}':\t\t{t1}");
+            _testOutputHelper.WriteLine($"\t\tancestors:  {t2}");
         }
     }
 

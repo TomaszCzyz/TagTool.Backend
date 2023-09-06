@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
+using TreeCollections;
 
 namespace TagTool.Backend.Services;
 
@@ -17,6 +20,8 @@ namespace TagTool.Backend.Services;
 /// <remarks>We assume that provided tag always exists. Providing non existing tag will cause exception</remarks>
 public interface IAssociationManager
 {
+    public record GroupDescription(string GroupName, ICollection<TagBase> GroupTags, IList<string> GroupAncestors);
+
     Task<OneOf<None, ErrorResponse>> AddSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
 
     Task<OneOf<None, ErrorResponse>> RemoveSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
@@ -24,6 +29,8 @@ public interface IAssociationManager
     Task<OneOf<None, ErrorResponse>> AddChild(TagBase childTag, TagBase parentTag, CancellationToken cancellationToken);
 
     Task<OneOf<None, ErrorResponse>> RemoveChild(TagBase child, TagBase parent, CancellationToken cancellationToken);
+
+    IAsyncEnumerable<GroupDescription> GetAllRelations(CancellationToken cancellationToken);
 }
 
 public class AssociationManager : IAssociationManager
@@ -45,7 +52,8 @@ public class AssociationManager : IAssociationManager
                 $"Cannot manually add tag to group with name ending with '{DefaultGroupSuffix}', as it is reserved for internal use.");
         }
 
-        var groupWithRequestedTag = await _dbContext.TagSynonymsGroups.FirstOrDefaultAsync(group => group.Synonyms.Contains(tag), cancellationToken);
+        var groupWithRequestedTag = await _dbContext.TagSynonymsGroups.Include(tagSynonymsGroup => tagSynonymsGroup.Synonyms)
+            .FirstOrDefaultAsync(group => group.Synonyms.Contains(tag), cancellationToken);
 
         if (groupWithRequestedTag is null)
         {
@@ -70,6 +78,7 @@ public class AssociationManager : IAssociationManager
 
         if (!canBeMerged)
         {
+            // Reverse creating new group
             _dbContext.TagSynonymsGroups.Remove(synonymsGroup);
             _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -77,17 +86,24 @@ public class AssociationManager : IAssociationManager
                 $"Tag {tag} already belongs to the group {groupWithRequestedTag}, which cannot be merge into group {synonymsGroup}");
         }
 
-        // merge [group_Temp] into requested group
-        _dbContext.TagSynonymsGroups.Remove(groupWithRequestedTag);
-        synonymsGroup.Synonyms.Add(tag);
-
-        // preserve hierarchy, if exists.
-        if (hierarchy?.ChildGroups.Contains(synonymsGroup) == false)
+        var mergedGroup = new TagSynonymsGroup
         {
-            hierarchy.ChildGroups.Add(synonymsGroup);
-        }
+            Name = synonymsGroup.Name, Synonyms = synonymsGroup.Synonyms.Concat(groupWithRequestedTag.Synonyms).ToList()
+        };
 
+        // Replace two group with new one, containing tags from both.
+        hierarchy?.ChildGroups.Remove(synonymsGroup);
+        hierarchy?.ChildGroups.Remove(groupWithRequestedTag);
+
+        _dbContext.TagSynonymsGroups.Remove(synonymsGroup);
+        _dbContext.TagSynonymsGroups.Remove(groupWithRequestedTag);
+
+        await _dbContext.TagSynonymsGroups.AddAsync(mergedGroup, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        hierarchy?.ChildGroups.Add(mergedGroup);
         _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
         return new None();
     }
 
@@ -159,6 +175,7 @@ public class AssociationManager : IAssociationManager
 
                 // UPDATE
                 var tagsHierarchy = await _dbContext.TagsHierarchy
+                    .Include(hierarchy => hierarchy.ChildGroups)
                     .FirstOrDefaultAsync(hierarchy => hierarchy.ParentGroup == parentTagGroup, cancellationToken);
 
                 if (tagsHierarchy is not null)
@@ -235,6 +252,110 @@ public class AssociationManager : IAssociationManager
         _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
         return new None();
+    }
+
+    public async IAsyncEnumerable<IAssociationManager.GroupDescription> GetAllRelations([EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var relationTree = await BuildRelationsTree(cancellationToken);
+
+        foreach (var group in relationTree)
+        {
+            // relationTree.SelectDescendants().Select(node => node.Item.Name);
+            if (group.IsRoot) continue;
+
+            var groupName = group.Item.Name;
+            var tagsInGroup = group.Item.Synonyms;
+            var ancestorsNames = group
+                .SelectAncestorsUpward()
+                .Where(node => !node.IsRoot)
+                .Select(node => node.Item.Name)
+                .ToList();
+
+            yield return new IAssociationManager.GroupDescription(groupName, tagsInGroup, ancestorsNames);
+        }
+    }
+
+    private class RootTagSynonymsGroup : TagSynonymsGroup
+    {
+    }
+
+    private async Task<MutableEntityTreeNode<int, TagSynonymsGroup>> BuildRelationsTree(CancellationToken cancellationToken)
+    {
+        var rootNode = new RootTagSynonymsGroup { Id = -1, Name = "", Synonyms = Array.Empty<TagBase>() };
+        var groupsTree = new MutableEntityTreeNode<int, TagSynonymsGroup>(c => c.Id, rootNode);
+
+        var hierarchies = await _dbContext.TagsHierarchy
+            .Include(tagsHierarchy => tagsHierarchy.ParentGroup)
+            .Include(tagsHierarchy => tagsHierarchy.ChildGroups)
+            .ToArrayAsync(cancellationToken);
+
+        var asAsyncEnumerable = _dbContext.TagSynonymsGroups
+            .Include(group => group.Synonyms)
+            .AsAsyncEnumerable();
+
+        await foreach (var group in asAsyncEnumerable.WithCancellation(cancellationToken))
+        {
+            var hierarchy = Array.Find(hierarchies, hierarchy => hierarchy.ParentGroup == group || hierarchy.ChildGroups.Contains(group));
+            if (hierarchy is null)
+            {
+                groupsTree.AddChild(group);
+            }
+            else
+            {
+                // Check if parent of this hierarchy is already a part of the tree.
+                // If it is, then add group as child. Otherwise add it to root.
+                var parentGroupNode = groupsTree.FirstOrDefault(node => node.Item == hierarchy.ParentGroup);
+                if (parentGroupNode is not null)
+                {
+                    parentGroupNode.AddChild(group);
+                }
+                else
+                {
+                    groupsTree.AddChild(group);
+                }
+
+                AdjustTree(groupsTree, hierarchies);
+            }
+        }
+
+        return groupsTree;
+    }
+
+    /// <summary>
+    ///     Checks if nodes temporarily attached to root can be moved to correct parent. 
+    /// </summary>
+    /// <param name="groupsTree"></param>
+    /// <param name="hierarchies"></param>
+    private static void AdjustTree(MutableEntityTreeNode<int, TagSynonymsGroup> groupsTree, TagsHierarchy[] hierarchies)
+    {
+        foreach (var groupNode in groupsTree.Children.ToArray())
+        {
+            // If there is parent of the group present in a tree, then move group to the parent
+            if (HasParent(groupNode, hierarchies, out var hierarchy))
+            {
+                var parentGroup = groupsTree.FirstOrDefault(node => node.Item == hierarchy.ParentGroup);
+                if (parentGroup is not null)
+                {
+                    groupNode.MoveToParent(parentGroup.Id);
+                }
+            }
+        }
+    }
+
+    private static bool HasParent(
+        MutableEntityTreeNode<int, TagSynonymsGroup> groupNode,
+        TagsHierarchy[] hierarchies,
+        [NotNullWhen(true)] out TagsHierarchy? tagsHierarchy)
+    {
+        var elem = Array.Find(hierarchies, hierarchy => hierarchy.ChildGroups.Contains(groupNode.Item));
+        if (elem is null)
+        {
+            tagsHierarchy = null;
+            return false;
+        }
+
+        tagsHierarchy = elem;
+        return true;
     }
 
     /// <summary>

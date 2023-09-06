@@ -1,64 +1,37 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using TagTool.Backend.DbContext;
-using TagTool.Backend.Models;
+﻿using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
+using MediatR;
 using TagTool.Backend.Models.Tags;
+using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Queries;
 
-public class GetAllTagsAssociationsQuery : IQuery<(TagBase[] Synonyms, TagBase[] HigherTags)>
+public class GetAllTagsAssociationsQuery : IStreamRequest<IAssociationManager.GroupDescription>
 {
     public required TagBase TagBase { get; init; }
 }
 
 [UsedImplicitly]
-public class GetAllTagsAssociations : IQueryHandler<GetAllTagsAssociationsQuery, (TagBase[], TagBase[])>
+public class GetAllTagsAssociations : IStreamRequestHandler<GetAllTagsAssociationsQuery, IAssociationManager.GroupDescription>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly IAssociationManager _associationManager;
 
-    public GetAllTagsAssociations(TagToolDbContext dbContext)
+    public GetAllTagsAssociations(IAssociationManager associationManager)
     {
-        _dbContext = dbContext;
+        _associationManager = associationManager;
     }
 
-    public async Task<(TagBase[], TagBase[])> Handle(GetAllTagsAssociationsQuery request, CancellationToken cancellationToken)
+    public async IAsyncEnumerable<IAssociationManager.GroupDescription> Handle(
+        GetAllTagsAssociationsQuery request,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
-        // if (request.TagBase is null) throw new NotImplementedException();
+        if (request.TagBase is null) throw new NotImplementedException();
 
-        // var tagBase = _dbContext.Tags.First(@base => @base.FormattedName == request.TagBase.FormattedName);
-        //
-        // var tagAssociations = await _dbContext.Associations
-        //     .Include(associations => associations.Tag)
-        //     .Include(associations => associations.Descriptions)
-        //     .ThenInclude(description => description.Tag)
-        //     .FirstAsync(associations => associations.Tag == tagBase, cancellationToken);
-        //
-        // var tagSynonyms = tagAssociations.Descriptions.Where(d => d.AssociationType == Models.AssociationType.Synonyms).Select(d => d.Tag);
-        // var higherTags = await FindHigherTags(tagAssociations, cancellationToken);
-        //
-        // return (tagSynonyms.ToArray(), higherTags.ToArray());
+        var allRelations = _associationManager.GetAllRelations(cancellationToken);
+
+        await foreach (var groupDescription in allRelations)
+        {
+            yield return groupDescription;
+        }
     }
-
-    // private async Task<IEnumerable<TagBase>> FindHigherTags(TagAssociations tagAssociations, CancellationToken cancellationToken)
-    // {
-    //     var results = new List<TagBase>();
-    //
-    //     foreach (var description in tagAssociations.Descriptions.Where(d => d.AssociationType == Models.AssociationType.IsSubtype))
-    //     {
-    //         results.Add(description.Tag);
-    //
-    //         var innerTagAssociations = await _dbContext.Associations
-    //             .Include(associations => associations.Tag)
-    //             .Include(associations => associations.Descriptions)
-    //             .ThenInclude(d => d.Tag)
-    //             .FirstOrDefaultAsync(associations => associations.Tag == description.Tag, cancellationToken);
-    //
-    //         if (innerTagAssociations is null) continue;
-    //
-    //         results.AddRange(await FindHigherTags(innerTagAssociations, cancellationToken));
-    //     }
-    //
-    //     return results;
-    // }
 }

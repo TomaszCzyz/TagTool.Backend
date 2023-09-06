@@ -59,14 +59,18 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var query = new GetAllTagsAssociationsQuery { TagBase = _tagMapper.MapFromDto(request.Tag) };
 
-        var response = await _mediator.Send(query, context.CancellationToken);
+        var asyncEnumerable = _mediator.CreateStream(query, context.CancellationToken);
 
-        var synonyms = response.Synonyms.Select(@base => _tagMapper.MapToDto(@base));
-        var higherTags = response.HigherTags.Select(@base => _tagMapper.MapToDto(@base));
-
-        await responseStream.WriteAsync(
-            new GetAllTagsAssociationsReply { TagSynonymsGroup = { synonyms }, HigherTags = { higherTags } },
-            context.CancellationToken);
+        await foreach (var groupDescription in asyncEnumerable)
+        {
+            await responseStream.WriteAsync(
+                new GetAllTagsAssociationsReply
+                {
+                    GroupName = groupDescription.GroupName,
+                    TagsInGroup = { groupDescription.GroupTags.Select(tagBase => _tagMapper.MapToDto(tagBase)) },
+                    ParentGroupNames = { groupDescription.GroupAncestors },
+                });
+        }
     }
 
     public override async Task<AddSynonymReply> AddSynonym(AddSynonymRequest request, ServerCallContext context)

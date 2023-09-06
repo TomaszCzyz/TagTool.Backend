@@ -101,8 +101,12 @@ message GetAllTagsAssociationsRequest {
 }
 
 message GetAllTagsAssociationsReply {
-  repeated google.protobuf.Any tagSynonymsGroup = 1;
-  repeated google.protobuf.Any higherTags = 2;
+  // The name of group described in the current message
+  string groupName = 1;
+  // The group of synonyms (equivalent tags).
+  repeated google.protobuf.Any tagsInGroup = 2;
+  // All parent groups.
+  repeated string parentGroupNames = 3;
 }
 
 message AddSynonymRequest {
