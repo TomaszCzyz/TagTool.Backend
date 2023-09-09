@@ -57,7 +57,7 @@ public class TagService : Backend.TagService.TagServiceBase
         IServerStreamWriter<GetAllTagsAssociationsReply> responseStream,
         ServerCallContext context)
     {
-        var query = new GetAllTagsAssociationsQuery { TagBase = _tagMapper.MapFromDto(request.Tag) };
+        var query = new GetAllTagsAssociationsQuery { TagBase = request.Tag is not null ? _tagMapper.MapFromDto(request.Tag) : null };
 
         var asyncEnumerable = _mediator.CreateStream(query, context.CancellationToken);
 

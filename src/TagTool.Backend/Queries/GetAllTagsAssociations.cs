@@ -8,7 +8,7 @@ namespace TagTool.Backend.Queries;
 
 public class GetAllTagsAssociationsQuery : IStreamRequest<IAssociationManager.GroupDescription>
 {
-    public required TagBase TagBase { get; init; }
+    public required TagBase? TagBase { get; init; }
 }
 
 [UsedImplicitly]
@@ -25,7 +25,7 @@ public class GetAllTagsAssociations : IStreamRequestHandler<GetAllTagsAssociatio
         GetAllTagsAssociationsQuery request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if (request.TagBase is null) throw new NotImplementedException();
+        if (request.TagBase is not null) throw new NotImplementedException();
 
         var allRelations = _associationManager.GetAllRelations(cancellationToken);
 
