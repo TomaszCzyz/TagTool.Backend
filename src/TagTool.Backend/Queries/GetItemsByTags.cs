@@ -20,7 +20,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
         _dbContext = dbContext;
     }
 
-    public Task<IEnumerable<TaggableItem>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<TaggableItem>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
     {
         var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
@@ -28,14 +28,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
             .Include(taggedItemBase => taggedItemBase.Tags)
             .AsQueryable();
 
-        if (splittedTags.TryGetValue(QuerySegmentState.MustBePresent, out var mustByPresentTags))
-        {
-            taggedItems = taggedItems
-                .Where(item => item.Tags
-                    .Select(tagBase => tagBase.FormattedName)
-                    .Any(tag => mustByPresentTags.Contains(tag)));
-        }
-        else if (splittedTags.TryGetValue(QuerySegmentState.Include, out var included))
+        if (splittedTags.TryGetValue(QuerySegmentState.Include, out var included))
         {
             taggedItems = taggedItems
                 .Where(item => item.Tags
@@ -51,7 +44,17 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
                     .Any(tag => excluded.Contains(tag)));
         }
 
-        return Task.FromResult<IEnumerable<TaggableItem>>(taggedItems.ToArray());
+        // Inner predicate cannot be translated by EF Core, so as a temporary workaround I will filter the results on a client side. 
+        if (splittedTags.TryGetValue(QuerySegmentState.MustBePresent, out var mustByPresentTags))
+        {
+            var taggedItemsFiltered = await taggedItems.ToListAsync(cancellationToken);
+
+            return taggedItemsFiltered
+                .Where(item => mustByPresentTags
+                    .All(mustTag => item.Tags.Select(tagBase => tagBase.FormattedName).Contains(mustTag)));
+        }
+
+        return await taggedItems.ToArrayAsync(cancellationToken);
     }
 
     private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request)
