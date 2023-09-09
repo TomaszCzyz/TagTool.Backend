@@ -17,7 +17,10 @@ public static class WordMatchExtensions
 
         foreach (var match in wordMatches.OrderByDescending(match => match.Word.Length))
         {
-            if (flags[match.Index]) continue;
+            if (flags[match.Index])
+            {
+                continue;
+            }
 
             Array.Fill(flags, true, match.Index, match.Word.Length);
             yield return match;

@@ -96,17 +96,15 @@ public class CommonStorage : ICommonStorage
     {
         var options = new EnumerationOptions { IgnoreInaccessible = true };
 
-        string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
-        bool ShouldInclude(ref FileSystemEntry entry) => entry.Length == fileInfo.Length;
-
         var rootFolder = Path.Join(_commonStorageOptions.Files, Path.GetExtension(fileInfo.Name));
 
-        var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options)
-        {
-            ShouldIncludePredicate = ShouldInclude
-        };
+        var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options) { ShouldIncludePredicate = ShouldInclude };
 
         return fileSystemEnumerable;
+
+        string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
+
+        bool ShouldInclude(ref FileSystemEntry entry) => entry.Length == fileInfo.Length;
     }
 
     // todo: it can take a while... change logic to background process?... 
@@ -119,16 +117,14 @@ public class CommonStorage : ICommonStorage
             MaxRecursionDepth = 5
         };
 
-        string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
-        bool ShouldInclude(ref FileSystemEntry entry) => entry.Length == fileInfo.Length;
-
         var rootFolder = _commonStorageOptions.Directories;
 
-        var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options)
-        {
-            ShouldIncludePredicate = ShouldInclude
-        };
+        var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options) { ShouldIncludePredicate = ShouldInclude };
 
         return fileSystemEnumerable;
+
+        string FindTransform(ref FileSystemEntry entry) => entry.ToFullPath();
+
+        bool ShouldInclude(ref FileSystemEntry entry) => entry.Length == fileInfo.Length;
     }
 }

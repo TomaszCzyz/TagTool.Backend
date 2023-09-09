@@ -21,11 +21,11 @@ public abstract class TagDtoMapper<TTag, TDto> : ITagFromDtoMapper, ITagToDtoMap
     where TTag : TagBase
     where TDto : IMessage
 {
-    protected abstract TTag MapFromDto(TDto dto);
-
-    protected abstract TDto MapToDto(TTag tag);
-
     public TagBase FromDto(IMessage dto) => MapFromDto((TDto)dto);
 
     public IMessage ToDto(TagBase tag) => MapToDto((TTag)tag);
+
+    protected abstract TTag MapFromDto(TDto dto);
+
+    protected abstract TDto MapToDto(TTag tag);
 }

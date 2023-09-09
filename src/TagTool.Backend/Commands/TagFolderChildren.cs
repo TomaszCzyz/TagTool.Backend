@@ -58,7 +58,10 @@ public class TagFolderChildren : ICommandHandler<TagFolderChildrenRequest, OneOf
 
         foreach (var info in dirInfo.EnumerateFileSystemInfos("*", enumerationOptions))
         {
-            if (info is DirectoryInfo && request.TagFilesOnly) continue;
+            if (info is DirectoryInfo && request.TagFilesOnly)
+            {
+                continue;
+            }
 
             var tagItemRequest = new TagItemRequest
             {

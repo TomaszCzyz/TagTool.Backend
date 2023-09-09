@@ -37,7 +37,11 @@ public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRe
         var counter = 0;
         await foreach (var tag in queryable.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
-            if (counter == request.ResultsLimit) break;
+            if (counter == request.ResultsLimit)
+            {
+                break;
+            }
+
             counter++;
 
             var matchedPart = new TextSlice(0, tag.FormattedName.IndexOf(request.Value.Last()));

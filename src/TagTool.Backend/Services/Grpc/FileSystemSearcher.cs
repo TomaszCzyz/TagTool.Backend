@@ -22,7 +22,11 @@ public class FileSystemSearcher : SearchService.SearchServiceBase
         IServerStreamWriter<SearchReply> responseStream,
         ServerCallContext context)
     {
-        if (!await requestStream.MoveNext(context.CancellationToken)) return;
+        if (!await requestStream.MoveNext(context.CancellationToken))
+        {
+            return;
+        }
+
         var firstRequest = requestStream.Current;
 
         var streamRequest = MapToSearchRequest(firstRequest);

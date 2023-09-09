@@ -58,7 +58,10 @@ public class UntagFolderChildren : ICommandHandler<UntagFolderChildrenRequest, O
 
         foreach (var info in dirInfo.EnumerateFileSystemInfos("*", enumerationOptions))
         {
-            if (info is DirectoryInfo && request.TagFilesOnly) continue;
+            if (info is DirectoryInfo && request.TagFilesOnly)
+            {
+                continue;
+            }
 
             var untagItemRequest = new UntagItemRequest
             {

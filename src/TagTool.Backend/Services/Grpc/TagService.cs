@@ -68,7 +68,7 @@ public class TagService : Backend.TagService.TagServiceBase
                 {
                     GroupName = groupDescription.GroupName,
                     TagsInGroup = { groupDescription.GroupTags.Select(tagBase => _tagMapper.MapToDto(tagBase)) },
-                    ParentGroupNames = { groupDescription.GroupAncestors },
+                    ParentGroupNames = { groupDescription.GroupAncestors }
                 });
         }
     }
@@ -307,7 +307,9 @@ public class TagService : Backend.TagService.TagServiceBase
             var dto = _tagMapper.MapToDto(tag);
             var matchTagsReply = new SearchTagsReply
             {
-                Tag = dto, MatchedPart = { matchedParts }, IsExactMatch = matchedParts[0].Length == tag.FormattedName.Length
+                Tag = dto,
+                MatchedPart = { matchedParts },
+                IsExactMatch = matchedParts[0].Length == tag.FormattedName.Length
             };
 
             await responseStream.WriteAsync(matchTagsReply, context.CancellationToken);
@@ -396,8 +398,7 @@ public class TagService : Backend.TagService.TagServiceBase
     }
 
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
-    {
-        return requestConvention switch
+        => requestConvention switch
         {
             NamingConvention.None => Models.Options.NamingConvention.Unchanged,
             NamingConvention.CamelCase => Models.Options.NamingConvention.CamelCase,
@@ -406,16 +407,13 @@ public class TagService : Backend.TagService.TagServiceBase
             NamingConvention.SnakeCase => Models.Options.NamingConvention.SnakeCase,
             _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
         };
-    }
 
     private static QuerySegmentState MapQuerySegmentState(GetItemsByTagsRequest.Types.TagQueryParam tagQueryParam)
-    {
-        return tagQueryParam.State switch
+        => tagQueryParam.State switch
         {
             GetItemsByTagsRequest.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
             GetItemsByTagsRequest.Types.QuerySegmentState.Include => QuerySegmentState.Include,
             GetItemsByTagsRequest.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
             _ => throw new UnreachableException()
         };
-    }
 }

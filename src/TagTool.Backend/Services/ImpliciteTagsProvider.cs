@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TagTool.Backend.DbContext;
+﻿using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
 
@@ -16,7 +15,7 @@ public interface IImplicitTagsProvider
 }
 
 /// <summary>
-///     Returns tags that should be added to <see cref="TaggableItem"/>.
+///     Returns tags that should be added to <see cref="TaggableItem" />.
 ///     Pipeline looks like this:
 ///     1. Get tags that depend on TaggableItem type.
 ///     2. Get tags that are associated with already added tags.
@@ -44,6 +43,15 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
         EnsureTagsExist();
     }
 
+    public IEnumerable<TagBase> GetImplicitTags(TaggableItem taggableItem)
+    {
+        var itemDependentTags = GetItemDependentTags(taggableItem);
+        // var associatedTags = GetAssociatedTags(taggableItem.Tags.Concat(itemDependentTags));
+        var associatedTags = Enumerable.Empty<TagBase>();
+
+        return taggableItem.Tags.Concat(itemDependentTags).Concat(associatedTags);
+    }
+
     private void EnsureTagsExist()
     {
         var dictTagNames = _extensionsToTagsMap.Values
@@ -63,15 +71,6 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
 
         _dbContext.Tags.AddRange(newTags);
         _dbContext.SaveChanges();
-    }
-
-    public IEnumerable<TagBase> GetImplicitTags(TaggableItem taggableItem)
-    {
-        var itemDependentTags = GetItemDependentTags(taggableItem);
-        // var associatedTags = GetAssociatedTags(taggableItem.Tags.Concat(itemDependentTags));
-        var associatedTags = Enumerable.Empty<TagBase>();
-
-        return taggableItem.Tags.Concat(itemDependentTags).Concat(associatedTags);
     }
 
     private IQueryable<TagBase> GetItemDependentTags(TaggableItem taggableItem)

@@ -12,6 +12,7 @@ namespace TagTool.Backend.Tests.Unit.Mappers;
 
 public class TagMapperTests
 {
+    private static readonly TypeRegistry? _typeRegistry = TypeRegistry.FromFiles(TypeTag.Descriptor.File);
     private readonly ITagMapper _tagMapper;
 
     public TagMapperTests()
@@ -47,8 +48,6 @@ public class TagMapperTests
         // Assert
         tagBase.Should().BeOfType<ItemTypeTag>().Which.Type.Should().Be(type);
     }
-
-    private static readonly TypeRegistry? _typeRegistry = TypeRegistry.FromFiles(TypeTag.Descriptor.File);
 
     private static IMessage UnpackHelper(Any anyTag) => anyTag.Unpack(_typeRegistry);
 

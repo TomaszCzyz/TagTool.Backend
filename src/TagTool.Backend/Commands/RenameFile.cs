@@ -13,10 +13,7 @@ public class RenameFileRequest : ICommand<OneOf<string, ErrorResponse>>, IRevers
     public required string NewFileName { get; init; }
 
     public IReversible GetReverse()
-        => new RenameFileRequest
-        {
-            NewFileName = Path.GetFileName(FullPath), FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, NewFileName)
-        };
+        => new RenameFileRequest { NewFileName = Path.GetFileName(FullPath), FullPath = Path.Combine(Path.GetDirectoryName(FullPath)!, NewFileName) };
 }
 
 [UsedImplicitly]

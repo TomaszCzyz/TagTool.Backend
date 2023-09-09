@@ -88,7 +88,10 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)
     {
-        if (e.Entry.Entity is not IHasTimestamps entityWithTimestamps) return;
+        if (e.Entry.Entity is not IHasTimestamps entityWithTimestamps)
+        {
+            return;
+        }
 
         switch (e.Entry.State)
         {

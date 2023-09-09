@@ -32,7 +32,10 @@ public sealed class TagBaseDeconstructPolicy : IDestructuringPolicy
 {
     public bool TryDestructure(object value, ILogEventPropertyValueFactory propertyValueFactory, [UnscopedRef] out LogEventPropertyValue result)
     {
-        if (value == null) throw new ArgumentNullException(nameof(value));
+        if (value == null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
 
         if (value is not TagBase tag)
         {
@@ -41,7 +44,7 @@ public sealed class TagBaseDeconstructPolicy : IDestructuringPolicy
         }
 
         var projected = new { tag.Id, tag.FormattedName };
-        result = propertyValueFactory.CreatePropertyValue(projected, destructureObjects: true);
+        result = propertyValueFactory.CreatePropertyValue(projected, true);
         return true;
     }
 }

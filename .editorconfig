@@ -155,7 +155,7 @@ csharp_style_conditional_delegate_call = true:warning
 # Modifier preferences
 csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async:warning
 # Expression-level preferences
-csharp_prefer_braces = when_multiline:warning
+csharp_prefer_braces = true:warning
 csharp_style_deconstructed_variable_declaration = true:warning
 csharp_prefer_simple_default_expression = true:warning
 csharp_style_pattern_local_over_anonymous_function = true:warning
@@ -173,7 +173,7 @@ csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimenta
 csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
 csharp_style_allow_embedded_statements_on_same_line_experimental = true
 csharp_place_attribute_on_same_line = never
-csharp_max_initializer_elements_on_line = 3
+csharp_max_initializer_elements_on_line = 2
 # File-scoped namespace
 csharp_style_namespace_declarations = file_scoped:warning
 

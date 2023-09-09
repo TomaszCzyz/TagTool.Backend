@@ -55,12 +55,18 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
     {
         var implicitTags = _implicitTagsProvider.GetImplicitTags(taggableItem).ToArray();
 
-        if (implicitTags.Length == 0) return;
+        if (implicitTags.Length == 0)
+        {
+            return;
+        }
 
         _logger.LogInformation("Tagging item {@TaggedItem} with implicit tags {@Tags}", taggableItem, implicitTags);
         foreach (var tag in implicitTags)
         {
-            if (taggableItem.Tags.Select(@base => @base.FormattedName).Contains(tag.FormattedName)) continue;
+            if (taggableItem.Tags.Select(@base => @base.FormattedName).Contains(tag.FormattedName))
+            {
+                continue;
+            }
 
             taggableItem.Tags.Add(tag);
         }

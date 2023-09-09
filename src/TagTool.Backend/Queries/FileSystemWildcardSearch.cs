@@ -30,8 +30,7 @@ public class FileSystemWildcardSearch : IStreamRequestHandler<FileSystemWildcard
     {
         _logger.LogInformation("Starting file system wildcard search with params {@Request}", request);
 
-        bool IsMatch(ref FileSystemEntry entry)
-            => FileSystemName.MatchesSimpleExpression(request.Value.AsSpan(), entry.FileName, request.IgnoreCase);
+        bool IsMatch(ref FileSystemEntry entry) => FileSystemName.MatchesSimpleExpression(request.Value.AsSpan(), entry.FileName, request.IgnoreCase);
 
         var enumeration = _systemEnumerableFactory.Create(request, IsMatch);
 

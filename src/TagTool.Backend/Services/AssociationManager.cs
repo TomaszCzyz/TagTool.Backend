@@ -20,8 +20,6 @@ namespace TagTool.Backend.Services;
 /// <remarks>We assume that provided tag always exists. Providing non existing tag will cause exception</remarks>
 public interface IAssociationManager
 {
-    public record GroupDescription(string GroupName, ICollection<TagBase> GroupTags, IList<string> GroupAncestors);
-
     Task<OneOf<None, ErrorResponse>> AddSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
 
     Task<OneOf<None, ErrorResponse>> RemoveSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
@@ -31,6 +29,8 @@ public interface IAssociationManager
     Task<OneOf<None, ErrorResponse>> RemoveChild(TagBase child, TagBase parent, CancellationToken cancellationToken);
 
     IAsyncEnumerable<GroupDescription> GetAllRelations(CancellationToken cancellationToken);
+
+    public record GroupDescription(string GroupName, ICollection<TagBase> GroupTags, IList<string> GroupAncestors);
 }
 
 public class AssociationManager : IAssociationManager
@@ -238,7 +238,7 @@ public class AssociationManager : IAssociationManager
             .FirstOrDefaultAsync(
                 hierarchy => hierarchy.ParentGroup.Synonyms.Contains(parent)
                              && hierarchy.ChildGroups.Any(group => group.Synonyms.Contains(child)),
-                cancellationToken: cancellationToken);
+                cancellationToken);
 
         if (hierarchy is null)
         {
@@ -261,7 +261,10 @@ public class AssociationManager : IAssociationManager
         foreach (var group in relationTree)
         {
             // relationTree.SelectDescendants().Select(node => node.Item.Name);
-            if (group.IsRoot) continue;
+            if (group.IsRoot)
+            {
+                continue;
+            }
 
             var groupName = group.Item.Name;
             var tagsInGroup = group.Item.Synonyms;
@@ -275,13 +278,14 @@ public class AssociationManager : IAssociationManager
         }
     }
 
-    private class RootTagSynonymsGroup : TagSynonymsGroup
-    {
-    }
-
     private async Task<MutableEntityTreeNode<int, TagSynonymsGroup>> BuildRelationsTree(CancellationToken cancellationToken)
     {
-        var rootNode = new RootTagSynonymsGroup { Id = -1, Name = "", Synonyms = Array.Empty<TagBase>() };
+        var rootNode = new RootTagSynonymsGroup
+        {
+            Id = -1,
+            Name = "",
+            Synonyms = Array.Empty<TagBase>()
+        };
         var groupsTree = new MutableEntityTreeNode<int, TagSynonymsGroup>(c => c.Id, rootNode);
 
         var hierarchies = await _dbContext.TagsHierarchy
@@ -322,7 +326,7 @@ public class AssociationManager : IAssociationManager
     }
 
     /// <summary>
-    ///     Checks if nodes temporarily attached to root can be moved to correct parent. 
+    ///     Checks if nodes temporarily attached to root can be moved to correct parent.
     /// </summary>
     /// <param name="groupsTree"></param>
     /// <param name="hierarchies"></param>
@@ -419,7 +423,10 @@ public class AssociationManager : IAssociationManager
             .Include(group => group.Synonyms)
             .FirstOrDefaultAsync(group => group.Name == groupName, cancellationToken);
 
-        if (synonymsGroup is not null) return (synonymsGroup, false);
+        if (synonymsGroup is not null)
+        {
+            return (synonymsGroup, false);
+        }
 
         synonymsGroup = new TagSynonymsGroup { Name = groupName, Synonyms = new List<TagBase>() };
 
@@ -484,5 +491,9 @@ public class AssociationManager : IAssociationManager
         return tagBases[0].FormattedName == childTag.FormattedName
             ? (tagBases[0], tagBases[1])
             : (tagBases[1], tagBases[0]);
+    }
+
+    private class RootTagSynonymsGroup : TagSynonymsGroup
+    {
     }
 }

@@ -15,11 +15,18 @@ using TagTool.Backend.Models.Tags;
 using TagTool.Backend.Services;
 using TagTool.Backend.Services.Grpc;
 
-var builder = WebApplication.CreateBuilder(args); // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
+// todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((_, configuration) =>
     configuration
-        .Destructure.ByTransforming<TextTag>(tag => new { tag.Id, tag.Text, TaggedItemCount = tag.TaggedItems.Count }) // order matters
+        .Destructure.ByTransforming<TextTag>(tag
+            => new
+            {
+                tag.Id,
+                tag.Text,
+                TaggedItemCount = tag.TaggedItems.Count
+            }) // order 'Destructure' matters
         .Destructure.With<TagBaseDeconstructPolicy>()
         .Destructure.ByTransforming<TaggableItem>(item => new { ItemId = item.Id, Tags = item.Tags.Names() })
         .MinimumLevel.Information()

@@ -28,12 +28,19 @@ public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardReques
         SearchTagsWildcardRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if (request.Value != "*") throw new NotImplementedException();
+        if (request.Value != "*")
+        {
+            throw new NotImplementedException();
+        }
 
         var counter = 0;
         await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
-            if (counter == request.ResultsLimit) break;
+            if (counter == request.ResultsLimit)
+            {
+                break;
+            }
+
             counter++;
 
             yield return (tag, new[] { new TextSlice(0, tag.FormattedName.Length) });

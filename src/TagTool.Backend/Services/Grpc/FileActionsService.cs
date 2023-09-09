@@ -56,8 +56,7 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             errorResponse => new MoveFileReply { ErrorMessage = errorResponse.Message });
     }
 
-    public override Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context)
-        => throw new NotImplementedException();
+    public override Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context) => throw new NotImplementedException();
 
     public override async Task<OpenFileReply> OpenFile(OpenFileRequest request, ServerCallContext context)
     {

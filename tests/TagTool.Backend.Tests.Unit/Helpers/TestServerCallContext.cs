@@ -8,16 +8,6 @@ public sealed class TestServerCallContext : ServerCallContext
 
     public Metadata? ResponseHeaders { get; private set; }
 
-    private TestServerCallContext(Metadata requestHeaders, CancellationToken cancellationToken)
-    {
-        RequestHeadersCore = requestHeaders;
-        CancellationTokenCore = cancellationToken;
-        DeadlineCore = DateTime.Now.AddHours(1);
-        ResponseTrailersCore = new Metadata();
-        AuthContextCore = new AuthContext(string.Empty, new Dictionary<string, List<AuthProperty>>());
-        _userState = new Dictionary<object, object>();
-    }
-
     protected override string MethodCore => "MethodName";
     protected override string HostCore => "HostName";
     protected override string PeerCore => "PeerName";
@@ -31,8 +21,17 @@ public sealed class TestServerCallContext : ServerCallContext
 
     protected override IDictionary<object, object> UserStateCore => _userState;
 
-    protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
-        => throw new NotImplementedException();
+    private TestServerCallContext(Metadata requestHeaders, CancellationToken cancellationToken)
+    {
+        RequestHeadersCore = requestHeaders;
+        CancellationTokenCore = cancellationToken;
+        DeadlineCore = DateTime.Now.AddHours(1);
+        ResponseTrailersCore = new Metadata();
+        AuthContextCore = new AuthContext(string.Empty, new Dictionary<string, List<AuthProperty>>());
+        _userState = new Dictionary<object, object>();
+    }
+
+    protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options) => throw new NotImplementedException();
 
     protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
     {

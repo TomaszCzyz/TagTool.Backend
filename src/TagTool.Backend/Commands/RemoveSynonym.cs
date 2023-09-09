@@ -40,7 +40,10 @@ public class RemoveSynonym : ICommandHandler<RemoveSynonymRequest, OneOf<string,
     {
         var tagBase = await _dbContext.Tags.FirstOrDefaultAsync(t => t.FormattedName == tag.FormattedName, cancellationToken);
 
-        if (tagBase is not null) return tagBase;
+        if (tagBase is not null)
+        {
+            return tagBase;
+        }
 
         var entry = await _dbContext.Tags.AddAsync(tag, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);

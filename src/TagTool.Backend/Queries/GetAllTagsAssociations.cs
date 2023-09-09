@@ -25,7 +25,10 @@ public class GetAllTagsAssociations : IStreamRequestHandler<GetAllTagsAssociatio
         GetAllTagsAssociationsQuery request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if (request.TagBase is not null) throw new NotImplementedException();
+        if (request.TagBase is not null)
+        {
+            throw new NotImplementedException();
+        }
 
         var allRelations = _associationManager.GetAllRelations(cancellationToken);
 

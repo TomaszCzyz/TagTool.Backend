@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using OneOf.Types;
 using TagTool.Backend.DbContext;
-using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
 using TagTool.Backend.Services;
 using Xunit;
@@ -37,6 +36,12 @@ public class AssociationManagerTests : IDisposable
         _dbContextMock.SaveChanges();
     }
 
+    public void Dispose()
+    {
+        _dbContextMock.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     [Fact]
     public async Task AddChild_ValidRequest_Correct()
     {
@@ -66,11 +71,5 @@ public class AssociationManagerTests : IDisposable
 
         // Assert
         // var mutableEntityTreeNode = associationManager.Root;
-    }
-
-    public void Dispose()
-    {
-        _dbContextMock.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

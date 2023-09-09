@@ -28,14 +28,12 @@ public class ItemTypeTag : TagBase
 public class ItemTypeTagMapper : TagDtoMapper<ItemTypeTag, TypeTag>
 {
     protected override ItemTypeTag MapFromDto(TypeTag dto)
-    {
-        return dto.Type switch
+        => dto.Type switch
         {
             nameof(TaggableFile) => new ItemTypeTag { Type = typeof(TaggableFile) },
             nameof(TaggableFolder) => new ItemTypeTag { Type = typeof(TaggableFolder) },
             _ => throw new NotSupportedException($"TypeTag {dto} contains unknown type of taggable item")
         };
-    }
 
     protected override TypeTag MapToDto(ItemTypeTag tag) => new() { Type = tag.Type.Name };
 }

@@ -34,8 +34,6 @@ public class CustomFileSystemEnumerableFactory : ICustomFileSystemEnumerableFact
             MaxRecursionDepth = requestBase.Depth
         };
 
-        (string FullPath, bool IsMatch) FindTransform(ref FileSystemEntry entry) => (entry.ToFullPath(), isMatch(ref entry));
-
         return
             new FileSystemEnumerable<(string FullPath, bool IsMatch)>(requestBase.Root, FindTransform, options)
             {
@@ -50,12 +48,17 @@ public class CustomFileSystemEnumerableFactory : ICustomFileSystemEnumerableFact
 
                         var excludedPaths = requestBase.ExcludePaths;
 
-                        if (!IsExcluded(excludedPaths, entry)) return true;
+                        if (!IsExcluded(excludedPaths, entry))
+                        {
+                            return true;
+                        }
 
                         logger.LogDebug("Skipping enumerating of folder {EntryFullPath}", entry.ToFullPath());
                         return false;
                     }
             };
+
+        (string FullPath, bool IsMatch) FindTransform(ref FileSystemEntry entry) => (entry.ToFullPath(), isMatch(ref entry));
     }
 
     private static bool IsExcluded(IEnumerable<string> excludedPaths, FileSystemEntry entry)

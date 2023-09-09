@@ -20,7 +20,10 @@ public class CommandsHistory : ICommandsHistory
 
     public IReversible? GetUndoCommand()
     {
-        if (!_undoCommands.TryPop(out var undoCommand)) return null;
+        if (!_undoCommands.TryPop(out var undoCommand))
+        {
+            return null;
+        }
 
         _redoCommands.Push(undoCommand.GetReverse());
 
@@ -29,7 +32,10 @@ public class CommandsHistory : ICommandsHistory
 
     public IReversible? GetRedoCommand()
     {
-        if (!_redoCommands.TryPop(out var redoCommand)) return null;
+        if (!_redoCommands.TryPop(out var redoCommand))
+        {
+            return null;
+        }
 
         _undoCommands.Push(redoCommand.GetReverse());
 

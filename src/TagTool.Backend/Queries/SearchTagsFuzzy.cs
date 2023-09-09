@@ -36,7 +36,10 @@ public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (Ta
         var counter = 0;
         await foreach (var tag in _dbContext.Tags.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
-            if (counter == request.ResultsLimit) break;
+            if (counter == request.ResultsLimit)
+            {
+                break;
+            }
 
             var tagName = tag.FormattedName[(tag.FormattedName.IndexOf(':') + 1)..];
 
@@ -47,7 +50,10 @@ public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (Ta
                 .OrderByDescending(match => match.Length)
                 .ToArray();
 
-            if (textSlices.Length == 0) continue;
+            if (textSlices.Length == 0)
+            {
+                continue;
+            }
 
             results.Add((tag, textSlices));
             counter++;
