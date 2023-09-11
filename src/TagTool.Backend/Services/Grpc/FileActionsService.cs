@@ -56,7 +56,16 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             errorResponse => new MoveFileReply { ErrorMessage = errorResponse.Message });
     }
 
-    public override Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context) => throw new NotImplementedException();
+    public override async Task<DeleteFileReply> DeleteFile(DeleteFileRequest request, ServerCallContext context)
+    {
+        var command = new Commands.DeleteFileRequest { Path = request.File.Path };
+
+        var response = await _mediator.Send(command, context.CancellationToken);
+
+        return response.Match(
+            successResponse => new DeleteFileReply { DeletedFileFullName = successResponse.NewPath },
+            errorResponse => new DeleteFileReply { ErrorMessage = errorResponse.Message });
+    }
 
     public override async Task<OpenFileReply> OpenFile(OpenFileRequest request, ServerCallContext context)
     {

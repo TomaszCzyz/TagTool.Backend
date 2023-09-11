@@ -30,6 +30,7 @@ public class CommonStoragePathProvider : ICommonStoragePathProvider
         _options = options.Value;
         Directory.CreateDirectory(_options.Files);
         Directory.CreateDirectory(_options.Directories);
+        Directory.CreateDirectory(_options.TrashDir);
     }
 
     /// <summary>

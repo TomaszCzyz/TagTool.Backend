@@ -1,8 +1,10 @@
 ﻿using System.IO.Enumeration;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OneOf;
 using OneOf.Types;
+using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Options;
 
@@ -13,6 +15,8 @@ public record CommonStorageInfo(string Path, string? SimilarFiles);
 public interface ICommonStorage
 {
     OneOf<CommonStorageInfo, ErrorResponse> GetPath(string fullName, bool overwrite);
+
+    Task<OneOf<string, ErrorResponse>> MoveFileToTrash(string fullName, CancellationToken cancellationToken);
 }
 
 [UsedImplicitly]
@@ -21,19 +25,74 @@ public class CommonStorage : ICommonStorage
     private readonly ILogger<CommonStorage> _logger;
     private readonly CommonStorageOptions _commonStorageOptions;
     private readonly ICommonStoragePathProvider _commonStoragePathProvider;
+    private readonly TagToolDbContext _dbContext;
 
     public CommonStorage(
         ILogger<CommonStorage> logger,
         ICommonStoragePathProvider commonStoragePathProvider,
-        IOptions<CommonStorageOptions> commonStorageOptions)
+        IOptions<CommonStorageOptions> commonStorageOptions,
+        TagToolDbContext dbContext)
     {
         _commonStoragePathProvider = commonStoragePathProvider;
+        _dbContext = dbContext;
         _logger = logger;
         _commonStorageOptions = commonStorageOptions.Value;
     }
 
     public OneOf<CommonStorageInfo, ErrorResponse> GetPath(string fullName, bool overwrite)
         => Directory.Exists(fullName) ? CanStoreFolder(fullName, overwrite) : GetPathForFile(fullName, overwrite);
+
+    public async Task<OneOf<string, ErrorResponse>> MoveFileToTrash(string fullName, CancellationToken cancellationToken)
+    {
+        var fileName = Path.GetFileName(fullName);
+        var newFullPath = Path.Join(_commonStorageOptions.TrashDir, fileName);
+        if (File.Exists(newFullPath))
+        {
+            newFullPath = Path.Join(_commonStorageOptions.TrashDir, $"{fileName}{Guid.NewGuid()}");
+        }
+
+        var moveResult = Move(fullName, newFullPath);
+
+        if (moveResult.TryPickT1(out var errorResponse, out _))
+        {
+            return errorResponse;
+        }
+
+        var taggedItem = await _dbContext.TaggableFiles.FirstOrDefaultAsync(file => file.Path == fullName, cancellationToken);
+
+        if (taggedItem is not null)
+        {
+            newFullPath = await UpdateItem(taggedItem, newFullPath, cancellationToken);
+        }
+
+        return newFullPath;
+    }
+
+    private OneOf<string, ErrorResponse> Move(string oldFullPath, string newFullPath)
+    {
+        try
+        {
+            File.Move(oldFullPath, newFullPath);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Unable to move file from {OldPath} to {NewPath}", oldFullPath, newFullPath);
+            return new ErrorResponse($"Unable to move a file from \"{oldFullPath}\" to \"{newFullPath}\".");
+        }
+
+        return newFullPath;
+    }
+
+    private async Task<string> UpdateItem(TaggableFile taggedItem, string newFullPath, CancellationToken cancellationToken)
+    {
+        taggedItem.Path = newFullPath;
+
+        var entityEntry = _dbContext.TaggableFiles.Update(taggedItem);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return entityEntry.Entity.Path;
+    }
 
     private OneOf<CommonStorageInfo, ErrorResponse> CanStoreFolder(string fullName, bool overwrite)
     {
