@@ -6,6 +6,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Extensions.Logging;
+using Serilog.Formatting.Compact;
 using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
@@ -34,10 +35,13 @@ builder.Host.UseSerilog((_, configuration) =>
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
         .Enrich.WithExceptionDetails()
+        .WriteTo.File(
+            new CompactJsonFormatter(),
+            $"{Constants.BasePath}/Logs/logs.json",
+            rollingInterval: RollingInterval.Day)
         .WriteTo.Console(
             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}]{NewLine} {Message:lj}{NewLine}{Exception}",
-            formatProvider: CultureInfo.CurrentCulture)
-        .WriteTo.SQLite(Constants.LogsDbPath, formatProvider: CultureInfo.CurrentCulture, storeTimestampInUtc: true, batchSize: 20));
+            formatProvider: CultureInfo.CurrentCulture));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
 
@@ -51,7 +55,7 @@ builder.Services.AddTagDtoMappers(typeof(Program));
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
-builder.Services.AddScoped<IAssociationManager, AssociationManager>();
+builder.Services.AddScoped<ITagsRelationsManager, TagsRelationsManager>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
