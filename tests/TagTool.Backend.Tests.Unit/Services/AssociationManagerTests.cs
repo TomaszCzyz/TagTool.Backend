@@ -12,7 +12,7 @@ namespace TagTool.Backend.Tests.Unit.Services;
 
 public class AssociationManagerTests : IDisposable
 {
-    private readonly Mock<ILogger<AssociationManager>> _loggerMock = new();
+    private readonly Mock<ILogger<ITagsRelationsManager>> _loggerMock = new();
     private readonly TagToolDbContext _dbContextMock;
 
     public AssociationManagerTests()
@@ -46,7 +46,7 @@ public class AssociationManagerTests : IDisposable
     public async Task AddChild_ValidRequest_Correct()
     {
         // Arrange
-        var associationManager = new AssociationManager(_dbContextMock);
+        var associationManager = new TagsRelationsManager(_dbContextMock);
 
         // Act
         _ = await associationManager.AddChild(new TextTag { Text = "Cat" }, new TextTag { Text = "Animal" }, CancellationToken.None);
@@ -67,7 +67,7 @@ public class AssociationManagerTests : IDisposable
         // Arrange
 
         // Act
-        var associationManager = new AssociationManager(_dbContextMock);
+        var associationManager = new TagsRelationsManager(_dbContextMock);
 
         // Assert
         // var mutableEntityTreeNode = associationManager.Root;

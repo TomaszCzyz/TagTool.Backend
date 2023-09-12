@@ -45,22 +45,17 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
         _logger.LogInformation("Tagging item {@TaggedItem} with tag {@Tags}", taggableItem, tag);
         taggableItem.Tags.Add(tag);
 
-        AddImplicitTags(taggableItem);
+        await AddImplicitTags(taggableItem, cancellationToken);
+        _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
         return taggableItem;
     }
 
-    private void AddImplicitTags(TaggableItem taggableItem)
+    private async Task AddImplicitTags(TaggableItem taggableItem, CancellationToken cancellationToken)
     {
-        var implicitTags = _implicitTagsProvider.GetImplicitTags(taggableItem).ToArray();
+        var implicitTags = await _implicitTagsProvider.GetImplicitTags(taggableItem, cancellationToken);
 
-        if (implicitTags.Length == 0)
-        {
-            return;
-        }
-
-        _logger.LogInformation("Tagging item {@TaggedItem} with implicit tags {@Tags}", taggableItem, implicitTags);
+        _logger.LogInformation("Tagging item {@TaggedItem} with implicit tags {@Tags}...", taggableItem, implicitTags);
         foreach (var tag in implicitTags)
         {
             if (taggableItem.Tags.Select(@base => @base.FormattedName).Contains(tag.FormattedName))

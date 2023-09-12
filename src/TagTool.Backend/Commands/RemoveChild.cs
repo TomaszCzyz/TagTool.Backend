@@ -18,12 +18,12 @@ public class RemoveChildRequest : ICommand<OneOf<string, ErrorResponse>>
 [UsedImplicitly]
 public class RemoveChild : ICommandHandler<RemoveChildRequest, OneOf<string, ErrorResponse>>
 {
-    private readonly IAssociationManager _associationManager;
+    private readonly ITagsRelationsManager _tagsRelationsManager;
     private readonly TagToolDbContext _dbContext;
 
-    public RemoveChild(IAssociationManager associationManager, TagToolDbContext dbContext)
+    public RemoveChild(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
     {
-        _associationManager = associationManager;
+        _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;
     }
 
@@ -31,7 +31,7 @@ public class RemoveChild : ICommandHandler<RemoveChildRequest, OneOf<string, Err
     {
         var (childTag, parentTag) = await GetOrCreateTags(request.ChildTag, request.ParentTag, cancellationToken);
 
-        var addChild = await _associationManager.RemoveChild(childTag, parentTag, cancellationToken);
+        var addChild = await _tagsRelationsManager.RemoveChild(childTag, parentTag, cancellationToken);
 
         return addChild.Match(_ => "successfully removed child", response => response.Message);
     }

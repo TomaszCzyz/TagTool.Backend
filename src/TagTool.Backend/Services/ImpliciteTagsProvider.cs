@@ -1,4 +1,5 @@
-﻿using TagTool.Backend.DbContext;
+﻿using Microsoft.EntityFrameworkCore;
+using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
 
@@ -11,7 +12,7 @@ public interface IImplicitTagsProvider
     /// </summary>
     /// <param name="taggableItem">Existing entity with correct id</param>
     /// <returns>Tags that should be added to item</returns>
-    IEnumerable<TagBase> GetImplicitTags(TaggableItem taggableItem);
+    Task<IEnumerable<TagBase>> GetImplicitTags(TaggableItem taggableItem, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -34,20 +35,21 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
             { ".doc", new TagBase[] { new TextTag { Text = "DOC" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" } } }
         };
 
+    private readonly ITagsRelationsManager _tagsRelationsManager;
     private readonly TagToolDbContext _dbContext;
 
-    public ImplicitTagsProvider(TagToolDbContext dbContext)
+    public ImplicitTagsProvider(TagToolDbContext dbContext, ITagsRelationsManager tagsRelationsManager)
     {
         _dbContext = dbContext;
+        _tagsRelationsManager = tagsRelationsManager;
 
         EnsureTagsExist();
     }
 
-    public IEnumerable<TagBase> GetImplicitTags(TaggableItem taggableItem)
+    public async Task<IEnumerable<TagBase>> GetImplicitTags(TaggableItem taggableItem, CancellationToken cancellationToken)
     {
         var itemDependentTags = GetItemDependentTags(taggableItem);
-        // var associatedTags = GetAssociatedTags(taggableItem.Tags.Concat(itemDependentTags));
-        var associatedTags = Enumerable.Empty<TagBase>();
+        var associatedTags = await GetAssociatedTags(taggableItem.Tags.Concat(itemDependentTags), cancellationToken);
 
         return taggableItem.Tags.Concat(itemDependentTags).Concat(associatedTags);
     }
@@ -85,12 +87,27 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
         return _dbContext.Tags.Where(tagBase => newTags.Select(@base => @base.FormattedName).Contains(tagBase.FormattedName));
     }
 
-    // private IEnumerable<TagBase> GetAssociatedTags(IEnumerable<TagBase> tags)
-    //     => tags
-    //         .Select(tag => _dbContext.Associations
-    //             .Include(associations => associations.Descriptions)
-    //             .ThenInclude(tagAssociation => tagAssociation.Tag)
-    //             .FirstOrDefault(assoc => assoc.Tag == tag))
-    //         .Where(tagsAssociation => tagsAssociation is not null)
-    //         .SelectMany(tagsAssociation => tagsAssociation!.Descriptions, (_, association) => association.Tag);
+    private async Task<IEnumerable<TagBase>> GetAssociatedTags(IEnumerable<TagBase> tags, CancellationToken cancellationToken)
+    {
+        var tagsToAdd = new List<TagBase>();
+        var ancestorGroupNames = new List<string>();
+        foreach (var tag in tags)
+        {
+            var tagRelations = _tagsRelationsManager.GetRelations(tag, cancellationToken);
+
+            await foreach (var groupDescription in tagRelations)
+            {
+                tagsToAdd.AddRange(groupDescription.GroupTags);
+                ancestorGroupNames.AddRange(groupDescription.GroupAncestors);
+            }
+        }
+
+        var tagFromAncestorGroups = await _dbContext.TagSynonymsGroups
+            .Include(group => group.Synonyms)
+            .Where(group => ancestorGroupNames.Contains(group.Name))
+            .SelectMany(group => group.Synonyms)
+            .ToListAsync(cancellationToken);
+
+        return tagsToAdd.Concat(tagFromAncestorGroups);
+    }
 }

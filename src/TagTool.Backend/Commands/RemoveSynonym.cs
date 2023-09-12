@@ -18,12 +18,12 @@ public class RemoveSynonymRequest : ICommand<OneOf<string, ErrorResponse>>
 [UsedImplicitly]
 public class RemoveSynonym : ICommandHandler<RemoveSynonymRequest, OneOf<string, ErrorResponse>>
 {
-    private readonly IAssociationManager _associationManager;
+    private readonly ITagsRelationsManager _tagsRelationsManager;
     private readonly TagToolDbContext _dbContext;
 
-    public RemoveSynonym(IAssociationManager associationManager, TagToolDbContext dbContext)
+    public RemoveSynonym(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
     {
-        _associationManager = associationManager;
+        _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;
     }
 
@@ -31,7 +31,7 @@ public class RemoveSynonym : ICommandHandler<RemoveSynonymRequest, OneOf<string,
     {
         var tagBase = await GetOrCreateTag(request.Tag, cancellationToken);
 
-        var removeSynonym = await _associationManager.RemoveSynonym(tagBase, request.GroupName, cancellationToken);
+        var removeSynonym = await _tagsRelationsManager.RemoveSynonym(tagBase, request.GroupName, cancellationToken);
 
         return removeSynonym.Match(_ => "successfully removed synonym", response => response.Message);
     }

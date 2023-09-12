@@ -18,12 +18,12 @@ public class AddChildRequest : ICommand<OneOf<string, ErrorResponse>>
 [UsedImplicitly]
 public class AddChild : ICommandHandler<AddChildRequest, OneOf<string, ErrorResponse>>
 {
-    private readonly IAssociationManager _associationManager;
+    private readonly ITagsRelationsManager _tagsRelationsManager;
     private readonly TagToolDbContext _dbContext;
 
-    public AddChild(IAssociationManager associationManager, TagToolDbContext dbContext)
+    public AddChild(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
     {
-        _associationManager = associationManager;
+        _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;
     }
 
@@ -31,7 +31,7 @@ public class AddChild : ICommandHandler<AddChildRequest, OneOf<string, ErrorResp
     {
         var (childTag, parentTag) = await GetOrCreateTags(request.ChildTag, request.ParentTag, cancellationToken);
 
-        var addChild = await _associationManager.AddChild(childTag, parentTag, cancellationToken);
+        var addChild = await _tagsRelationsManager.AddChild(childTag, parentTag, cancellationToken);
 
         return addChild.Match(_ => "successfully added child", response => response.Message);
     }

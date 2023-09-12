@@ -18,7 +18,7 @@ namespace TagTool.Backend.Services;
 ///     should not be accessed only from classes implementing this interface.
 /// </summary>
 /// <remarks>We assume that provided tag always exists. Providing non existing tag will cause exception</remarks>
-public interface IAssociationManager
+public interface ITagsRelationsManager
 {
     Task<OneOf<None, ErrorResponse>> AddSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
 
@@ -28,18 +28,18 @@ public interface IAssociationManager
 
     Task<OneOf<None, ErrorResponse>> RemoveChild(TagBase child, TagBase parent, CancellationToken cancellationToken);
 
-    IAsyncEnumerable<GroupDescription> GetAllRelations(CancellationToken cancellationToken);
+    IAsyncEnumerable<GroupDescription> GetRelations(TagBase? tag, CancellationToken cancellationToken);
 
     public record GroupDescription(string GroupName, ICollection<TagBase> GroupTags, IList<string> GroupAncestors);
 }
 
-public class AssociationManager : IAssociationManager
+public class TagsRelationsManager : ITagsRelationsManager
 {
     private const string DefaultGroupSuffix = "TempGroup";
 
     private readonly TagToolDbContext _dbContext;
 
-    public AssociationManager(TagToolDbContext dbContext)
+    public TagsRelationsManager(TagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -254,28 +254,42 @@ public class AssociationManager : IAssociationManager
         return new None();
     }
 
-    public async IAsyncEnumerable<IAssociationManager.GroupDescription> GetAllRelations([EnumeratorCancellation] CancellationToken cancellationToken)
+    public async IAsyncEnumerable<ITagsRelationsManager.GroupDescription> GetRelations(
+        TagBase? tag,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var relationTree = await BuildRelationsTree(cancellationToken);
 
-        foreach (var group in relationTree)
+        if (tag is not null)
         {
-            // relationTree.SelectDescendants().Select(node => node.Item.Name);
-            if (group.IsRoot)
+            var requestedTagGroup = relationTree.FirstOrDefault(node => node.Item.Synonyms.Contains(tag));
+            if (requestedTagGroup is null)
             {
-                continue;
+                yield break;
             }
 
-            var groupName = group.Item.Name;
-            var tagsInGroup = group.Item.Synonyms;
-            var ancestorsNames = group
-                .SelectAncestorsUpward()
-                .Where(node => !node.IsRoot)
-                .Select(node => node.Item.Name)
-                .ToList();
-
-            yield return new IAssociationManager.GroupDescription(groupName, tagsInGroup, ancestorsNames);
+            yield return CreateGroupDescription(requestedTagGroup);
         }
+        else
+        {
+            foreach (var group in relationTree.Where(node => !node.IsRoot))
+            {
+                yield return CreateGroupDescription(group);
+            }
+        }
+    }
+
+    private static ITagsRelationsManager.GroupDescription CreateGroupDescription(MutableEntityTreeNode<int, TagSynonymsGroup> group)
+    {
+        var groupName = group.Item.Name;
+        var tagsInGroup = group.Item.Synonyms;
+        var ancestorsNames = group
+            .SelectAncestorsUpward()
+            .Where(node => !node.IsRoot)
+            .Select(node => node.Item.Name)
+            .ToList();
+
+        return new ITagsRelationsManager.GroupDescription(groupName, tagsInGroup, ancestorsNames);
     }
 
     private async Task<MutableEntityTreeNode<int, TagSynonymsGroup>> BuildRelationsTree(CancellationToken cancellationToken)

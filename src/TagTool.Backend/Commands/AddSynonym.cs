@@ -19,12 +19,12 @@ public class AddSynonymRequest : ICommand<OneOf<string, ErrorResponse>>
 [UsedImplicitly]
 public class AddSynonym : ICommandHandler<AddSynonymRequest, OneOf<string, ErrorResponse>>
 {
-    private readonly IAssociationManager _associationManager;
+    private readonly ITagsRelationsManager _tagsRelationsManager;
     private readonly TagToolDbContext _dbContext;
 
-    public AddSynonym(IAssociationManager associationManager, TagToolDbContext dbContext)
+    public AddSynonym(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
     {
-        _associationManager = associationManager;
+        _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;
     }
 
@@ -32,7 +32,7 @@ public class AddSynonym : ICommandHandler<AddSynonymRequest, OneOf<string, Error
     {
         var tagBase = await GetOrCreateTag(request.Tag, cancellationToken);
 
-        var addSynonym = await _associationManager.AddSynonym(tagBase, request.GroupName, cancellationToken);
+        var addSynonym = await _tagsRelationsManager.AddSynonym(tagBase, request.GroupName, cancellationToken);
 
         return addSynonym.Match(_ => "successfully added synonym", response => response.Message);
     }
