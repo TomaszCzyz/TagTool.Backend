@@ -369,32 +369,22 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new SetTagNamingConventionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
-    public override Task<ExecuteLinkedActionReply> ExecuteLinkedAction(ExecuteLinkedActionRequest request, ServerCallContext context)
+    public override async Task<ExecuteLinkedActionReply> ExecuteLinkedAction(ExecuteLinkedActionRequest request, ServerCallContext context)
     {
-        switch (request.ItemCase)
+        var taggableItem = request.ItemCase switch
         {
-            case ExecuteLinkedActionRequest.ItemOneofCase.Folder:
-                Process.Start("explorer.exe", request.Folder.Path);
+            ExecuteLinkedActionRequest.ItemOneofCase.File => new TaggableFile { Path = request.File.Path } as TaggableItem,
+            ExecuteLinkedActionRequest.ItemOneofCase.Folder => new TaggableFolder { Path = request.Folder.Path },
+            _ => throw new UnreachableException()
+        };
 
-                return Task.FromResult(new ExecuteLinkedActionReply());
-            case ExecuteLinkedActionRequest.ItemOneofCase.File:
-                if (!File.Exists(request.File.Path))
-                {
-                    return Task.FromResult(new ExecuteLinkedActionReply { Error = new Error { Message = "Specified file does not exists." } });
-                }
+        var command = new ExecuteLinkedRequest { Item = taggableItem };
 
-                using (var process = new Process())
-                {
-                    process.StartInfo.FileName = request.File.Path;
-                    process.StartInfo.UseShellExecute = true;
+        var response = await _mediator.Send(command, context.CancellationToken);
 
-                    process.Start();
-                }
-
-                return Task.FromResult(new ExecuteLinkedActionReply());
-            default:
-                throw new UnreachableException();
-        }
+        return response.Match(
+            _ => new ExecuteLinkedActionReply(),
+            errorResponse => new ExecuteLinkedActionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)

@@ -6,6 +6,9 @@ public abstract class TaggableItem
 {
     public Guid Id { get; set; }
 
+    /// <summary>
+    ///     A score that keeps information about things like how many times an item has been used.
+    /// </summary>
     public uint Popularity { get; set; }
 
     public List<TagBase> Tags { get; set; } = new();
