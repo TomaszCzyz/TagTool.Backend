@@ -6,6 +6,8 @@ public abstract class TaggableItem
 {
     public Guid Id { get; set; }
 
+    public uint Popularity { get; set; }
+
     public List<TagBase> Tags { get; set; } = new();
 }
 
