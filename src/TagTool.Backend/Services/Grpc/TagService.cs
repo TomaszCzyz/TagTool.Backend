@@ -227,9 +227,8 @@ public class TagService : Backend.TagService.TagServiceBase
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
     {
         var querySegments = request.QueryParams
-            .Select(tagQueryParam
-                => new TagQuerySegment { State = MapQuerySegmentState(tagQueryParam), Tag = _tagMapper.MapFromDto(tagQueryParam.Tag) })
-            .ToList();
+            .Select(param => new TagQuerySegment { State = MapQuerySegmentState(param), Tag = _tagMapper.MapFromDto(param.Tag) })
+            .ToArray();
 
         var getItemsByTagsQuery = new GetItemsByTagsQuery { QuerySegments = querySegments };
 

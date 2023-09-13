@@ -7,7 +7,7 @@ namespace TagTool.Backend.Queries;
 
 public class GetItemsByTagsQuery : IQuery<IEnumerable<TaggableItem>>
 {
-    public required IEnumerable<TagQuerySegment> QuerySegments { get; init; }
+    public required TagQuerySegment[] QuerySegments { get; init; }
 }
 
 [UsedImplicitly]
@@ -22,6 +22,11 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
 
     public async Task<IEnumerable<TaggableItem>> Handle(GetItemsByTagsQuery request, CancellationToken cancellationToken)
     {
+        if (request.QuerySegments.Length == 0)
+        {
+            return await GetMostPopularItems(cancellationToken);
+        }
+
         var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
         var taggedItems = _dbContext.TaggedItems
@@ -56,6 +61,13 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
 
         return await taggedItems.ToArrayAsync(cancellationToken);
     }
+
+    private Task<TaggableItem[]> GetMostPopularItems(CancellationToken cancellationToken)
+        => _dbContext.TaggedItems
+            .Include(taggedItemBase => taggedItemBase.Tags)
+            .OrderByDescending(item => item.Popularity)
+            .Take(30)
+            .ToArrayAsync(cancellationToken);
 
     private static Dictionary<QuerySegmentState, IEnumerable<string>> SplitTagsBySegmentState(IEnumerable<TagQuerySegment> request)
         => request
