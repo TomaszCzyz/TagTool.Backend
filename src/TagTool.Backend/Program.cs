@@ -32,9 +32,13 @@ builder.Host.UseSerilog((_, configuration) =>
         .Destructure.ByTransforming<TaggableItem>(item => new { ItemId = item.Id, Tags = item.Tags.Names() })
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
+        .Enrich.WithProcessId()
+        .Enrich.WithProcessName()
         .Enrich.WithExceptionDetails()
+        .WriteTo.Seq("http://localhost:5341")
         .WriteTo.File(
             new CompactJsonFormatter(),
             $"{Constants.BasePath}/Logs/logs.json",

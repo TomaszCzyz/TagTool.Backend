@@ -24,9 +24,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="OneOf" />
     <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Enrichers.Process" />
     <PackageReference Include="Serilog.Exceptions" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
     <PackageReference Include="Serilog.Sinks.SQLite" />
     <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="TreeCollections" Version="1.0.4" />
