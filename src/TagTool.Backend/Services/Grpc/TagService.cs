@@ -39,6 +39,27 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new CreateTagReply { ErrorMessage = errorResponse.Message });
     }
 
+    public override async Task CanCreateTag(
+        IAsyncStreamReader<CanCreateTagRequest> requestStream,
+        IServerStreamWriter<CanCreateTagReply> responseStream,
+        ServerCallContext context)
+    {
+        while (await requestStream.MoveNext())
+        {
+            var canCreateTagRequest = requestStream.Current;
+
+            var query = new CanCreateTagQuery { NewTagName = canCreateTagRequest.TagName };
+
+            var response = await _mediator.Send(query, context.CancellationToken);
+
+            var reply = response.Match(
+                errorResponse => new CanCreateTagReply { Error = new Error { Message = errorResponse.Message } },
+                _ => new CanCreateTagReply());
+
+            await responseStream.WriteAsync(reply);
+        }
+    }
+
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
         var tag = _tagMapper.MapFromDto(request.Tag);

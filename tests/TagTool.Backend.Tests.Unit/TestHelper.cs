@@ -53,9 +53,9 @@ public class TestHelper
         var tag = new NormalTag { Name = "Cat" };
 
         // var fileDto = new FileDto { Path = @"C:\Users\tczyz\MyFiles\FromOec\Digital2.gif" };
-        var fileDto = new FileDto { Path = @"C:\Users\tczyz\MyFiles\notes.txt" };
+        var fileDto = new FolderDto { Path = @"C:\Users\tczyz" };
 
-        var _ = tagServiceClient.TagItem(new TagItemRequest { Tag = Any.Pack(tag), File = fileDto });
+        var _ = tagServiceClient.TagItem(new TagItemRequest { Tag = Any.Pack(tag), Folder = fileDto });
 
         return Task.CompletedTask;
     }

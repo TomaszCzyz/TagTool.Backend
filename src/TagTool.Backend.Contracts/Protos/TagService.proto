@@ -10,6 +10,8 @@ package TagToolBackend;
 service TagService {
   // Creates a new Tag. If tag cannot be created returns error message.
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
+  // Checks if tag with given name can be created.
+  rpc CanCreateTag(stream CanCreateTagRequest) returns (stream CanCreateTagReply);
   // Deletes a Tag if tag exists and is unused, otherwise return error message.
   // Used tags can be deleted be setting 'deleteUsedToo' flag .
   rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
@@ -74,6 +76,22 @@ message CreateTagReply {
   };
 }
 
+// The request to check if a tag with a given name can be created.
+message CanCreateTagRequest {
+  // The name of a new tag.
+  string tagName = 1;
+}
+
+// The reply indicating whether requested tag name is valid and can be created.
+message CanCreateTagReply {
+  // The result that contains error when given name is already taken or reserved.
+  // 'None' response for valid name.
+  oneof result {
+    // The error with description why given name cannot be used.
+    Error error = 1;
+  }
+}
+
 // The request to delete a tag.
 message DeleteTagRequest {
   // The tag to be deleted.
@@ -83,7 +101,7 @@ message DeleteTagRequest {
   bool deleteUsedToo = 2;
 }
 
-// The reply indicating whether tag deletion was successful or not .
+// The reply indicating whether tag deletion was successful or not.
 message DeleteTagReply {
   oneof result {
     // The deleted Tag's name.
