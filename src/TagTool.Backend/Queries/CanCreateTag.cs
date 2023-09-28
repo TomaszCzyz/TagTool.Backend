@@ -32,7 +32,7 @@ public class CanCreateTag : IQueryHandler<CanCreateTagQuery, OneOf<ErrorResponse
 
         if (existingTag is not null)
         {
-            return new ErrorResponse($"Tag with given name already exists: {existingTag}");
+            return new ErrorResponse($"Tag with name {request.NewTagName} already exists.");
         }
 
         return new None();
