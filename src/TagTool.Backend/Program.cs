@@ -27,12 +27,15 @@ builder.Host.UseSerilog((_, configuration) =>
                 tag.Id,
                 tag.Text,
                 TaggedItemCount = tag.TaggedItems.Count
-            }) // order 'Destructure' matters
+            }) // order 'Destructure' matters; derived tags -> tagBase
         .Destructure.With<TagBaseDeconstructPolicy>()
         .Destructure.ByTransforming<TaggableItem>(item => new { ItemId = item.Id, Tags = item.Tags.Names() })
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+        .Filter.ByExcluding(c =>
+            c.Properties.TryGetValue("EndpointName", out var endpointName)
+            && endpointName.ToString() == "\"gRPC - /TagToolBackend.TagService/GetItem\"")
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
         .Enrich.WithProcessId()
