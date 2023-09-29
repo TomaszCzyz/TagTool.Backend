@@ -155,7 +155,8 @@ public class CommonStorage : ICommonStorage
     {
         var options = new EnumerationOptions { IgnoreInaccessible = true };
 
-        var rootFolder = Path.Join(_commonStorageOptions.Files, Path.GetExtension(fileInfo.Name));
+        var ext = Path.HasExtension(fileInfo.Name) ? Path.GetExtension(fileInfo.Name.AsSpan())[1..] : "_noExtension";
+        var rootFolder = Path.Join(_commonStorageOptions.Files, ext);
 
         var fileSystemEnumerable = new FileSystemEnumerable<string>(rootFolder, FindTransform, options) { ShouldIncludePredicate = ShouldInclude };
 
