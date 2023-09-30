@@ -14,6 +14,9 @@
   <ItemGroup>
     <PackageReference Include="AhoCorasick" />
     <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.Core" />
+    <PackageReference Include="Hangfire.Storage.SQLite" />
     <PackageReference Include="Humanizer" />
     <PackageReference Include="JetBrains.Annotations" />
     <PackageReference Include="MediatR" />

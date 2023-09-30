@@ -1,5 +1,7 @@
 ﻿#pragma warning disable CA1852
 using System.Globalization;
+using Hangfire;
+using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -33,6 +35,7 @@ builder.Host.UseSerilog((_, configuration) =>
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+        .MinimumLevel.Override("Hangfire.Storage.SQLite.ExpirationManager", LogEventLevel.Warning)
         .Filter.ByExcluding(c =>
             c.Properties.TryGetValue("EndpointName", out var endpointName)
             && endpointName.ToString() == "\"gRPC - /TagToolBackend.TagService/GetItem\"")
@@ -75,6 +78,16 @@ builder.Services.AddDbContext<TagToolDbContext>(options
         .UseLoggerFactory(new SerilogLoggerFactory())
         .EnableDetailedErrors()
         .EnableSensitiveDataLogging());
+
+builder.Services.AddHangfire(configuration =>
+    configuration
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseSerilogLogProvider()
+        .UseSQLiteStorage($"{Constants.BasePath}/hangfire.db"));
+
+builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
