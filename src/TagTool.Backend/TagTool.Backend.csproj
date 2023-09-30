@@ -31,7 +31,7 @@
     <PackageReference Include="Serilog.Sinks.Seq" />
     <PackageReference Include="Serilog.Sinks.SQLite" />
     <PackageReference Include="System.Linq.Async" />
-    <PackageReference Include="TreeCollections" Version="1.0.4" />
+    <PackageReference Include="TreeCollections" />
   </ItemGroup>
 
   <ItemGroup>
