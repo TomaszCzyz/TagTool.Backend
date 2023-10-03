@@ -35,6 +35,7 @@ public interface IJob
 
 public class MoveJob : IJob
 {
+    private readonly ILogger<MoveJob> _logger;
     private readonly IMediator _mediator;
 
     public string Id { get; } = "MoveFileJob";
@@ -49,16 +50,20 @@ public class MoveJob : IJob
     /// </summary>
     public MoveJob()
     {
+        _logger = null!;
         _mediator = null!;
     }
 
-    public MoveJob(IMediator mediator)
+    public MoveJob(ILogger<MoveJob> logger, IMediator mediator)
     {
+        _logger = logger;
         _mediator = mediator;
     }
 
     public async Task<JobResult> Execute(TagQuery tagQuery, Dictionary<string, string> data)
     {
+        _logger.LogInformation("Executing job 'MoveFileJob' with args: {@TagQuery} and {@Attributes}", tagQuery, data);
+
         var command = new Commands.MoveFileRequest { OldFullPath = "", NewFullPath = "CommonStorage" };
 
         var reply = await _mediator.Send(command);
