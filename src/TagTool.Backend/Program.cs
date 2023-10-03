@@ -12,6 +12,7 @@ using Serilog.Formatting.Compact;
 using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
+using TagTool.Backend.Jobs;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -79,15 +80,18 @@ builder.Services.AddDbContext<TagToolDbContext>(options
         .EnableDetailedErrors()
         .EnableSensitiveDataLogging());
 
-builder.Services.AddHangfire(configuration =>
-    configuration
-        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-        .UseSimpleAssemblyNameTypeSerializer()
-        .UseRecommendedSerializerSettings()
-        .UseSerilogLogProvider()
-        .UseSQLiteStorage($"{Constants.BasePath}/hangfire.db"));
+builder.Services.AddHangfire(configuration => configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_180));
+
+GlobalConfiguration.Configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSQLiteStorage($"{Constants.BasePath}/hangfire.db") // the other matters!!! because during registration the serializer settings are overwritten
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSerilogLogProvider();
 
 builder.Services.AddHangfireServer();
+builder.Services.AddJobs(typeof(Program));
+builder.Services.AddSingleton<IJobFactory, JobFactory>();
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");

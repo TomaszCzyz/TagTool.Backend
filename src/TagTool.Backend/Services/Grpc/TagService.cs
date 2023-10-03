@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics;
 using Grpc.Core;
+using Hangfire;
+using Hangfire.Storage;
 using MediatR;
 using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Jobs;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -17,13 +20,15 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
     private readonly ITagMapper _tagMapper;
+    private readonly IJobFactory _jobFactory;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, ITagMapper tagMapper)
+    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, ITagMapper tagMapper, IJobFactory jobFactory)
     {
         _logger = logger;
         _mediator = mediator;
         _commandsHistory = commandsHistory;
         _tagMapper = tagMapper;
+        _jobFactory = jobFactory;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -407,6 +412,88 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new ExecuteLinkedActionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
+    public override Task<AddOrUpdateJobReply> AddOrUpdateJob(AddOrUpdateJobRequest request, ServerCallContext context)
+    {
+        // GlobalConfiguration.Configuration.UseRecommendedSerializerSettings();
+        var job = _jobFactory.Create(request.JobId);
+
+        if (job is null)
+        {
+            // todo: add success/failure messages to reply
+            return Task.FromResult(new AddOrUpdateJobReply());
+        }
+
+        var tagQueryMapped = request.QueryParams
+            .Select(param => new TagQuerySegment { Tag = _tagMapper.MapFromDto(param.Tag), State = MapQuerySegmentState(param) })
+            .ToArray();
+
+        var tagQuery = new TagQuery { QuerySegments = tagQueryMapped };
+
+        var jobAttributes = request.JobAttributes
+            .SelectMany(attribute => attribute.Values)
+            .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+        RecurringJob.AddOrUpdate(request.TaskId, () => job.Execute(tagQuery, jobAttributes), Cron.Never);
+
+        foreach (var triggerInfo in request.Triggers)
+        {
+            switch (triggerInfo.Type)
+            {
+                case AddOrUpdateJobRequest.Types.TriggerType.Manual:
+                    break;
+                case AddOrUpdateJobRequest.Types.TriggerType.Cron:
+                    RecurringJob.AddOrUpdate(request.TaskId, () => job.Execute(tagQuery, jobAttributes), triggerInfo.Arg);
+                    break;
+                case AddOrUpdateJobRequest.Types.TriggerType.Event:
+                    // add trigger to 'jobEventTriggerInvoker'
+                    break;
+                default:
+                    throw new UnreachableException();
+            }
+        }
+
+        return Task.FromResult(new AddOrUpdateJobReply());
+    }
+
+    public override Task<GetAvailableJobsReply> GetAvailableJobs(GetAvailableJobsRequest request, ServerCallContext context)
+    {
+        var jobInfos = _jobFactory
+            .GetAvailableJob()
+            .Select(info =>
+                new JobInfo
+                {
+                    JobId = info.Id,
+                    JobDescription = info.Description,
+                    AttributesDescriptions = { new Attributes { Values = { info.AttributesDescriptions } } }
+                });
+
+        var reply = new GetAvailableJobsReply { Infos = { jobInfos } };
+
+        return Task.FromResult(reply);
+    }
+
+    public override Task GetRunningJobs(
+        GetRunningJobsRequest request,
+        IServerStreamWriter<GetRunningJobsReply> responseStream,
+        ServerCallContext context)
+    {
+        using (var connection = JobStorage.Current.GetConnection())
+        {
+            var recurringJobs = connection.GetRecurringJobs();
+            foreach (var recurringJob in recurringJobs)
+            {
+                _logger.LogWarning("Recurring job id: {RecurringJobId}", recurringJob.Id);
+            }
+        }
+
+        var monitoring = JobStorage.Current.GetMonitoringApi();
+
+        var enqueuedJobs = monitoring.EnqueuedJobs("default", 0, int.MaxValue).ToArray();
+        _logger.LogInformation("enqueuedJobs: {@EnqueuedJobs}", enqueuedJobs);
+
+        return Task.FromResult(new GetRunningJobsReply());
+    }
+
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
         => requestConvention switch
         {
@@ -418,12 +505,12 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
         };
 
-    private static QuerySegmentState MapQuerySegmentState(GetItemsByTagsRequest.Types.TagQueryParam tagQueryParam)
+    private static QuerySegmentState MapQuerySegmentState(TagQueryParam tagQueryParam)
         => tagQueryParam.State switch
         {
-            GetItemsByTagsRequest.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
-            GetItemsByTagsRequest.Types.QuerySegmentState.Include => QuerySegmentState.Include,
-            GetItemsByTagsRequest.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
+            TagQueryParam.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
+            TagQueryParam.Types.QuerySegmentState.Include => QuerySegmentState.Include,
+            TagQueryParam.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
             _ => throw new UnreachableException()
         };
 }

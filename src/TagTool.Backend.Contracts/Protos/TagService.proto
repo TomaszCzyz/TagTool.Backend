@@ -58,6 +58,12 @@ service TagService {
   rpc SetTagNamingConvention(SetTagNamingConventionRequest) returns (SetTagNamingConventionReply);
 
   rpc ExecuteLinkedAction(ExecuteLinkedActionRequest) returns (ExecuteLinkedActionReply);
+
+  rpc AddOrUpdateJob(AddOrUpdateJobRequest) returns (AddOrUpdateJobReply);
+
+  // todo: rename to GetJobsList or something like that 
+  rpc GetAvailableJobs(GetAvailableJobsRequest) returns (GetAvailableJobsReply);
+  rpc GetRunningJobs(GetRunningJobsRequest) returns (stream GetRunningJobsReply);
 }
 
 // The request to create a new tag.
@@ -240,14 +246,14 @@ message GetItemReply {
 // e.g. include tag 'Tag1' and exclude 'Tag2'.
 message GetItemsByTagsRequest {
   repeated TagQueryParam queryParams = 1;
+}
 
-  // Defines single segment of a tag search query.
-  message TagQueryParam {
-    // The segment's state.
-    QuerySegmentState state = 1;
-    // The tag, e.g. normal, date range, size range, e.t.c.
-    google.protobuf.Any tag = 3;
-  }
+// Defines single segment of a tag search query.
+message TagQueryParam {
+  // The segment's state.
+  QuerySegmentState state = 1;
+  // The tag, e.g. normal, date range, size range, e.t.c.
+  google.protobuf.Any tag = 2;
 
   enum QuerySegmentState {
     // The option indicating that results of search should not contain the tag.
@@ -391,4 +397,51 @@ message ExecuteLinkedActionReply {
   oneof result {
     Error error = 1;
   }
+}
+
+message AddOrUpdateJobRequest {
+  string taskId = 1;
+  repeated TagQueryParam queryParams = 2;
+  string jobId = 3;
+  repeated Attributes jobAttributes = 4;
+  repeated TriggerInfo triggers = 5;
+
+  message TriggerInfo {
+    TriggerType type = 1;
+    string arg = 2;
+  }
+
+  enum TriggerType {
+    Manual = 0;
+    Cron = 1;
+    Event = 2;
+  }
+}
+
+message Attributes {
+  map<string, string> values = 1;
+}
+
+message AddOrUpdateJobReply {
+}
+
+message GetAvailableJobsRequest {}
+
+message GetAvailableJobsReply {
+  repeated JobInfo infos = 1;
+}
+
+message JobInfo {
+  string jobId = 1;
+  string jobDescription = 2;
+  repeated Attributes attributesDescriptions = 3;
+}
+
+message GetRunningJobsRequest {}
+
+message GetRunningJobsReply {
+  string jobId = 1;
+  string jobDescription = 2;
+  repeated Attributes attributesDescriptions = 3;
+  repeated TagQueryParam tagQuery = 4;
 }

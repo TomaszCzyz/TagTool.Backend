@@ -15,3 +15,8 @@ public class TagQuerySegment
 
     public required TagBase Tag { get; init; }
 }
+
+public class TagQuery
+{
+    public required TagQuerySegment[] QuerySegments { get; init; }
+}
