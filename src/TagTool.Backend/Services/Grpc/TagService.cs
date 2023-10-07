@@ -254,7 +254,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
-            .Select(param => new TagQuerySegment { State = MapQuerySegmentState(param), Tag = _tagMapper.MapFromDto(param.Tag) })
+            .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param), Tag = _tagMapper.MapFromDto(param.Tag) })
             .ToArray();
 
         var getItemsByTagsQuery = new GetItemsByTagsQuery { QuerySegments = querySegments };
@@ -425,7 +425,7 @@ public class TagService : Backend.TagService.TagServiceBase
         }
 
         var tagQueryMapped = request.QueryParams
-            .Select(param => new TagQuerySegment { Tag = _tagMapper.MapFromDto(param.Tag), State = MapQuerySegmentState(param) })
+            .Select(param => new TagQuerySegment { Tag = _tagMapper.MapFromDto(param.Tag), State = MapQuerySegmentStateFromDto(param) })
             .ToArray();
 
         var tagQuery = new TagQuery { QuerySegments = tagQueryMapped };
@@ -438,12 +438,12 @@ public class TagService : Backend.TagService.TagServiceBase
         {
             switch (triggerInfo.Type)
             {
-                case AddOrUpdateJobRequest.Types.TriggerType.Manual:
+                case TriggerType.Manual:
                     break;
-                case AddOrUpdateJobRequest.Types.TriggerType.Cron:
+                case TriggerType.Cron:
                     RecurringJob.AddOrUpdate(request.TaskId, () => job.Execute(tagQuery, jobAttributes), triggerInfo.Arg);
                     break;
-                case AddOrUpdateJobRequest.Types.TriggerType.Event:
+                case TriggerType.Event:
                     // add trigger to 'jobEventTriggerInvoker'
                     break;
                 default:
@@ -472,27 +472,51 @@ public class TagService : Backend.TagService.TagServiceBase
         return Task.FromResult(reply);
     }
 
-    public override Task GetRunningJobs(
-        GetRunningJobsRequest request,
-        IServerStreamWriter<GetRunningJobsReply> responseStream,
+    public override async Task GetRunningTasks(
+        GetRunningTasksRequest request,
+        IServerStreamWriter<GetRunningTasksReply> responseStream,
         ServerCallContext context)
     {
-        using (var connection = JobStorage.Current.GetConnection())
+        using var connection = JobStorage.Current.GetConnection();
+        var recurringJobs = connection.GetRecurringJobs();
+
+        foreach (var recurringJob in recurringJobs)
         {
-            var recurringJobs = connection.GetRecurringJobs();
-            foreach (var recurringJob in recurringJobs)
+            var jobArgs = recurringJob.Job.Args;
+            if (jobArgs.Count == 2 && jobArgs[0] is TagQuery tagQuery && jobArgs[1] is Dictionary<string, string> data)
             {
-                _logger.LogWarning("Recurring job id: {RecurringJobId}", recurringJob.Id);
+                var tagQueryParams = tagQuery.QuerySegments.Select(MapTagQuerySegmentToDto);
+
+                if (!recurringJob.Job.Type.IsAssignableTo(typeof(IJob)))
+                {
+                    _logger.LogWarning("Recurring job with unknown job type {@RecurringJobDto}", recurringJob);
+                    return;
+                }
+
+                // todo: Rework this, because it hurts me eyes.
+                var instanceId = (Activator.CreateInstance(recurringJob.Job.Type) as IJob)!.Id;
+
+                // todo: add event triggers and decide what to do with multiple schedules of the same task (probably ban it)
+                var reply = new GetRunningTasksReply
+                {
+                    TaskId = recurringJob.Id,
+                    QueryParams = { tagQueryParams },
+                    JobId = instanceId,
+                    JobAttributes = new Attributes { Values = { data } },
+                    Triggers = { new TriggerInfo { Type = TriggerType.Cron, Arg = recurringJob.Cron } }
+                };
+
+                await responseStream.WriteAsync(reply);
+            }
+            else
+            {
+                _logger.LogWarning("Recurring job with unknown arguments {@RecurringJobDto}", recurringJob);
             }
         }
-
-        var monitoring = JobStorage.Current.GetMonitoringApi();
-
-        var enqueuedJobs = monitoring.EnqueuedJobs("default", 0, int.MaxValue).ToArray();
-        _logger.LogInformation("enqueuedJobs: {@EnqueuedJobs}", enqueuedJobs);
-
-        return Task.FromResult(new GetRunningJobsReply());
     }
+
+    private TagQueryParam MapTagQuerySegmentToDto(TagQuerySegment segment)
+        => new() { Tag = _tagMapper.MapToDto(segment.Tag), State = MapQuerySegmentStateToDto(segment.State) };
 
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
         => requestConvention switch
@@ -505,12 +529,21 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
         };
 
-    private static QuerySegmentState MapQuerySegmentState(TagQueryParam tagQueryParam)
+    private static QuerySegmentState MapQuerySegmentStateFromDto(TagQueryParam tagQueryParam)
         => tagQueryParam.State switch
         {
             TagQueryParam.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
             TagQueryParam.Types.QuerySegmentState.Include => QuerySegmentState.Include,
             TagQueryParam.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
+            _ => throw new UnreachableException()
+        };
+
+    private static TagQueryParam.Types.QuerySegmentState MapQuerySegmentStateToDto(QuerySegmentState querySegment)
+        => querySegment switch
+        {
+            QuerySegmentState.Exclude => TagQueryParam.Types.QuerySegmentState.Exclude,
+            QuerySegmentState.Include => TagQueryParam.Types.QuerySegmentState.Include,
+            QuerySegmentState.MustBePresent => TagQueryParam.Types.QuerySegmentState.MustBePresent,
             _ => throw new UnreachableException()
         };
 }

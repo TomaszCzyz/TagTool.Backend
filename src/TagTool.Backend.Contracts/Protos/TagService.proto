@@ -61,9 +61,8 @@ service TagService {
 
   rpc AddOrUpdateJob(AddOrUpdateJobRequest) returns (AddOrUpdateJobReply);
 
-  // todo: rename to GetJobsList or something like that 
   rpc GetAvailableJobs(GetAvailableJobsRequest) returns (GetAvailableJobsReply);
-  rpc GetRunningJobs(GetRunningJobsRequest) returns (stream GetRunningJobsReply);
+  rpc GetRunningTasks(GetRunningTasksRequest) returns (stream GetRunningTasksReply);
 }
 
 // The request to create a new tag.
@@ -405,17 +404,17 @@ message AddOrUpdateJobRequest {
   string jobId = 3;
   Attributes jobAttributes = 4;
   repeated TriggerInfo triggers = 5;
+}
 
-  message TriggerInfo {
-    TriggerType type = 1;
-    string arg = 2;
-  }
+message TriggerInfo {
+  TriggerType type = 1;
+  string arg = 2;
+}
 
-  enum TriggerType {
-    Manual = 0;
-    Cron = 1;
-    Event = 2;
-  }
+enum TriggerType {
+  Manual = 0;
+  Cron = 1;
+  Event = 2;
 }
 
 message Attributes {
@@ -438,11 +437,12 @@ message JobInfo {
   repeated google.protobuf.Any applicableToItemTypes = 4;
 }
 
-message GetRunningJobsRequest {}
+message GetRunningTasksRequest {}
 
-message GetRunningJobsReply {
-  string jobId = 1;
-  string jobDescription = 2;
-  Attributes attributesDescriptions = 3;
-  repeated TagQueryParam tagQuery = 4;
+message GetRunningTasksReply {
+  string taskId = 1;
+  repeated TagQueryParam queryParams = 2;
+  string jobId = 3;
+  Attributes jobAttributes = 4;
+  repeated TriggerInfo triggers = 5;
 }
