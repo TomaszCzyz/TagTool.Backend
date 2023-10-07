@@ -48,7 +48,12 @@ public static class ServiceCollectionExtensions
         }
 
         var jobInfos = jobs
-            .Select(tuple => new Jobs.JobInfo(tuple.Instance.Id, tuple.Instance.Description, tuple.Instance.AttributesDescriptions))
+            .Select(tuple =>
+                new Jobs.JobInfo(
+                    tuple.Instance.Id,
+                    tuple.Instance.Description,
+                    tuple.Instance.AttributesDescriptions,
+                    tuple.Instance.ItemTypes))
             .ToArray()
             .AsReadOnly();
 

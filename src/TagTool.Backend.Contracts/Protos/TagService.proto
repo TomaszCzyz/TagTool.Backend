@@ -118,14 +118,14 @@ message DeleteTagReply {
 }
 
 message GetAllTagsAssociationsRequest {
-  // If None will be provided, then all associations will be returned
+  // If None will be provided, then all associations will be returned.
   oneof singleTag {
     google.protobuf.Any tag = 1;
   }
 }
 
 message GetAllTagsAssociationsReply {
-  // The name of group described in the current message
+  // The name of group described in the current message.
   string groupName = 1;
   // The group of synonyms (equivalent tags).
   repeated google.protobuf.Any tagsInGroup = 2;
@@ -403,7 +403,7 @@ message AddOrUpdateJobRequest {
   string taskId = 1;
   repeated TagQueryParam queryParams = 2;
   string jobId = 3;
-  repeated Attributes jobAttributes = 4;
+  Attributes jobAttributes = 4;
   repeated TriggerInfo triggers = 5;
 
   message TriggerInfo {
@@ -432,9 +432,10 @@ message GetAvailableJobsReply {
 }
 
 message JobInfo {
-  string jobId = 1;
-  string jobDescription = 2;
-  repeated Attributes attributesDescriptions = 3;
+  string id = 1;
+  string description = 2;
+  Attributes attributesDescriptions = 3;
+  repeated google.protobuf.Any applicableToItemTypes = 4;
 }
 
 message GetRunningJobsRequest {}
@@ -442,6 +443,6 @@ message GetRunningJobsRequest {}
 message GetRunningJobsReply {
   string jobId = 1;
   string jobDescription = 2;
-  repeated Attributes attributesDescriptions = 3;
+  Attributes attributesDescriptions = 3;
   repeated TagQueryParam tagQuery = 4;
 }

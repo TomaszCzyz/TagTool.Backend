@@ -252,6 +252,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
     {
+        // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
             .Select(param => new TagQuerySegment { State = MapQuerySegmentState(param), Tag = _tagMapper.MapFromDto(param.Tag) })
             .ToArray();
@@ -429,9 +430,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var tagQuery = new TagQuery { QuerySegments = tagQueryMapped };
 
-        var jobAttributes = request.JobAttributes
-            .SelectMany(attribute => attribute.Values)
-            .ToDictionary(pair => pair.Key, pair => pair.Value);
+        var jobAttributes = request.JobAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
 
         RecurringJob.AddOrUpdate(request.TaskId, () => job.Execute(tagQuery, jobAttributes), Cron.Never);
 
@@ -462,9 +461,10 @@ public class TagService : Backend.TagService.TagServiceBase
             .Select(info =>
                 new JobInfo
                 {
-                    JobId = info.Id,
-                    JobDescription = info.Description,
-                    AttributesDescriptions = { new Attributes { Values = { info.AttributesDescriptions } } }
+                    Id = info.Id,
+                    Description = info.Description,
+                    AttributesDescriptions = new Attributes { Values = { info.AttributesDescriptions } },
+                    ApplicableToItemTypes = { info.ItemTypes.Select(tag => _tagMapper.MapToDto(tag)) }
                 });
 
         var reply = new GetAvailableJobsReply { Infos = { jobInfos } };

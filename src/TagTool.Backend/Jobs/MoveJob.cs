@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.Jobs;
 
@@ -27,6 +28,8 @@ public interface IJob
 
     IDictionary<string, string>? AttributesDescriptions { get; }
 
+    ItemTypeTag[] ItemTypes { get; }
+
     Task<JobResult> Execute(TagQuery tagQuery, Dictionary<string, string> data);
 
     // when execution is triggered by event 
@@ -44,6 +47,8 @@ public class MoveJob : IJob
 
     public IDictionary<string, string>? AttributesDescriptions { get; }
         = new Dictionary<string, string> { { "from", "TaggableFile.Path" }, { "to", "path/CommonStorage" } };
+
+    public ItemTypeTag[] ItemTypes { get; } = { new() { Type = typeof(TaggableFile) } };
 
     /// <summary>
     ///     Ctor used to register the job.

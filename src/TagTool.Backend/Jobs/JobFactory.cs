@@ -1,8 +1,9 @@
 ﻿using System.Collections.ObjectModel;
+using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.Jobs;
 
-public record JobInfo(string Id, string? Description, IDictionary<string, string>? AttributesDescriptions);
+public record JobInfo(string Id, string? Description, IDictionary<string, string>? AttributesDescriptions, ItemTypeTag[] ItemTypes);
 
 public interface IJobFactory
 {
