@@ -2,6 +2,7 @@
 using Ganss.Text;
 using JetBrains.Annotations;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Models;
@@ -30,6 +31,15 @@ public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (Ta
         SearchTagsFuzzyRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        // todo: extract 'empty' search functionality
+        if (string.IsNullOrEmpty(request.Value))
+        {
+            await foreach (var tag in _dbContext.Tags.Take(request.ResultsLimit).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            {
+                yield return (tag, new[] { new TextSlice(0, tag.FormattedName.Length - tag.FormattedName.IndexOf(':')) });
+            }
+        }
+
         var ahoCorasick = new AhoCorasick(request.Value.Substrings().Distinct());
         var results = new List<(TagBase Tag, TextSlice[] Slices)>();
 
