@@ -30,8 +30,8 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
         _mediator = mediator;
         ChangeTracker.StateChanged += UpdateTimestamps;
         ChangeTracker.Tracked += UpdateTimestamps;
-        ChangeTracker.StateChanged += TagAddOrRemoved;
-        ChangeTracker.Tracked += TagAddOrRemoved;
+        ChangeTracker.StateChanged += PublishNotifications;
+        ChangeTracker.Tracked += PublishNotifications;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,6 +39,11 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
         modelBuilder
             .Entity<TagBase>()
             .UseTphMappingStrategy();
+
+        modelBuilder.Entity<TagBase>()
+            .HasMany(e => e.TaggedItems)
+            .WithMany(e => e.Tags)
+            .UsingEntity<TagBaseTaggableItem>();
 
         modelBuilder
             .Entity<TagBase>()
@@ -114,20 +119,41 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
         }
     }
 
-    private void TagAddOrRemoved(object? sender, EntityEntryEventArgs e)
+    private void PublishNotifications(object? sender, EntityEntryEventArgs e)
     {
-        if (e.Entry.Entity is not TagBase tagBase)
+        switch (e.Entry.Entity)
         {
-            return;
+            case TagBase tagBase:
+                PublishTagCreatedOrRemoveNotification(e, tagBase);
+                break;
+            case TagBaseTaggableItem tagBaseTaggableItem:
+                PublishItemTaggedOrUntaggedNotification(e, tagBaseTaggableItem);
+                break;
         }
+    }
 
+    private void PublishItemTaggedOrUntaggedNotification(EntityEntryEventArgs e, TagBaseTaggableItem item)
+    {
         switch (e.Entry.State)
         {
-            case EntityState.Deleted:
-                _mediator.Publish(new TagDeletedNotification { Tag = tagBase });
+            case EntityState.Added:
+                _mediator.Publish(new ItemTaggedNotification { TaggedItemId = item.TaggableItemId, AddedTagId = item.TagBaseId });
                 break;
+            case EntityState.Deleted:
+                _mediator.Publish(new ItemUntaggedNotification { UntaggedItemId = item.TaggableItemId, RemovedTagId = item.TagBaseId });
+                break;
+        }
+    }
+
+    private void PublishTagCreatedOrRemoveNotification(EntityEntryEventArgs e, TagBase tagBase)
+    {
+        switch (e.Entry.State)
+        {
             case EntityState.Added:
                 _mediator.Publish(new TagCreatedNotification { Tag = tagBase });
+                break;
+            case EntityState.Deleted:
+                _mediator.Publish(new TagDeletedNotification { Tag = tagBase });
                 break;
         }
     }
