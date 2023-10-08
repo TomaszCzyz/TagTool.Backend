@@ -39,7 +39,7 @@ public class TestHelper
 
         // var tag = new MonthRangeTag { Begin = 1, End = 10 };
         // var tag = new DayRangeTag { Begin = 1, End = 4 };
-        var tag = new NormalTag { Name = "NotificationTest2" };
+        var tag = new NormalTag { Name = "NotificationTest3" };
 
         var _ = tagServiceClient.CreateTag(new CreateTagRequest { Tag = Any.Pack(tag) });
         return Task.CompletedTask;
@@ -130,7 +130,7 @@ public class TestHelper
     {
         var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
 
-        var tag = Any.Pack(new NormalTag { Name = "NotificationTest1" });
+        var tag = Any.Pack(new NormalTag { Name = "NotificationTest2" });
 
         var request = new DeleteTagRequest { Tag = tag };
 

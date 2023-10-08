@@ -73,6 +73,7 @@ builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddScoped<ICommonStorage, CommonStorage>();
 builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
+builder.Services.AddSingleton(typeof(EventTriggeredTasksScheduler<>));
 builder.Services.AddMediatR(
     cfg =>
     {
