@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -19,7 +20,8 @@ public class AssociationManagerTests : IDisposable
     {
         var optionsBuilder = new DbContextOptionsBuilder<TagToolDbContext>().UseInMemoryDatabase("TagToolDb").Options;
 
-        _dbContextMock = new TagToolDbContext(optionsBuilder);
+         var mediatorMock = new Mock<IMediator>();
+        _dbContextMock = new TagToolDbContext(mediatorMock.Object, optionsBuilder);
 
         var animalTag = new TextTag { Text = "Animal" };
         var animalBaseTag = new TextTag { Text = "AnimalBase" };

@@ -2,6 +2,7 @@
 using System.Globalization;
 using Hangfire;
 using Hangfire.Storage.SQLite;
+using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -72,7 +73,12 @@ builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddScoped<ICommonStorage, CommonStorage>();
 builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<Program>());
+builder.Services.AddMediatR(
+    cfg =>
+    {
+        cfg.RegisterServicesFromAssemblyContaining<Program>();
+        cfg.NotificationPublisher = new TaskWhenAllPublisher();
+    });
 builder.Services.AddDbContext<TagToolDbContext>(options
     => options
         .UseSqlite($"Data Source={Constants.DbPath}")
@@ -84,7 +90,8 @@ builder.Services.AddHangfire(configuration => configuration.SetDataCompatibility
 
 GlobalConfiguration.Configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSQLiteStorage($"{Constants.BasePath}/hangfire.db") // the other matters!!! because during registration the serializer settings are overwritten
+    .UseSQLiteStorage(
+        $"{Constants.BasePath}/hangfire.db") // the other matters!!! because during the registration the serializer settings are overwritten
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UseSerilogLogProvider();

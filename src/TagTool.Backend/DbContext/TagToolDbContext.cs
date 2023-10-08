@@ -1,12 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
+using TagTool.Backend.Notifications;
 
 namespace TagTool.Backend.DbContext;
 
 public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
+    private readonly IMediator _mediator;
+
     public DbSet<TagBase> Tags => Set<TagBase>();
 
     public DbSet<TextTag> NormalTags => Set<TextTag>();
@@ -21,10 +25,13 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<TaggableFolder> TaggableFolders => Set<TaggableFolder>();
 
-    public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
+    public TagToolDbContext(IMediator mediator, DbContextOptions<TagToolDbContext> options) : base(options)
     {
+        _mediator = mediator;
         ChangeTracker.StateChanged += UpdateTimestamps;
         ChangeTracker.Tracked += UpdateTimestamps;
+        ChangeTracker.StateChanged += TagAddOrRemoved;
+        ChangeTracker.Tracked += TagAddOrRemoved;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -103,6 +110,24 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
                 break;
             case EntityState.Added:
                 entityWithTimestamps.Added = DateTime.UtcNow;
+                break;
+        }
+    }
+
+    private void TagAddOrRemoved(object? sender, EntityEntryEventArgs e)
+    {
+        if (e.Entry.Entity is not TagBase tagBase)
+        {
+            return;
+        }
+
+        switch (e.Entry.State)
+        {
+            case EntityState.Deleted:
+                _mediator.Publish(new TagDeletedNotification { Tag = tagBase });
+                break;
+            case EntityState.Added:
+                _mediator.Publish(new TagCreatedNotification { Tag = tagBase });
                 break;
         }
     }

@@ -30,7 +30,7 @@ public class TagServiceTests
 
         var optionsBuilder = new DbContextOptionsBuilder<TagToolDbContext>().UseInMemoryDatabase("TagToolDb").Options;
 
-        _dbContextMock = new TagToolDbContext(optionsBuilder);
+        _dbContextMock = new TagToolDbContext(_mediatorMock.Object, optionsBuilder);
 
         // _tagService = new Backend.Services.Grpc.TagService(
         //     loggerMock.Object,

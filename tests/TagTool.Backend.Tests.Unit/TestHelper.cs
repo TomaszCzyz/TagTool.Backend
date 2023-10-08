@@ -1,15 +1,15 @@
 ﻿using System.Text.Json;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using Moq;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models.Tags;
 using Xunit;
 using Xunit.Abstractions;
-using DayRangeTag = TagTool.Backend.DomainTypes.DayRangeTag;
 
 namespace TagTool.Backend.Tests.Unit;
 
@@ -27,8 +27,9 @@ public class TestHelper
         _mapper = new TagMapper(fromDto, toDto);
         var dbContextOptions = new DbContextOptionsBuilder<TagToolDbContext>();
         dbContextOptions.UseSqlite($"Data Source={Constants.Constants.DbPath}");
+        var mediatorMock = new Mock<IMediator>();
 
-        _dbContext = new TagToolDbContext(dbContextOptions.Options);
+        _dbContext = new TagToolDbContext(mediatorMock.Object,dbContextOptions.Options);
     }
 
     [Fact]
@@ -37,8 +38,8 @@ public class TestHelper
         var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
 
         // var tag = new MonthRangeTag { Begin = 1, End = 10 };
-        var tag = new DayRangeTag { Begin = 1, End = 4 };
-        // var tag = new NormalTag { Name = "College3" };
+        // var tag = new DayRangeTag { Begin = 1, End = 4 };
+        var tag = new NormalTag { Name = "NotificationTest2" };
 
         var _ = tagServiceClient.CreateTag(new CreateTagRequest { Tag = Any.Pack(tag) });
         return Task.CompletedTask;
@@ -129,7 +130,7 @@ public class TestHelper
     {
         var tagServiceClient = new TagService.TagServiceClient(UnixDomainSocketConnectionFactory.CreateChannel());
 
-        var tag = Any.Pack(new NormalTag { Name = "Cat" });
+        var tag = Any.Pack(new NormalTag { Name = "NotificationTest1" });
 
         var request = new DeleteTagRequest { Tag = tag };
 
