@@ -4,10 +4,10 @@ using Hangfire;
 using Hangfire.Storage;
 using MediatR;
 using OneOf;
+using TagTool.Backend.Actions;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Events;
-using TagTool.Backend.Jobs;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -24,7 +24,7 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ITagMapper _tagMapper;
 
     // todo: move functionalities associated with below fields to command handlers 
-    private readonly IJobFactory _jobFactory;
+    private readonly IActionFactory _actionFactory;
     private readonly IEventTriggersManager _triggersManager;
 
     public TagService(
@@ -32,14 +32,14 @@ public class TagService : Backend.TagService.TagServiceBase
         IMediator mediator,
         ICommandsHistory commandsHistory,
         ITagMapper tagMapper,
-        IJobFactory jobFactory,
+        IActionFactory actionFactory,
         IEventTriggersManager triggersManager)
     {
         _logger = logger;
         _mediator = mediator;
         _commandsHistory = commandsHistory;
         _tagMapper = tagMapper;
-        _jobFactory = jobFactory;
+        _actionFactory = actionFactory;
         _triggersManager = triggersManager;
     }
 
@@ -425,14 +425,14 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new ExecuteLinkedActionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
-    public override Task<AddOrUpdateJobReply> AddOrUpdateJob(AddOrUpdateJobRequest request, ServerCallContext context)
+    public override Task<AddOrUpdateTaskReply> AddOrUpdateTask(AddOrUpdateTaskRequest request, ServerCallContext context)
     {
-        var job = _jobFactory.Create(request.JobId);
+        var job = _actionFactory.Create(request.ActionId);
 
         if (job is null)
         {
             // todo: add success/failure messages to reply
-            return Task.FromResult(new AddOrUpdateJobReply());
+            return Task.FromResult(new AddOrUpdateTaskReply());
         }
 
         var tagQueryMapped = request.QueryParams
@@ -441,7 +441,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var tagQuery = new TagQuery { QuerySegments = tagQueryMapped };
 
-        var jobAttributes = request.JobAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
+        var jobAttributes = request.ActionAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
 
         RecurringJob.AddOrUpdate(request.TaskId, () => job.ExecuteOnSchedule(tagQuery, jobAttributes), Cron.Never);
 
@@ -470,17 +470,17 @@ public class TagService : Backend.TagService.TagServiceBase
             }
         }
 
-        return Task.FromResult(new AddOrUpdateJobReply());
+        return Task.FromResult(new AddOrUpdateTaskReply());
     }
 
     private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
 
-    public override Task<GetAvailableJobsReply> GetAvailableJobs(GetAvailableJobsRequest request, ServerCallContext context)
+    public override Task<GetAvailableActionsReply> GetAvailableActions(GetAvailableActionsRequest request, ServerCallContext context)
     {
-        var jobInfos = _jobFactory
-            .GetAvailableJob()
+        var jobInfos = _actionFactory
+            .GetAvailableActions()
             .Select(info =>
-                new JobInfo
+                new ActionInfo
                 {
                     Id = info.Id,
                     Description = info.Description,
@@ -488,14 +488,14 @@ public class TagService : Backend.TagService.TagServiceBase
                     ApplicableToItemTypes = { info.ItemTypes.Select(tag => _tagMapper.MapToDto(tag)) }
                 });
 
-        var reply = new GetAvailableJobsReply { Infos = { jobInfos } };
+        var reply = new GetAvailableActionsReply { Infos = { jobInfos } };
 
         return Task.FromResult(reply);
     }
 
-    public override async Task GetRunningTasks(
-        GetRunningTasksRequest request,
-        IServerStreamWriter<GetRunningTasksReply> responseStream,
+    public override async Task GetExistingTasks(
+        GetExistingTasksRequest request,
+        IServerStreamWriter<GetExistingTasksReply> responseStream,
         ServerCallContext context)
     {
         using var connection = JobStorage.Current.GetConnection();
@@ -508,22 +508,22 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 var tagQueryParams = tagQuery.QuerySegments.Select(MapTagQuerySegmentToDto);
 
-                if (!recurringJob.Job.Type.IsAssignableTo(typeof(IJob)))
+                if (!recurringJob.Job.Type.IsAssignableTo(typeof(IAction)))
                 {
                     _logger.LogWarning("Recurring job with unknown job type {@RecurringJobDto}", recurringJob);
                     return;
                 }
 
                 // todo: Rework this, because it hurts me eyes.
-                var instanceId = (Activator.CreateInstance(recurringJob.Job.Type) as IJob)!.Id;
+                var instanceId = (Activator.CreateInstance(recurringJob.Job.Type) as IAction)!.Id;
 
                 // todo: add event triggers and decide what to do with multiple schedules of the same task (probably ban it)
-                var reply = new GetRunningTasksReply
+                var reply = new GetExistingTasksReply
                 {
                     TaskId = recurringJob.Id,
                     QueryParams = { tagQueryParams },
-                    JobId = instanceId,
-                    JobAttributes = new Attributes { Values = { data } },
+                    ActionId = instanceId,
+                    ActionAttributes = new Attributes { Values = { data } },
                     Triggers = { new TriggerInfo { Type = TriggerType.Cron, Arg = recurringJob.Cron } }
                 };
 

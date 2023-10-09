@@ -59,10 +59,9 @@ service TagService {
 
   rpc ExecuteLinkedAction(ExecuteLinkedActionRequest) returns (ExecuteLinkedActionReply);
 
-  rpc AddOrUpdateJob(AddOrUpdateJobRequest) returns (AddOrUpdateJobReply);
-
-  rpc GetAvailableJobs(GetAvailableJobsRequest) returns (GetAvailableJobsReply);
-  rpc GetRunningTasks(GetRunningTasksRequest) returns (stream GetRunningTasksReply);
+  rpc AddOrUpdateTask(AddOrUpdateTaskRequest) returns (AddOrUpdateTaskReply);
+  rpc GetAvailableActions(GetAvailableActionsRequest) returns (GetAvailableActionsReply);
+  rpc GetExistingTasks(GetExistingTasksRequest) returns (stream GetExistingTasksReply);
 }
 
 // The request to create a new tag.
@@ -398,11 +397,12 @@ message ExecuteLinkedActionReply {
   }
 }
 
-message AddOrUpdateJobRequest {
+
+message AddOrUpdateTaskRequest {
   string taskId = 1;
   repeated TagQueryParam queryParams = 2;
-  string jobId = 3;
-  Attributes jobAttributes = 4;
+  string actionId = 3;
+  Attributes actionAttributes = 4;
   repeated TriggerInfo triggers = 5;
 }
 
@@ -421,28 +421,28 @@ message Attributes {
   map<string, string> values = 1;
 }
 
-message AddOrUpdateJobReply {
+message AddOrUpdateTaskReply {
 }
 
-message GetAvailableJobsRequest {}
+message GetAvailableActionsRequest {}
 
-message GetAvailableJobsReply {
-  repeated JobInfo infos = 1;
+message GetAvailableActionsReply {
+  repeated ActionInfo infos = 1;
 }
 
-message JobInfo {
+message ActionInfo {
   string id = 1;
   string description = 2;
   Attributes attributesDescriptions = 3;
   repeated google.protobuf.Any applicableToItemTypes = 4;
 }
 
-message GetRunningTasksRequest {}
+message GetExistingTasksRequest {}
 
-message GetRunningTasksReply {
+message GetExistingTasksReply {
   string taskId = 1;
   repeated TagQueryParam queryParams = 2;
-  string jobId = 3;
-  Attributes jobAttributes = 4;
+  string actionId = 3;
+  Attributes actionAttributes = 4;
   repeated TriggerInfo triggers = 5;
 }

@@ -1,6 +1,6 @@
 ﻿using MediatR;
+using TagTool.Backend.Actions;
 using TagTool.Backend.Events;
-using TagTool.Backend.Jobs;
 
 namespace TagTool.Backend.Services;
 
@@ -16,18 +16,18 @@ public class EventTriggeredTasksScheduler<T> : INotificationHandler<T> where T :
     private readonly ILogger<EventTriggeredTasksScheduler<T>> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IEventTriggersManager _eventTriggersManager;
-    private readonly IJobFactory _jobFactory;
+    private readonly IActionFactory _actionFactory;
 
     public EventTriggeredTasksScheduler(
         ILogger<EventTriggeredTasksScheduler<T>> logger,
         IServiceProvider serviceProvider,
         IEventTriggersManager eventTriggersManager,
-        IJobFactory jobFactory)
+        IActionFactory actionFactory)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _eventTriggersManager = eventTriggersManager;
-        _jobFactory = jobFactory;
+        _actionFactory = actionFactory;
     }
 
     public async Task Handle(T notification, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ public class EventTriggeredTasksScheduler<T> : INotificationHandler<T> where T :
 
             await using var serviceScope = _serviceProvider.CreateAsyncScope();
             var jobId = GetJobForTask();
-            var job = _jobFactory.Create(jobId);
+            var job = _actionFactory.Create(jobId);
 
             // notification.TaggableItem
             if (job is not null)
@@ -50,8 +50,6 @@ public class EventTriggeredTasksScheduler<T> : INotificationHandler<T> where T :
             {
                 // log warning
             }
-
-            // RecurringJob.TriggerJob(taskId);
         }
     }
 

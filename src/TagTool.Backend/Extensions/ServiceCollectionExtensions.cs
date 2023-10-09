@@ -1,4 +1,4 @@
-﻿using TagTool.Backend.Jobs;
+﻿using TagTool.Backend.Actions;
 using TagTool.Backend.Mappers;
 
 namespace TagTool.Backend.Extensions;
@@ -38,18 +38,18 @@ public static class ServiceCollectionExtensions
         // registration code and makes auto detecting jobs harder. 
         var jobs = scanMarkers
             .SelectMany(marker => marker.Assembly.ExportedTypes
-                .Where(x => typeof(IJob).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))
-            .Select(type => (Type: type, Instance: (IJob)Activator.CreateInstance(type)!))
+                .Where(x => typeof(IAction).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))
+            .Select(type => (Type: type, Instance: (IAction)Activator.CreateInstance(type)!))
             .ToArray();
 
         foreach (var (marker, instance) in jobs)
         {
-            services.AddKeyedScoped(typeof(IJob), instance.Id, marker);
+            services.AddKeyedScoped(typeof(IAction), instance.Id, marker);
         }
 
         var jobInfos = jobs
             .Select(tuple =>
-                new Jobs.JobInfo(
+                new Actions.ActionInfo(
                     tuple.Instance.Id,
                     tuple.Instance.Description,
                     tuple.Instance.AttributesDescriptions,

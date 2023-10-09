@@ -10,10 +10,10 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Compact;
+using TagTool.Backend.Actions;
 using TagTool.Backend.Constants;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
-using TagTool.Backend.Jobs;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -100,7 +100,7 @@ GlobalConfiguration.Configuration
 
 builder.Services.AddHangfireServer();
 builder.Services.AddJobs(typeof(Program));
-builder.Services.AddSingleton<IJobFactory, JobFactory>();
+builder.Services.AddSingleton<IActionFactory, ActionFactory>();
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
