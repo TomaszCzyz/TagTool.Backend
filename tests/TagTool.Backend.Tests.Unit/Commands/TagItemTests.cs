@@ -49,6 +49,6 @@ public class TagItemTests
 
         // Assert
         response.Value.Should().Be(taggableItem)
-            .And.As<TaggableFile>().Tags.Should().Contain(testTag1);
+            .And.Subject.As<TaggableFile>().Tags.Should().Contain(testTag1);
     }
 }
