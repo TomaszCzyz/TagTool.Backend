@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using TagTool.Backend.Events;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
-using TagTool.Backend.Notifications;
 
 namespace TagTool.Backend.DbContext;
 
@@ -137,10 +137,10 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
         switch (e.Entry.State)
         {
             case EntityState.Added:
-                _mediator.Publish(new ItemTaggedNotification { TaggedItemId = item.TaggableItemId, AddedTagId = item.TagBaseId });
+                _mediator.Publish(new ItemTaggedNotif { TaggableItemId = item.TaggableItemId, AddedTagId = item.TagBaseId });
                 break;
             case EntityState.Deleted:
-                _mediator.Publish(new ItemUntaggedNotification { UntaggedItemId = item.TaggableItemId, RemovedTagId = item.TagBaseId });
+                _mediator.Publish(new ItemUntaggedNotif { TaggableItemId = item.TaggableItemId, RemovedTagId = item.TagBaseId });
                 break;
         }
     }

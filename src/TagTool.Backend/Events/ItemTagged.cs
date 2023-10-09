@@ -1,17 +1,17 @@
 using Hangfire.Annotations;
 using MediatR;
 
-namespace TagTool.Backend.Notifications;
+namespace TagTool.Backend.Events;
 
-public sealed class ItemTaggedNotification : INotification
+public sealed class ItemTaggedNotif : ITaggableItemNotif
 {
-    public required Guid TaggedItemId { get; init; }
+    public required Guid TaggableItemId { get; init; }
 
     public required int AddedTagId { get; init; }
 }
 
 [UsedImplicitly]
-public sealed class ItemTagged : INotificationHandler<ItemTaggedNotification>
+public sealed class ItemTagged : INotificationHandler<ItemTaggedNotif>
 {
     private readonly ILogger<ItemTagged> _logger;
 
@@ -20,7 +20,7 @@ public sealed class ItemTagged : INotificationHandler<ItemTaggedNotification>
         _logger = logger;
     }
 
-    public Task Handle(ItemTaggedNotification notification, CancellationToken cancellationToken)
+    public Task Handle(ItemTaggedNotif notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling {@Notification} notification...", notification);
         return Task.CompletedTask;

@@ -6,6 +6,7 @@ using MediatR;
 using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Events;
 using TagTool.Backend.Jobs;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
@@ -19,16 +20,27 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
-    private readonly ITagMapper _tagMapper;
-    private readonly IJobFactory _jobFactory;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, ICommandsHistory commandsHistory, ITagMapper tagMapper, IJobFactory jobFactory)
+    private readonly ITagMapper _tagMapper;
+
+    // todo: move functionalities associated with below fields to command handlers 
+    private readonly IJobFactory _jobFactory;
+    private readonly IEventTriggersManager _triggersManager;
+
+    public TagService(
+        ILogger<TagService> logger,
+        IMediator mediator,
+        ICommandsHistory commandsHistory,
+        ITagMapper tagMapper,
+        IJobFactory jobFactory,
+        IEventTriggersManager triggersManager)
     {
         _logger = logger;
         _mediator = mediator;
         _commandsHistory = commandsHistory;
         _tagMapper = tagMapper;
         _jobFactory = jobFactory;
+        _triggersManager = triggersManager;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -415,7 +427,6 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override Task<AddOrUpdateJobReply> AddOrUpdateJob(AddOrUpdateJobRequest request, ServerCallContext context)
     {
-        // GlobalConfiguration.Configuration.UseRecommendedSerializerSettings();
         var job = _jobFactory.Create(request.JobId);
 
         if (job is null)
@@ -432,7 +443,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var jobAttributes = request.JobAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        RecurringJob.AddOrUpdate(request.TaskId, () => job.Execute(tagQuery, jobAttributes), Cron.Never);
+        RecurringJob.AddOrUpdate(request.TaskId, () => job.ExecuteOnSchedule(tagQuery, jobAttributes), Cron.Never);
 
         foreach (var triggerInfo in request.Triggers)
         {
@@ -441,10 +452,18 @@ public class TagService : Backend.TagService.TagServiceBase
                 case TriggerType.Manual:
                     break;
                 case TriggerType.Cron:
-                    RecurringJob.AddOrUpdate(request.TaskId, () => job.Execute(tagQuery, jobAttributes), triggerInfo.Arg);
+                    RecurringJob.AddOrUpdate(request.TaskId, () => job.ExecuteOnSchedule(tagQuery, jobAttributes), triggerInfo.Arg);
                     break;
                 case TriggerType.Event:
-                    // add trigger to 'jobEventTriggerInvoker'
+                    if (_notificationMappings.TryGetValue(triggerInfo.Arg, out var type))
+                    {
+                        _triggersManager.AddTrigger(type, request.TaskId);
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"no mapping for notification with name {triggerInfo.Arg}");
+                    }
+
                     break;
                 default:
                     throw new UnreachableException();
@@ -453,6 +472,8 @@ public class TagService : Backend.TagService.TagServiceBase
 
         return Task.FromResult(new AddOrUpdateJobReply());
     }
+
+    private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
 
     public override Task<GetAvailableJobsReply> GetAvailableJobs(GetAvailableJobsRequest request, ServerCallContext context)
     {

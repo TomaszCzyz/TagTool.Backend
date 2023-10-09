@@ -30,7 +30,9 @@ public interface IJob
 
     ItemTypeTag[] ItemTypes { get; }
 
-    Task<JobResult> Execute(TagQuery tagQuery, Dictionary<string, string> data);
+    Task<JobResult> ExecuteOnSchedule(TagQuery tagQuery, Dictionary<string, string> data);
+
+    Task<JobResult> ExecuteByEvent(IEnumerable<Guid> items, Dictionary<string, string> data);
 
     // when execution is triggered by event 
     // Task<JobResult> Execute(TaggableItem item, Dictionary<string, string> data);
@@ -65,7 +67,7 @@ public class MoveJob : IJob
         _mediator = mediator;
     }
 
-    public async Task<JobResult> Execute(TagQuery tagQuery, Dictionary<string, string> data)
+    public async Task<JobResult> ExecuteOnSchedule(TagQuery tagQuery, Dictionary<string, string> data)
     {
         _logger.LogInformation("Executing job 'MoveFileJob' with args: {@TagQuery} and {@Attributes}", tagQuery, data);
 
@@ -74,5 +76,15 @@ public class MoveJob : IJob
         var reply = await _mediator.Send(command);
 
         return reply.Match(_ => JobResult.Successful, _ => JobResult.Failed);
+    }
+
+    public Task<JobResult> ExecuteByEvent(IEnumerable<Guid> items, Dictionary<string, string> data)
+    {
+        foreach (var taggableItem in items)
+        {
+            // execute...
+        }
+
+        return Task.FromResult(JobResult.Successful);
     }
 }

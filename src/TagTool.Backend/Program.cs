@@ -65,6 +65,7 @@ if (!Directory.Exists(path))
 
 builder.Services.AddTagDtoMappers(typeof(Program));
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
+builder.Services.AddSingleton<IEventTriggersManager, EventTriggersManager>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
 builder.Services.AddScoped<ITagsRelationsManager, TagsRelationsManager>();

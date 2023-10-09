@@ -2,7 +2,7 @@ using Hangfire.Annotations;
 using MediatR;
 using TagTool.Backend.Models.Tags;
 
-namespace TagTool.Backend.Notifications;
+namespace TagTool.Backend.Events;
 
 public sealed class TagDeletedNotification : INotification
 {

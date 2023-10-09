@@ -29,7 +29,7 @@ public class TestHelper
         dbContextOptions.UseSqlite($"Data Source={Constants.Constants.DbPath}");
         var mediatorMock = new Mock<IMediator>();
 
-        _dbContext = new TagToolDbContext(mediatorMock.Object,dbContextOptions.Options);
+        _dbContext = new TagToolDbContext(mediatorMock.Object, dbContextOptions.Options);
     }
 
     [Fact]
