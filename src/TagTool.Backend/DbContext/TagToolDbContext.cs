@@ -7,7 +7,19 @@ using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.DbContext;
 
-public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext
+public interface ITagToolDbContext
+{
+    DbSet<TagBase> Tags { get; }
+    DbSet<TextTag> NormalTags { get; }
+    DbSet<TagSynonymsGroup> TagSynonymsGroups { get; }
+    DbSet<TagsHierarchy> TagsHierarchy { get; }
+    DbSet<TaggableItem> TaggedItems { get; }
+    DbSet<TaggableFile> TaggableFiles { get; }
+    DbSet<TaggableFolder> TaggableFolders { get; }
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+}
+
+public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, ITagToolDbContext
 {
     private readonly IMediator _mediator;
 

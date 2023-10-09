@@ -23,9 +23,9 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
 {
     private readonly ILogger<TagItem> _logger;
     private readonly IImplicitTagsProvider _implicitTagsProvider;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public TagItem(ILogger<TagItem> logger, IImplicitTagsProvider implicitTagsProvider, TagToolDbContext dbContext)
+    public TagItem(ILogger<TagItem> logger, IImplicitTagsProvider implicitTagsProvider, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _implicitTagsProvider = implicitTagsProvider;

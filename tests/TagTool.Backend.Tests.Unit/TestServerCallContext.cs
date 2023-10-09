@@ -1,6 +1,6 @@
 ﻿using Grpc.Core;
 
-namespace TagTool.Backend.Tests.Unit.Helpers;
+namespace TagTool.Backend.Tests.Unit;
 
 public sealed class TestServerCallContext : ServerCallContext
 {
