@@ -17,6 +17,10 @@ public class TagItemTests
     private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
     // private readonly DbSet<TagBase> _tags = Substitute.For<DbSet<TagBase>, IQueryable<TagBase>, IAsyncEnumerable<TagBase>>();
 
+    private readonly TextTag _tag1 = new() { Text = "TestTag1" };
+    private readonly TextTag _tag2 = new() { Text = "TestTag2" };
+    private readonly TaggableFile _taggableFile = new() { Path = "path", Tags = new List<TagBase>() };
+
     public TagItemTests()
     {
         var logger = Substitute.For<ILogger<TagItem>>();
@@ -29,11 +33,8 @@ public class TagItemTests
     private async Task Handle_ValidRequest_TagAndItemExists_ItemNotTaggedYet_ReturnsTaggableItem()
     {
         // Arrange
-        var testTag1 = new TextTag { Text = "TestTag1" };
-        var testTag2 = new TextTag { Text = "TestTag2" };
-        var tags = new List<TagBase> { testTag1, testTag2 };
-        var taggableItem = new TaggableFile { Path = "path", Tags = new List<TagBase>() };
-        var taggableFiles = new List<TaggableFile> { taggableItem }.AsQueryable();
+        var tags = new List<TagBase> { _tag1, _tag2 };
+        var taggableFiles = new List<TaggableFile> { _taggableFile };
 
         var tagsMock = tags.AsQueryable().BuildMockDbSet();
         var taggableFilesMock = taggableFiles.AsQueryable().BuildMockDbSet();
@@ -41,25 +42,23 @@ public class TagItemTests
         _dbContext.Tags.Returns(tagsMock);
         _dbContext.TaggableFiles.Returns(taggableFilesMock);
 
-        var command = new Backend.Commands.TagItemRequest { Tag = testTag1, TaggableItem = taggableItem };
+        var command = new Backend.Commands.TagItemRequest { Tag = _tag1, TaggableItem = _taggableFile };
 
         // Act
         var response = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        response.Value.Should().Be(taggableItem)
-            .And.Subject.As<TaggableFile>().Tags.Should().Contain(testTag1);
+        response.Value.Should().Be(_taggableFile)
+            .And.Subject.As<TaggableFile>().Tags.Should().Contain(_tag1);
     }
 
     [Fact]
     private async Task Handle_ValidRequest_TagAndItemExists_ItemIsAlreadyTagged_ReturnsError()
     {
         // Arrange
-        var testTag1 = new TextTag { Text = "TestTag1" };
-        var testTag2 = new TextTag { Text = "TestTag2" };
-        var tags = new List<TagBase> { testTag1, testTag2 };
-        var taggableItem = new TaggableFile { Path = "path", Tags = new List<TagBase> { testTag1 } };
-        var taggableFiles = new List<TaggableFile> { taggableItem }.AsQueryable();
+        _taggableFile.Tags.Add(_tag1);
+        var tags = new List<TagBase> { _tag1, _tag2 };
+        var taggableFiles = new List<TaggableFile> { _taggableFile };
 
         var tagsMock = tags.AsQueryable().BuildMockDbSet();
         var taggableFilesMock = taggableFiles.AsQueryable().BuildMockDbSet();
@@ -67,13 +66,13 @@ public class TagItemTests
         _dbContext.Tags.Returns(tagsMock);
         _dbContext.TaggableFiles.Returns(taggableFilesMock);
 
-        var command = new Backend.Commands.TagItemRequest { Tag = testTag1, TaggableItem = taggableItem };
+        var command = new Backend.Commands.TagItemRequest { Tag = _tag1, TaggableItem = _taggableFile };
 
         // Act
         var response = await _sut.Handle(command, CancellationToken.None);
 
         // Assert
         response.Value.Should().BeOfType<ErrorResponse>()
-            .Which.Message.Should().Be($"Item {taggableItem} already contain tag {testTag1}");
+            .Which.Message.Should().Be($"Item {_taggableFile} already contain tag {_tag1}");
     }
 }
