@@ -13,8 +13,8 @@ namespace TagTool.Backend.Services;
 /// <summary>
 ///     The interface for managing relation between tags, i.e. tag synonyms and tag child-parent hierarchy.
 ///     All modification of such relations should be perform via the interface.
-///     Collection <see cref="TagTool.Backend.DbContext.TagToolDbContext.TagSynonymsGroups" /> and
-///     <see cref="TagTool.Backend.DbContext.TagToolDbContext.TagsHierarchy" />
+///     Collection <see cref="TagTool.Backend.DbContext.ITagToolDbContext.TagSynonymsGroups" /> and
+///     <see cref="TagTool.Backend.DbContext.ITagToolDbContext.TagsHierarchy" />
 ///     should not be accessed only from classes implementing this interface.
 /// </summary>
 /// <remarks>We assume that provided tag always exists. Providing non existing tag will cause exception</remarks>
@@ -37,9 +37,9 @@ public class TagsRelationsManager : ITagsRelationsManager
 {
     private const string DefaultGroupSuffix = "TempGroup";
 
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public TagsRelationsManager(TagToolDbContext dbContext)
+    public TagsRelationsManager(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

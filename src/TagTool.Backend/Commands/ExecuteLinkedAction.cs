@@ -15,9 +15,9 @@ public class ExecuteLinkedRequest : ICommand<OneOf<string, ErrorResponse>>
 [UsedImplicitly]
 public class ExecuteLinked : ICommandHandler<ExecuteLinkedRequest, OneOf<string, ErrorResponse>>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public ExecuteLinked(TagToolDbContext dbContext)
+    public ExecuteLinked(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

@@ -20,9 +20,9 @@ public class RenameFileRequest : ICommand<OneOf<string, ErrorResponse>>, IRevers
 public class RenameFile : ICommandHandler<RenameFileRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<RenameFile> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public RenameFile(ILogger<RenameFile> logger, TagToolDbContext dbContext)
+    public RenameFile(ILogger<RenameFile> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

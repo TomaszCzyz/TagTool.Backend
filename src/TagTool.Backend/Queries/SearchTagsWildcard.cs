@@ -17,9 +17,9 @@ public class SearchTagsWildcardRequest : IStreamRequest<(TagBase, IEnumerable<Te
 [UsedImplicitly]
 public class SearchTagsWildcard : IStreamRequestHandler<SearchTagsWildcardRequest, (TagBase, IEnumerable<TextSlice>)>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public SearchTagsWildcard(TagToolDbContext dbContext)
+    public SearchTagsWildcard(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

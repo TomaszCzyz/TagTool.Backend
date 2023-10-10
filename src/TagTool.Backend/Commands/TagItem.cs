@@ -34,8 +34,14 @@ public class TagItem : ICommandHandler<TagItemRequest, OneOf<TaggableItem, Error
 
     public async Task<OneOf<TaggableItem, ErrorResponse>> Handle(TagItemRequest request, CancellationToken cancellationToken)
     {
-        var taggableItem = await GetOrAddTaggableItem(request.TaggableItem, cancellationToken);
-        var tag = await GetOrAddTag(request.Tag, cancellationToken);
+        var taggableItemTask = GetOrAddTaggableItem(request.TaggableItem, cancellationToken);
+        var tagTask = GetOrAddTag(request.Tag, cancellationToken);
+
+        // todo: Apply Task.WhenAll pattern in other places.
+        await Task.WhenAll(taggableItemTask, tagTask);
+
+        var taggableItem = await taggableItemTask;
+        var tag = await tagTask;
 
         if (taggableItem.Tags.Contains(tag))
         {

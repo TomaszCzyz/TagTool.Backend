@@ -13,9 +13,9 @@ public class GetItemsByTagsQuery : IQuery<IEnumerable<TaggableItem>>
 [UsedImplicitly]
 public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<TaggableItem>>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public GetItemsByTags(TagToolDbContext dbContext)
+    public GetItemsByTags(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

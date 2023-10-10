@@ -21,9 +21,9 @@ public class MoveFolder : ICommandHandler<MoveFolderRequest, OneOf<SuccessRespon
 {
     private readonly ILogger<MoveFolder> _logger;
     private readonly ICommonStorage _commonStorage;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public MoveFolder(ILogger<MoveFolder> logger, TagToolDbContext dbContext, ICommonStorage commonStorage)
+    public MoveFolder(ILogger<MoveFolder> logger, ITagToolDbContext dbContext, ICommonStorage commonStorage)
     {
         _logger = logger;
         _dbContext = dbContext;

@@ -19,9 +19,9 @@ public class AddChildRequest : ICommand<OneOf<string, ErrorResponse>>
 public class AddChild : ICommandHandler<AddChildRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ITagsRelationsManager _tagsRelationsManager;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public AddChild(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
+    public AddChild(ITagsRelationsManager tagsRelationsManager, ITagToolDbContext dbContext)
     {
         _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;

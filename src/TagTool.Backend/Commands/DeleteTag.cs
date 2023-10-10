@@ -20,9 +20,9 @@ public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversi
 public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<DeleteTag> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public DeleteTag(ILogger<DeleteTag> logger, TagToolDbContext dbContext)
+    public DeleteTag(ILogger<DeleteTag> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

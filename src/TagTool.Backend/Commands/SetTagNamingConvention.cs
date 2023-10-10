@@ -18,12 +18,12 @@ public class SetTagNamingConventionCommand : ICommand<OneOf<None, ErrorResponse>
 public class SetTagNamingConvention : ICommandHandler<SetTagNamingConventionCommand, OneOf<None, ErrorResponse>>
 {
     private readonly ILogger<SetTagNamingConvention> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
     private readonly ITagNameProvider _tagNameProvider;
 
     public SetTagNamingConvention(
         ILogger<SetTagNamingConvention> logger,
-        TagToolDbContext dbContext,
+        ITagToolDbContext dbContext,
         ITagNameProvider tagNameProvider)
     {
         _logger = logger;

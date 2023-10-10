@@ -17,9 +17,9 @@ public class CanCreateTag : IQueryHandler<CanCreateTagQuery, OneOf<ErrorResponse
 {
     // todo: creating new db connection for each request seams expensive...
     // it would be nice to reuse connection for single streaming call in FileActionService
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public CanCreateTag(TagToolDbContext dbContext)
+    public CanCreateTag(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

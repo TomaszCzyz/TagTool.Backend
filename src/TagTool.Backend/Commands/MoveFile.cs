@@ -22,10 +22,10 @@ public class MoveFileRequest : ICommand<OneOf<SuccessResponse, ErrorResponse>>, 
 public class MoveFile : ICommandHandler<MoveFileRequest, OneOf<SuccessResponse, ErrorResponse>>
 {
     private readonly ILogger<MoveFile> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
     private readonly ICommonStorage _commonStorage;
 
-    public MoveFile(ILogger<MoveFile> logger, TagToolDbContext dbContext, ICommonStorage commonStorage)
+    public MoveFile(ILogger<MoveFile> logger, ITagToolDbContext dbContext, ICommonStorage commonStorage)
     {
         _logger = logger;
         _dbContext = dbContext;

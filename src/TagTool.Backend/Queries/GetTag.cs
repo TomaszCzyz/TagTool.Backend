@@ -13,9 +13,9 @@ public class GetTagQuery : IQuery<TagBase?>
 [UsedImplicitly]
 public class GetTag : IQueryHandler<GetTagQuery, TagBase?>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public GetTag(TagToolDbContext dbContext)
+    public GetTag(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

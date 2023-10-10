@@ -25,13 +25,13 @@ public class CommonStorage : ICommonStorage
     private readonly ILogger<CommonStorage> _logger;
     private readonly CommonStorageOptions _commonStorageOptions;
     private readonly ICommonStoragePathProvider _commonStoragePathProvider;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
     public CommonStorage(
         ILogger<CommonStorage> logger,
         ICommonStoragePathProvider commonStoragePathProvider,
         IOptions<CommonStorageOptions> commonStorageOptions,
-        TagToolDbContext dbContext)
+        ITagToolDbContext dbContext)
     {
         _commonStoragePathProvider = commonStoragePathProvider;
         _dbContext = dbContext;

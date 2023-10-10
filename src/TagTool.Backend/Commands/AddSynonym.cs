@@ -20,9 +20,9 @@ public class AddSynonymRequest : ICommand<OneOf<string, ErrorResponse>>
 public class AddSynonym : ICommandHandler<AddSynonymRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ITagsRelationsManager _tagsRelationsManager;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public AddSynonym(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
+    public AddSynonym(ITagsRelationsManager tagsRelationsManager, ITagToolDbContext dbContext)
     {
         _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;

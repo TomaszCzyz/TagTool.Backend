@@ -20,9 +20,9 @@ public class SearchTagsFuzzyRequest : IStreamRequest<(TagBase, IEnumerable<TextS
 [UsedImplicitly]
 public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (TagBase, IEnumerable<TextSlice>)>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public SearchTagsFuzzy(TagToolDbContext dbContext)
+    public SearchTagsFuzzy(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

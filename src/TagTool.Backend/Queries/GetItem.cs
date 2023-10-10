@@ -14,9 +14,9 @@ public class GetItemQuery : IQuery<OneOf<TaggableItem, ErrorResponse>>
 [UsedImplicitly]
 public class GetItem : IQueryHandler<GetItemQuery, OneOf<TaggableItem, ErrorResponse>>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public GetItem(TagToolDbContext dbContext)
+    public GetItem(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

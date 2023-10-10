@@ -83,7 +83,7 @@ builder.Services.AddMediatR(
         cfg.RegisterServicesFromAssemblyContaining<Program>();
         cfg.NotificationPublisher = new TaskWhenAllPublisher();
     });
-builder.Services.AddDbContext<TagToolDbContext>(options
+builder.Services.AddDbContext<ITagToolDbContext, TagToolDbContext>(options
     => options
         .UseSqlite($"Data Source={Constants.DbPath}")
         .UseLoggerFactory(new SerilogLoggerFactory())
@@ -108,12 +108,12 @@ app.MapGrpcService<FolderActionsService>();
 app.MapGrpcService<FileSystemSearcher>();
 
 using var scope = app.Services.CreateScope();
-await using (var db = scope.ServiceProvider.GetRequiredService<TagToolDbContext>())
-{
-    app.Logger.LogInformation("Executing EF migrations...");
-    db.Database.EnsureCreated();
-    db.Database.Migrate();
-}
+// await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
+// {
+//     app.Logger.LogInformation("Executing EF migrations...");
+//     db.Database.EnsureCreated();
+//     db.Database.Migrate();
+// }
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();

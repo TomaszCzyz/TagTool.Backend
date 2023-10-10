@@ -17,6 +17,7 @@ public interface ITagToolDbContext
     DbSet<TaggableFile> TaggableFiles { get; }
     DbSet<TaggableFolder> TaggableFolders { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+    int SaveChanges();
 }
 
 public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, ITagToolDbContext

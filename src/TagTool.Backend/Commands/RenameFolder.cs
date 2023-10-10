@@ -23,9 +23,9 @@ public class RenameFolderRequest : ICommand<OneOf<string, ErrorResponse>>, IReve
 public class RenameFolder : ICommandHandler<RenameFolderRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ILogger<RenameFolder> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public RenameFolder(ILogger<RenameFolder> logger, TagToolDbContext dbContext)
+    public RenameFolder(ILogger<RenameFolder> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

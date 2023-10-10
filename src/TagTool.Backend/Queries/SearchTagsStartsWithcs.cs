@@ -18,9 +18,9 @@ public class SearchTagsStartsWithRequest : IStreamRequest<(TagBase, IEnumerable<
 [UsedImplicitly]
 public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRequest, (TagBase, IEnumerable<TextSlice>)>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public SearchTagsStartsWith(TagToolDbContext dbContext)
+    public SearchTagsStartsWith(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

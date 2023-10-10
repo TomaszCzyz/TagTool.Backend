@@ -19,9 +19,9 @@ public class RemoveChildRequest : ICommand<OneOf<string, ErrorResponse>>
 public class RemoveChild : ICommandHandler<RemoveChildRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ITagsRelationsManager _tagsRelationsManager;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public RemoveChild(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
+    public RemoveChild(ITagsRelationsManager tagsRelationsManager, ITagToolDbContext dbContext)
     {
         _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;

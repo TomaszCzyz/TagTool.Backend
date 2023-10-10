@@ -18,9 +18,9 @@ public class CreateTagRequest : ICommand<OneOf<TagBase, ErrorResponse>>, IRevers
 public class CreateTag : ICommandHandler<CreateTagRequest, OneOf<TagBase, ErrorResponse>>
 {
     private readonly ILogger<CreateTag> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public CreateTag(ILogger<CreateTag> logger, TagToolDbContext dbContext)
+    public CreateTag(ILogger<CreateTag> logger, ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
         _logger = logger;

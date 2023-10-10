@@ -13,9 +13,9 @@ public class DoesItemExistsQuery : IQuery<bool>
 [UsedImplicitly]
 public class DoesItemExists : IQueryHandler<DoesItemExistsQuery, bool>
 {
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public DoesItemExists(TagToolDbContext dbContext)
+    public DoesItemExists(ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
     }

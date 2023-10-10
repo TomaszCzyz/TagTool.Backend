@@ -19,9 +19,9 @@ public class RemoveSynonymRequest : ICommand<OneOf<string, ErrorResponse>>
 public class RemoveSynonym : ICommandHandler<RemoveSynonymRequest, OneOf<string, ErrorResponse>>
 {
     private readonly ITagsRelationsManager _tagsRelationsManager;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public RemoveSynonym(ITagsRelationsManager tagsRelationsManager, TagToolDbContext dbContext)
+    public RemoveSynonym(ITagsRelationsManager tagsRelationsManager, ITagToolDbContext dbContext)
     {
         _tagsRelationsManager = tagsRelationsManager;
         _dbContext = dbContext;

@@ -36,9 +36,9 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
         };
 
     private readonly ITagsRelationsManager _tagsRelationsManager;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public ImplicitTagsProvider(TagToolDbContext dbContext, ITagsRelationsManager tagsRelationsManager)
+    public ImplicitTagsProvider(ITagToolDbContext dbContext, ITagsRelationsManager tagsRelationsManager)
     {
         _dbContext = dbContext;
         _tagsRelationsManager = tagsRelationsManager;
