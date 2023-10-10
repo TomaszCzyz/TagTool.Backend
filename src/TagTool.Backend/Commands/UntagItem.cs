@@ -22,9 +22,9 @@ public class UntagItemRequest : ICommand<OneOf<TaggableItem, ErrorResponse>>, IR
 public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, ErrorResponse>>
 {
     private readonly ILogger<UntagItem> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public UntagItem(ILogger<UntagItem> logger, TagToolDbContext dbContext)
+    public UntagItem(ILogger<UntagItem> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;
@@ -45,7 +45,9 @@ public class UntagItem : ICommandHandler<UntagItemRequest, OneOf<TaggableItem, E
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return isRemoved ? taggableItem : new ErrorResponse($"Unable to remove tag {tag} from item {taggableItem}.");
+        return isRemoved
+            ? taggableItem
+            : new ErrorResponse($"Unable to remove tag {tag} from item {taggableItem}, item might not be tagged with given tag.");
     }
 
     private async Task<(TagBase?, TaggableItem?)> FindExistingEntities(
