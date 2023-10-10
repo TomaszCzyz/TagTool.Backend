@@ -63,18 +63,20 @@ if (!Directory.Exists(path))
     Directory.CreateDirectory(path);
 }
 
-builder.Services.AddTagDtoMappers(typeof(Program));
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
 builder.Services.AddSingleton<IEventTriggersManager, EventTriggersManager>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
-builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
-builder.Services.AddScoped<ITagsRelationsManager, TagsRelationsManager>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
+builder.Services.AddSingleton<IActionFactory, ActionFactory>();
+builder.Services.AddSingleton(typeof(EventTriggeredTasksScheduler<>));
+builder.Services.AddScoped<IImplicitTagsProvider, ImplicitTagsProvider>();
+builder.Services.AddScoped<ITagsRelationsManager, TagsRelationsManager>();
 builder.Services.AddScoped<ICommonStoragePathProvider, CommonStoragePathProvider>();
 builder.Services.AddScoped<ICommonStorage, CommonStorage>();
+builder.Services.AddTagDtoMappers(typeof(Program));
+builder.Services.AddHangfireServer();
 builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
-builder.Services.AddSingleton(typeof(EventTriggeredTasksScheduler<>));
 builder.Services.AddMediatR(
     cfg =>
     {
@@ -87,20 +89,15 @@ builder.Services.AddDbContext<TagToolDbContext>(options
         .UseLoggerFactory(new SerilogLoggerFactory())
         .EnableDetailedErrors()
         .EnableSensitiveDataLogging());
-
-builder.Services.AddHangfire(configuration => configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_180));
-
-GlobalConfiguration.Configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSQLiteStorage(
-        $"{Constants.BasePath}/hangfire.db") // the other matters!!! because during the registration the serializer settings are overwritten
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSerilogLogProvider();
-
-builder.Services.AddHangfireServer();
 builder.Services.AddJobs(typeof(Program));
-builder.Services.AddSingleton<IActionFactory, ActionFactory>();
+builder.Services.AddHangfire(configuration
+    => configuration
+        // the other matters(storage before serializer settings)!!! because during the registration the serializer settings are overwritten
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSQLiteStorage($"{Constants.BasePath}/hangfire.db")
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseSerilogLogProvider());
 
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
