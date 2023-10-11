@@ -16,22 +16,25 @@ public class TagServiceTests
     private readonly Backend.Services.Grpc.TagService _sut;
 
     private readonly IMediator _mediator = Substitute.For<IMediator>();
-    private readonly ICommandsHistory _commandsHistory = Substitute.For<ICommandsHistory>();
-    private readonly ITagMapper _tagMapper = Substitute.For<ITagMapper>();
-    private readonly IActionFactory _actionFactory = Substitute.For<IActionFactory>();
-    private readonly IEventTriggersManager _triggersManager = Substitute.For<IEventTriggersManager>();
+    private readonly ITagMapper _tagMapper = TagMapperHelper.InitializeWithKnownMappers();
+
+    private readonly FileDto _fileDto = new() { Path = "TestItemIdentifier" };
+    private readonly NormalTag _textTag = new() { Name = "TestTag1" };
 
     public TagServiceTests()
     {
         var loggerMock = Substitute.For<ILogger<Backend.Services.Grpc.TagService>>();
+        var commandsHistory = Substitute.For<ICommandsHistory>();
+        var actionFactory = Substitute.For<IActionFactory>();
+        var triggersManager = Substitute.For<IEventTriggersManager>();
 
         _sut = new Backend.Services.Grpc.TagService(
             loggerMock,
             _mediator,
-            _commandsHistory,
+            commandsHistory,
             _tagMapper,
-            _actionFactory,
-            _triggersManager);
+            actionFactory,
+            triggersManager);
     }
 
     [Fact]
@@ -39,9 +42,11 @@ public class TagServiceTests
     {
         // Arrange
         var testServerCallContext = TestServerCallContext.Create();
-        var fileDto = new FileDto { Path = "TestItemIdentifier" };
-        var yearTag = new YearTagDto { Year = 4022 };
-        var tagItemRequest = new TagItemRequest { File = fileDto, Tag = Any.Pack(yearTag) };
+        var tagItemRequest = new TagItemRequest { File = _fileDto, Tag = Any.Pack(_textTag) };
+
+        // TaggableFile??? and it turns out, that it is hard to test it due to weird TaggableItem in-method mapping...
+
+        // _mediator.Send(Arg.Any<IRequest>()).Returns(info => OneOf.OneOf<TaggedItem, ErrorResponse>.FromT0());
 
         // Act
         var response = await _sut.TagItem(tagItemRequest, testServerCallContext);

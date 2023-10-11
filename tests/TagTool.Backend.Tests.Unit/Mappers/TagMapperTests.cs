@@ -13,13 +13,8 @@ namespace TagTool.Backend.Tests.Unit.Mappers;
 public class TagMapperTests
 {
     private static readonly TypeRegistry? _typeRegistry = TypeRegistry.FromFiles(TypeTag.Descriptor.File);
-    private readonly ITagMapper _tagMapper;
 
-    public TagMapperTests()
-    {
-        var mappers = new[] { new ItemTypeTagMapper() };
-        _tagMapper = new TagMapper(mappers, mappers);
-    }
+    private readonly ITagMapper _sut = TagMapperHelper.InitializeWithKnownMappers();
 
     private static IMessage UnpackHelper(Any anyTag) => anyTag.Unpack(_typeRegistry);
 
@@ -31,7 +26,7 @@ public class TagMapperTests
         var tag = new TypeTag { Type = type.Name };
 
         // Act
-        var tagBase = _tagMapper.MapFromDto(Any.Pack(tag));
+        var tagBase = _sut.MapFromDto(Any.Pack(tag));
 
         // Assert
         tagBase.Should().BeOfType<ItemTypeTag>().Which.Type.Should().Be(type);
@@ -45,7 +40,7 @@ public class TagMapperTests
         var tag = new TypeTag { Type = type.Name };
 
         // Act
-        var tagBase = _tagMapper.MapFromDto(Any.Pack(tag));
+        var tagBase = _sut.MapFromDto(Any.Pack(tag));
 
         // Assert
         tagBase.Should().BeOfType<ItemTypeTag>().Which.Type.Should().Be(type);
@@ -59,7 +54,7 @@ public class TagMapperTests
         var tag = new ItemTypeTag { Type = type };
 
         // Act
-        var anyTag = _tagMapper.MapToDto(tag);
+        var anyTag = _sut.MapToDto(tag);
         var tagDto = UnpackHelper(anyTag);
 
         // Assert
@@ -74,7 +69,7 @@ public class TagMapperTests
         var tag = new ItemTypeTag { Type = type };
 
         // Act
-        var anyTag = _tagMapper.MapToDto(tag);
+        var anyTag = _sut.MapToDto(tag);
         var tagDto = UnpackHelper(anyTag);
 
         // Assert
