@@ -7,7 +7,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 <!--    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
-
     <NoWarn>CA1848;CA1000</NoWarn>
   </PropertyGroup>
 
