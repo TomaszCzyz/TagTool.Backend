@@ -52,17 +52,19 @@ public class TagsRelationsManager : ITagsRelationsManager
                 $"Cannot manually add tag to group with name ending with '{DefaultGroupSuffix}', as it is reserved for internal use.");
         }
 
-        var groupWithRequestedTag = await _dbContext.TagSynonymsGroups.Include(tagSynonymsGroup => tagSynonymsGroup.Synonyms)
+        var groupWithRequestedTag = await _dbContext.TagSynonymsGroups
+            .Include(tagSynonymsGroup => tagSynonymsGroup.Synonyms)
             .FirstOrDefaultAsync(group => group.Synonyms.Contains(tag), cancellationToken);
 
         if (groupWithRequestedTag is null)
         {
+            // tag is not in any group
             return await AddSynonymSimple(tag, groupName, cancellationToken);
         }
 
         if (groupWithRequestedTag.Name == groupName)
         {
-            return new ErrorResponse($"The tag {tag} is already in a group {groupName}.");
+            return new ErrorResponse($"The tag {tag} is already in a requested group {groupWithRequestedTag}.");
         }
 
         if (groupWithRequestedTag.Name != groupName && !IsGroupAutomaticallyCreated(groupWithRequestedTag))
@@ -70,7 +72,7 @@ public class TagsRelationsManager : ITagsRelationsManager
             return new ErrorResponse($"The tag {tag} is already in different synonyms group {groupWithRequestedTag}");
         }
 
-        // We cope with a group created automatically for child-parent relation for group-less tag
+        // At this point, we cope with a group created automatically for child-parent relation for group-less tag
         // i.e. this group can merged into other groups with the same parent tag.
         // We have to remember to inherit parent.
         var (synonymsGroup, _) = await EnsureGroupExists(groupName, cancellationToken);
@@ -422,7 +424,7 @@ public class TagsRelationsManager : ITagsRelationsManager
 
         if (!justCreated && synonymsGroup.Synonyms.Contains(tagBase))
         {
-            return new ErrorResponse($"The tag {tagBase} is already in synonyms group {synonymsGroup}");
+            return new ErrorResponse($"The tag {tagBase} is already in the synonyms group {synonymsGroup}");
         }
 
         synonymsGroup.Synonyms.Add(tagBase);

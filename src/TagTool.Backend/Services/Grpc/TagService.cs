@@ -247,10 +247,11 @@ public class TagService : Backend.TagService.TagServiceBase
             {
                 TaggedItem = taggedItem switch
                 {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
+                    TaggableFile file
+                        => new TaggedItem
+                        {
+                            File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
+                        },
                     TaggableFolder folder
                         => new TaggedItem
                         {

@@ -21,6 +21,8 @@ public class TagMapperTests
         _tagMapper = new TagMapper(mappers, mappers);
     }
 
+    private static IMessage UnpackHelper(Any anyTag) => anyTag.Unpack(_typeRegistry);
+
     [Fact]
     public void MapFromDto_ValidTypeTag_ReturnsItemTypeTag()
     {
@@ -48,8 +50,6 @@ public class TagMapperTests
         // Assert
         tagBase.Should().BeOfType<ItemTypeTag>().Which.Type.Should().Be(type);
     }
-
-    private static IMessage UnpackHelper(Any anyTag) => anyTag.Unpack(_typeRegistry);
 
     [Fact]
     public void MapToDto_ValidItemTypeTagWithTaggableFile_ReturnsTypeTag()

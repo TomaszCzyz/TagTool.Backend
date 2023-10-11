@@ -10,6 +10,8 @@ public class TagSynonymsGroup
     public required string Name { get; set; }
 
     public required ICollection<TagBase> Synonyms { get; set; }
+
+    public override string ToString() => $"{nameof(Id)}: {Id}, {nameof(Name)}: {Name}, {nameof(Synonyms)} count: {Synonyms.Count}";
 }
 
 public class TagsHierarchy
