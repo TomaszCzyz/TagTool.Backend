@@ -20,7 +20,6 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
-
     private readonly ITagMapper _tagMapper;
 
     // todo: move functionalities associated with below fields to command handlers 
