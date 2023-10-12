@@ -7,7 +7,6 @@ using OneOf;
 using TagTool.Backend.Actions;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
-using TagTool.Backend.Events;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -19,31 +18,23 @@ public class TagService : Backend.TagService.TagServiceBase
 {
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
-    private readonly ICommandsHistory _commandsHistory;
     private readonly ITagMapper _tagMapper;
     private readonly ITaggableItemMapper _taggableItemMapper;
 
     // todo: move functionalities associated with below fields to command handlers 
-    private readonly IActionFactory _actionFactory;
-    private readonly IEventTriggersManager _triggersManager;
-
-    private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
+    private readonly ICommandsHistory _commandsHistory;
 
     public TagService(
         ILogger<TagService> logger,
         IMediator mediator,
         ICommandsHistory commandsHistory,
         ITagMapper tagMapper,
-        IActionFactory actionFactory,
-        IEventTriggersManager triggersManager,
         ITaggableItemMapper taggableItemMapper)
     {
         _logger = logger;
         _mediator = mediator;
         _commandsHistory = commandsHistory;
         _tagMapper = tagMapper;
-        _actionFactory = actionFactory;
-        _triggersManager = triggersManager;
         _taggableItemMapper = taggableItemMapper;
     }
 
@@ -221,7 +212,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
-            .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param), Tag = _tagMapper.MapFromDto(param.Tag) })
+            .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param.State), Tag = _tagMapper.MapFromDto(param.Tag) })
             .ToArray();
 
         var getItemsByTagsQuery = new GetItemsByTagsQuery { QuerySegments = querySegments };
@@ -364,70 +355,51 @@ public class TagService : Backend.TagService.TagServiceBase
             errorResponse => new ExecuteLinkedActionReply { Error = new Error { Message = errorResponse.Message } });
     }
 
-    public override Task<AddOrUpdateTaskReply> AddOrUpdateTask(AddOrUpdateTaskRequest request, ServerCallContext context)
+    public override async Task<AddOrUpdateTaskReply> AddOrUpdateTask(AddOrUpdateTaskRequest request, ServerCallContext context)
     {
-        var job = _actionFactory.Create(request.ActionId);
+        var tagQuery = new TagQuery { QuerySegments = request.QueryParams.Select(MapTagQuerySegmentFromDto).ToArray() };
+        var actionAttributes = request.ActionAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        if (job is null)
+        var command = new Commands.AddOrUpdateTaskRequest
         {
-            // todo: add success/failure messages to reply
-            return Task.FromResult(new AddOrUpdateTaskReply());
-        }
+            TaskId = request.TaskId,
+            TagQuery = tagQuery,
+            ActionId = request.ActionId,
+            ActionAttributes = actionAttributes,
+            Triggers = request.Triggers.Select(info => new Trigger { Arg = info.Arg, Type = MapTriggerType(info.Type) }).ToArray()
+        };
 
-        var tagQueryMapped = request.QueryParams
-            .Select(param => new TagQuerySegment { Tag = _tagMapper.MapFromDto(param.Tag), State = MapQuerySegmentStateFromDto(param) })
-            .ToArray();
+        var response = await _mediator.Send(command, context.CancellationToken);
 
-        var tagQuery = new TagQuery { QuerySegments = tagQueryMapped };
+        // todo: extend reply with error info e.t.c.
+        return response.Match(_ => new AddOrUpdateTaskReply(), _ => new AddOrUpdateTaskReply());
 
-        var jobAttributes = request.ActionAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
-
-        RecurringJob.AddOrUpdate(request.TaskId, () => job.ExecuteOnSchedule(tagQuery, jobAttributes), Cron.Never);
-
-        foreach (var triggerInfo in request.Triggers)
-        {
-            switch (triggerInfo.Type)
+        Models.TriggerType MapTriggerType(TriggerType triggerTypeDto)
+            => triggerTypeDto switch
             {
-                case TriggerType.Manual:
-                    break;
-                case TriggerType.Cron:
-                    RecurringJob.AddOrUpdate(request.TaskId, () => job.ExecuteOnSchedule(tagQuery, jobAttributes), triggerInfo.Arg);
-                    break;
-                case TriggerType.Event:
-                    if (_notificationMappings.TryGetValue(triggerInfo.Arg, out var type))
-                    {
-                        _triggersManager.AddTrigger(type, request.TaskId);
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"no mapping for notification with name {triggerInfo.Arg}");
-                    }
-
-                    break;
-                default:
-                    throw new UnreachableException();
-            }
-        }
-
-        return Task.FromResult(new AddOrUpdateTaskReply());
+                TriggerType.Manual => Models.TriggerType.Manual,
+                TriggerType.Cron => Models.TriggerType.Cron,
+                TriggerType.Event => Models.TriggerType.Event,
+                _ => throw new ArgumentOutOfRangeException(nameof(triggerTypeDto), triggerTypeDto, null)
+            };
     }
 
-    public override Task<GetAvailableActionsReply> GetAvailableActions(GetAvailableActionsRequest request, ServerCallContext context)
+    public override async Task<GetAvailableActionsReply> GetAvailableActions(GetAvailableActionsRequest request, ServerCallContext context)
     {
-        var jobInfos = _actionFactory
-            .GetAvailableActions()
-            .Select(info =>
-                new ActionInfo
-                {
-                    Id = info.Id,
-                    Description = info.Description,
-                    AttributesDescriptions = new Attributes { Values = { info.AttributesDescriptions } },
-                    ApplicableToItemTypes = { info.ItemTypes.Select(tag => _tagMapper.MapToDto(tag)) }
-                });
+        var query = new GetAvailableActionsQuery();
 
-        var reply = new GetAvailableActionsReply { Infos = { jobInfos } };
+        var response = await _mediator.Send(query, context.CancellationToken);
 
-        return Task.FromResult(reply);
+        var jobInfos = response.Select(info =>
+            new ActionInfo
+            {
+                Id = info.Id,
+                Description = info.Description,
+                AttributesDescriptions = new Attributes { Values = { info.AttributesDescriptions } },
+                ApplicableToItemTypes = { info.ItemTypes.Select(tag => _tagMapper.MapToDto(tag)) }
+            });
+
+        return new GetAvailableActionsReply { Infos = { jobInfos } };
     }
 
     public override async Task GetExistingTasks(
@@ -478,6 +450,9 @@ public class TagService : Backend.TagService.TagServiceBase
     private TagQueryParam MapTagQuerySegmentToDto(TagQuerySegment segment)
         => new() { Tag = _tagMapper.MapToDto(segment.Tag), State = MapQuerySegmentStateToDto(segment.State) };
 
+    private TagQuerySegment MapTagQuerySegmentFromDto(TagQueryParam segment)
+        => new() { Tag = _tagMapper.MapFromDto(segment.Tag), State = MapQuerySegmentStateFromDto(segment.State) };
+
     private static Models.Options.NamingConvention Map(NamingConvention requestConvention)
         => requestConvention switch
         {
@@ -489,8 +464,8 @@ public class TagService : Backend.TagService.TagServiceBase
             _ => throw new ArgumentOutOfRangeException(nameof(requestConvention), requestConvention, null)
         };
 
-    private static QuerySegmentState MapQuerySegmentStateFromDto(TagQueryParam tagQueryParam)
-        => tagQueryParam.State switch
+    private static QuerySegmentState MapQuerySegmentStateFromDto(TagQueryParam.Types.QuerySegmentState state)
+        => state switch
         {
             TagQueryParam.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
             TagQueryParam.Types.QuerySegmentState.Include => QuerySegmentState.Include,

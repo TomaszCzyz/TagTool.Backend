@@ -2,7 +2,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using TagTool.Backend.Actions;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Services;
@@ -26,16 +25,12 @@ public class TagServiceTests
     {
         var loggerMock = Substitute.For<ILogger<Backend.Services.Grpc.TagService>>();
         var commandsHistory = Substitute.For<ICommandsHistory>();
-        var actionFactory = Substitute.For<IActionFactory>();
-        var triggersManager = Substitute.For<IEventTriggersManager>();
 
         _sut = new Backend.Services.Grpc.TagService(
             loggerMock,
             _mediator,
             commandsHistory,
             _tagMapper,
-            actionFactory,
-            triggersManager,
             _taggableItemMapper);
     }
 
