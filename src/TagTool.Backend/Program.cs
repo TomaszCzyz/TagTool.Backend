@@ -64,6 +64,7 @@ if (!Directory.Exists(path))
 }
 
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
+builder.Services.AddSingleton<ITaggableItemMapper, TaggableItemMapper>();
 builder.Services.AddSingleton<IEventTriggersManager, EventTriggersManager>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();

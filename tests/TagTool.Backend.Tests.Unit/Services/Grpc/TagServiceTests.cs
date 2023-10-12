@@ -17,6 +17,7 @@ public class TagServiceTests
 
     private readonly IMediator _mediator = Substitute.For<IMediator>();
     private readonly ITagMapper _tagMapper = TagMapperHelper.InitializeWithKnownMappers();
+    private readonly ITaggableItemMapper _taggableItemMapper = new TaggableItemMapper();
 
     private readonly FileDto _fileDto = new() { Path = "TestItemIdentifier" };
     private readonly NormalTag _textTag = new() { Name = "TestTag1" };
@@ -34,7 +35,8 @@ public class TagServiceTests
             commandsHistory,
             _tagMapper,
             actionFactory,
-            triggersManager);
+            triggersManager,
+            _taggableItemMapper);
     }
 
     [Fact]
@@ -42,7 +44,7 @@ public class TagServiceTests
     {
         // Arrange
         var testServerCallContext = TestServerCallContext.Create();
-        var tagItemRequest = new TagItemRequest { File = _fileDto, Tag = Any.Pack(_textTag) };
+        var tagItemRequest = new TagItemRequest { Item = new TaggableItemDto { File = _fileDto }, Tag = Any.Pack(_textTag) };
 
         // TaggableFile??? and it turns out, that it is hard to test it due to weird TaggableItem in-method mapping...
 

@@ -184,17 +184,18 @@ message TagItemRequest {
   // The Tag to be added to the item.
   google.protobuf.Any tag = 1;
   // The Item to tag.
-  oneof item {
-    FileDto file = 2;
-    FolderDto folder = 3;
-  };
+  TaggableItemDto item = 2;
+//  oneof item {
+//    FileDto file = 2;
+//    FolderDto folder = 3;
+//  };
 }
 
 // The reply indicating whether tagging was successful or not.
 message TagItemReply {
   oneof result {
     // The item with all its tags.
-    TaggedItem taggedItem = 1;
+    TaggedItem Item = 1;
     // The Error message in case of a failure.
     string errorMessage = 2;
   };

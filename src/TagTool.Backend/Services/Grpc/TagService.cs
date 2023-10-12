@@ -21,10 +21,13 @@ public class TagService : Backend.TagService.TagServiceBase
     private readonly IMediator _mediator;
     private readonly ICommandsHistory _commandsHistory;
     private readonly ITagMapper _tagMapper;
+    private readonly ITaggableItemMapper _taggableItemMapper;
 
     // todo: move functionalities associated with below fields to command handlers 
     private readonly IActionFactory _actionFactory;
     private readonly IEventTriggersManager _triggersManager;
+
+    private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
 
     public TagService(
         ILogger<TagService> logger,
@@ -32,7 +35,8 @@ public class TagService : Backend.TagService.TagServiceBase
         ICommandsHistory commandsHistory,
         ITagMapper tagMapper,
         IActionFactory actionFactory,
-        IEventTriggersManager triggersManager)
+        IEventTriggersManager triggersManager,
+        ITaggableItemMapper taggableItemMapper)
     {
         _logger = logger;
         _mediator = mediator;
@@ -40,6 +44,7 @@ public class TagService : Backend.TagService.TagServiceBase
         _tagMapper = tagMapper;
         _actionFactory = actionFactory;
         _triggersManager = triggersManager;
+        _taggableItemMapper = taggableItemMapper;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -163,34 +168,14 @@ public class TagService : Backend.TagService.TagServiceBase
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
         var tagBase = _tagMapper.MapFromDto(request.Tag);
-
-        var taggableItem = request.ItemCase switch
-        {
-            TagItemRequest.ItemOneofCase.File => new TaggableFile { Path = request.File.Path } as TaggableItem,
-            TagItemRequest.ItemOneofCase.Folder => new TaggableFolder { Path = request.Folder.Path },
-            _ => throw new UnreachableException()
-        };
+        var taggableItem = _taggableItemMapper.MapFromDto(request.Item);
 
         var command = new Commands.TagItemRequest { TaggableItem = taggableItem, Tag = tagBase };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new TagItemReply
-            {
-                TaggedItem = item switch
-                {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
-                    _ => throw new UnreachableException()
-                }
-            },
+            item => new TagItemReply { Item = MapItem(item) },
             errorResponse => new TagItemReply { ErrorMessage = errorResponse.Message });
     }
 
@@ -210,21 +195,7 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new UntagItemReply
-            {
-                TaggedItem = item switch
-                {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
-                    _ => throw new UnreachableException()
-                }
-            },
+            item => new UntagItemReply { TaggedItem = MapItem(item) },
             errorResponse => new UntagItemReply { ErrorMessage = errorResponse.Message });
     }
 
@@ -242,23 +213,7 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(getItemQuery, context.CancellationToken);
 
         return response.Match(
-            taggedItem => new GetItemReply
-            {
-                TaggedItem = taggedItem switch
-                {
-                    TaggableFile file
-                        => new TaggedItem
-                        {
-                            File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                        },
-                    TaggableFolder folder
-                        => new TaggedItem
-                        {
-                            Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                        },
-                    _ => throw new UnreachableException()
-                }
-            },
+            item => new GetItemReply { TaggedItem = MapItem(item) },
             errorResponse => new GetItemReply { ErrorMessage = errorResponse.Message });
     }
 
@@ -273,23 +228,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var response = await _mediator.Send(getItemsByTagsQuery, context.CancellationToken);
 
-        var results = response
-            .Select(item
-                => item switch
-                {
-                    TaggableFile file => new TaggedItem
-                    {
-                        File = new FileDto { Path = file.Path }, Tags = { file.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
-                    TaggableFolder folder => new TaggedItem
-                    {
-                        Folder = new FolderDto { Path = folder.Path }, Tags = { folder.Tags.Select(@base => _tagMapper.MapToDto(@base)) }
-                    },
-                    _ => throw new UnreachableException()
-                })
-            .ToArray();
-
-        return new GetItemsByTagsReply { TaggedItems = { results } };
+        return new GetItemsByTagsReply { TaggedItems = { response.Select(MapItem) } };
     }
 
     public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
@@ -473,8 +412,6 @@ public class TagService : Backend.TagService.TagServiceBase
         return Task.FromResult(new AddOrUpdateTaskReply());
     }
 
-    private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
-
     public override Task<GetAvailableActionsReply> GetAvailableActions(GetAvailableActionsRequest request, ServerCallContext context)
     {
         var jobInfos = _actionFactory
@@ -535,6 +472,8 @@ public class TagService : Backend.TagService.TagServiceBase
             }
         }
     }
+
+    private TaggedItem MapItem(TaggableItem i) => new() { TaggableItem = _taggableItemMapper.MapToDto(i), Tags = { _tagMapper.MapToDtos(i.Tags) } };
 
     private TagQueryParam MapTagQuerySegmentToDto(TagQuerySegment segment)
         => new() { Tag = _tagMapper.MapToDto(segment.Tag), State = MapQuerySegmentStateToDto(segment.State) };
