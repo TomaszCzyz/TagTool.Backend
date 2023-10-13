@@ -219,6 +219,8 @@ public class TagService : Backend.TagService.TagServiceBase
                 : new GetItemReply { ErrorMessage = $"Could not find taggable item with id {request.Id}." };
         }
 
+        ArgumentNullException.ThrowIfNull(request.TaggableItemDto);
+
         var getItemQuery = new GetItemQuery { TaggableItem = _taggableItemMapper.MapFromDto(request.TaggableItemDto) };
         var response = await _mediator.Send(getItemQuery, context.CancellationToken);
 
