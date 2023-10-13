@@ -113,6 +113,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<AddSynonymReply> AddSynonym(AddSynonymRequest request, ServerCallContext context)
     {
+        ArgumentException.ThrowIfNullOrEmpty(request.GroupName);
+        ArgumentNullException.ThrowIfNull(request.Tag);
+
         var command = new Commands.AddSynonymRequest { GroupName = request.GroupName, Tag = _tagMapper.MapFromDto(request.Tag) };
 
         var response = await _mediator.Send(command, context.CancellationToken);
