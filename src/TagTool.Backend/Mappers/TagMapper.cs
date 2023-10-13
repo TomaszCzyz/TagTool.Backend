@@ -7,11 +7,6 @@ using Type = System.Type;
 
 namespace TagTool.Backend.Mappers;
 
-public static class TagMapperExtensions
-{
-    public static IEnumerable<Any> MapToDtos(this ITagMapper tagMapper, IEnumerable<TagBase> tags) => tags.Select(tagMapper.MapToDto);
-}
-
 public interface ITagMapper
 {
     TagBase MapFromDto(Any anyTag);
