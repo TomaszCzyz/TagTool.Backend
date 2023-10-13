@@ -192,20 +192,22 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
     {
-        var taggableItem = request.ItemCase switch
+        if (request.Id is not null && Guid.TryParse(request.Id.AsSpan(), out var guid))
         {
-            GetItemRequest.ItemOneofCase.File => new TaggableFile { Path = request.File.Path } as TaggableItem,
-            GetItemRequest.ItemOneofCase.Folder => new TaggableFolder { Path = request.Folder.Path },
-            _ => throw new UnreachableException()
-        };
+            var query = new GetItemByIdQuery { Id = guid };
+            var item = await _mediator.Send(query, context.CancellationToken);
 
-        var getItemQuery = new GetItemQuery { TaggableItem = taggableItem };
+            return item is not null
+                ? new GetItemReply { TaggedItem = MapItem(item) }
+                : new GetItemReply { ErrorMessage = $"Could not find taggable item with id {request.Id}." };
+        }
 
+        var getItemQuery = new GetItemQuery { TaggableItem = _taggableItemMapper.MapFromDto(request.TaggableItemDto) };
         var response = await _mediator.Send(getItemQuery, context.CancellationToken);
 
-        return response.Match(
-            item => new GetItemReply { TaggedItem = MapItem(item) },
-            errorResponse => new GetItemReply { ErrorMessage = errorResponse.Message });
+        return response is not null
+            ? new GetItemReply { TaggedItem = MapItem(response) }
+            : new GetItemReply { ErrorMessage = $"Could not find taggable item {request.TaggableItemDto} in a database." };
     }
 
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)

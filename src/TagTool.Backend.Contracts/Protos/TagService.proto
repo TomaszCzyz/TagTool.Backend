@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/any.proto";
+import "google/protobuf/wrappers.proto";
 import "Protos/DomainTypes.proto";
 
 option csharp_namespace = "TagTool.Backend";
@@ -224,11 +225,9 @@ message UntagItemReply {
 
 // The request to get information about an specified Item
 message GetItemRequest {
+  google.protobuf.StringValue id = 1;
   // The item for which we want to retrieve information.
-  oneof item {
-    FileDto file = 2;
-    FolderDto folder = 3;
-  };
+  TaggableItemDto taggableItemDto = 2;
 }
 
 // The reply with information about an item or error message 
