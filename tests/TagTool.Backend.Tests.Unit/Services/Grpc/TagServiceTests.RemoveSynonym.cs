@@ -10,7 +10,7 @@ namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 public partial class TagServiceTests
 {
     [Fact]
-    public async Task RemoveSynonym_ValidRequest_AddingSucceed_ReturnsSuccessMessage()
+    public async Task RemoveSynonym_ValidRequest_RemovingSucceed_ReturnsSuccessMessage()
     {
         // Arrange
         var request = new RemoveSynonymRequest { GroupName = GroupName, Tag = Any.Pack(_textTag) };
@@ -27,7 +27,7 @@ public partial class TagServiceTests
     }
 
     [Fact]
-    public async Task RemoveSynonym_ValidRequest_AddingFailed_ReturnsError()
+    public async Task RemoveSynonym_ValidRequest_RemovingFailed_ReturnsError()
     {
         // Arrange
         var request = new RemoveSynonymRequest { GroupName = GroupName, Tag = Any.Pack(_textTag) };

@@ -25,6 +25,7 @@ public partial class TagServiceTests
 
     private readonly FileDto _fileDto = new() { Path = "TestItemIdentifier" };
     private readonly NormalTag _textTag = new() { Name = "TestTag1" };
+    private readonly DayTag _dayTag = new() { Day = (int)DayOfWeek.Monday };
 
     public TagServiceTests()
     {
