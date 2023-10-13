@@ -151,7 +151,7 @@ message RemoveSynonymRequest {
 
 message RemoveSynonymReply {
   oneof result {
-    string successMessage = 1;
+    google.protobuf.StringValue successMessage = 1;
     Error error = 2;
   }
 }
