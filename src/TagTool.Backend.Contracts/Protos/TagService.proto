@@ -74,8 +74,8 @@ message CreateTagRequest {
 // The reply indicating whether tag creation was successful or not.
 message CreateTagReply {
   oneof result {
-    // The newly created Tag's name.
-    string createdTagName = 1;
+    // The newly created Tag.
+    google.protobuf.Any tag = 1;
     // The Error message.
     google.protobuf.StringValue errorMessage = 2;
   };
@@ -186,10 +186,10 @@ message TagItemRequest {
   google.protobuf.Any tag = 1;
   // The Item to tag.
   TaggableItemDto item = 2;
-//  oneof item {
-//    FileDto file = 2;
-//    FolderDto folder = 3;
-//  };
+  //  oneof item {
+  //    FileDto file = 2;
+  //    FolderDto folder = 3;
+  //  };
 }
 
 // The reply indicating whether tagging was successful or not.

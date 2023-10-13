@@ -41,6 +41,8 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.Tag);
+
         var tag = _tagMapper.MapFromDto(request.Tag);
 
         var command = new Commands.CreateTagRequest { Tag = tag };
@@ -48,7 +50,7 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            tagBase => new CreateTagReply { CreatedTagName = tagBase.FormattedName },
+            tagBase => new CreateTagReply { Tag = _tagMapper.MapToDto(tagBase) },
             errorResponse => new CreateTagReply { ErrorMessage = errorResponse.Message });
     }
 
