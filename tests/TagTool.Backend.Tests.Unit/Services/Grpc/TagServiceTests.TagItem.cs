@@ -65,7 +65,7 @@ public partial class TagServiceTests
         var act = () => _sut.TagItem(request, _testServerCallContext);
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>();
+        await act.Should().ThrowAsync<ArgumentNullException>().WithMessage($"*{nameof(request.Item)}*");
     }
 
     [Fact]
@@ -78,6 +78,19 @@ public partial class TagServiceTests
         var act = () => _sut.TagItem(request, _testServerCallContext);
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentNullException>();
+        await act.Should().ThrowAsync<ArgumentNullException>().WithMessage($"*{nameof(request.Tag)}*");
+    }
+
+    [Fact]
+    public async Task TagItem_InvalidRequest_ItemIsEmpty_Throws()
+    {
+        // Arrange
+        var request = new TagItemRequest { Item = new TaggableItemDto(), Tag = Any.Pack(_textTag)};
+
+        // Act
+        var act = () => _sut.TagItem(request, _testServerCallContext);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentNullException>().WithMessage("*dto*");
     }
 }

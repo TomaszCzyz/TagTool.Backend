@@ -5,20 +5,21 @@ namespace TagTool.Backend.Mappers;
 
 public interface ITaggableItemMapper
 {
-    TaggableItem MapFromDto(TaggableItemDto variant);
+    TaggableItem MapFromDto(TaggableItemDto dtoVariant);
 
     TaggableItemDto MapToDto(TaggableItem taggableItem);
 }
 
 public class TaggableItemMapper : ITaggableItemMapper
 {
-    public TaggableItem MapFromDto(TaggableItemDto variant)
+    public TaggableItem MapFromDto(TaggableItemDto dtoVariant)
     {
-        return variant.ItemCase switch
+        return dtoVariant.ItemCase switch
         {
-            TaggableItemDto.ItemOneofCase.File => new TaggableFile { Path = variant.File.Path },
-            TaggableItemDto.ItemOneofCase.Folder => new TaggableFolder { Path = variant.Folder.Path },
-            _ => throw new ArgumentOutOfRangeException(nameof(variant), "Provided item case is not supported.")
+            TaggableItemDto.ItemOneofCase.File => new TaggableFile { Path = dtoVariant.File.Path },
+            TaggableItemDto.ItemOneofCase.Folder => new TaggableFolder { Path = dtoVariant.Folder.Path },
+            TaggableItemDto.ItemOneofCase.None => throw new ArgumentNullException(nameof(dtoVariant)),
+            _ => throw new ArgumentOutOfRangeException(nameof(dtoVariant), "Provided item case is not supported.")
         };
     }
 
