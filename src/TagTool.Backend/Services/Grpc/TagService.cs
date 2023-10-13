@@ -84,7 +84,7 @@ public class TagService : Backend.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            deletedTagName => new DeleteTagReply { DeletedTagName = deletedTagName },
+            tagBase => new DeleteTagReply { Tag = _tagMapper.MapToDto(tagBase) },
             errorResponse => new DeleteTagReply { ErrorMessage = errorResponse.Message });
     }
 

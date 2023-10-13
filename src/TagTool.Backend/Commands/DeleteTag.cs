@@ -7,7 +7,7 @@ using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.Commands;
 
-public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversible
+public class DeleteTagRequest : ICommand<OneOf<TagBase, ErrorResponse>>, IReversible
 {
     public required TagBase Tag { get; init; }
 
@@ -17,7 +17,7 @@ public class DeleteTagRequest : ICommand<OneOf<string, ErrorResponse>>, IReversi
 }
 
 [UsedImplicitly]
-public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorResponse>>
+public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<TagBase, ErrorResponse>>
 {
     private readonly ILogger<DeleteTag> _logger;
     private readonly ITagToolDbContext _dbContext;
@@ -28,7 +28,7 @@ public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorRe
         _dbContext = dbContext;
     }
 
-    public async Task<OneOf<string, ErrorResponse>> Handle(DeleteTagRequest request, CancellationToken cancellationToken)
+    public async Task<OneOf<TagBase, ErrorResponse>> Handle(DeleteTagRequest request, CancellationToken cancellationToken)
     {
         var existingTag = await _dbContext.Tags
             .Include(tag => tag.TaggedItems)
@@ -51,6 +51,6 @@ public class DeleteTag : ICommandHandler<DeleteTagRequest, OneOf<string, ErrorRe
         _dbContext.Tags.Remove(existingTag);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return request.Tag.FormattedName;
+        return request.Tag;
     }
 }

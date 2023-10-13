@@ -110,7 +110,7 @@ message DeleteTagRequest {
 message DeleteTagReply {
   oneof result {
     // The deleted Tag's name.
-    string deletedTagName = 1;
+    google.protobuf.Any tag = 1;
     // The Error message in case of a failure.
     google.protobuf.StringValue errorMessage = 2;
   };
