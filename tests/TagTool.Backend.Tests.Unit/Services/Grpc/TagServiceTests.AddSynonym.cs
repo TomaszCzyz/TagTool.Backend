@@ -9,8 +9,6 @@ namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 
 public partial class TagServiceTests
 {
-    private const string GroupName = "groupName";
-
     [Fact]
     public async Task AddSynonym_ValidRequest_AddingSucceed_ReturnsSuccessMessage()
     {

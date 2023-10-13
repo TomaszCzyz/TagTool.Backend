@@ -10,6 +10,7 @@ namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 
 public partial class TagServiceTests
 {
+    private const string GroupName = "groupName";
     private const string ArbitraryErrorMessage = "Arbitrary error message.";
     private const string ArbitrarySuccessMessage = "Arbitrary success message.";
 
