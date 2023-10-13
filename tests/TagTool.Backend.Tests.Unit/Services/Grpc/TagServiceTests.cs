@@ -11,6 +11,7 @@ namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 public partial class TagServiceTests
 {
     private const string ArbitraryErrorMessage = "Arbitrary error message.";
+    private const string ArbitrarySuccessMessage = "Arbitrary success message.";
 
     private readonly Backend.Services.Grpc.TagService _sut;
 
