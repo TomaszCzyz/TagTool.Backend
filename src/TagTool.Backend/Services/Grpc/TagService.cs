@@ -7,6 +7,7 @@ using OneOf;
 using TagTool.Backend.Actions;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Extensions;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
@@ -158,6 +159,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.Item);
+        ArgumentNullException.ThrowIfNull(request.Tag);
+
         var tagBase = _tagMapper.MapFromDto(request.Tag);
         var taggableItem = _taggableItemMapper.MapFromDto(request.Item);
 
@@ -172,14 +176,11 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
-        var tagBase = _tagMapper.MapFromDto(request.Tag);
+        ArgumentNullException.ThrowIfNull(request.Item);
+        ArgumentNullException.ThrowIfNull(request.Tag);
 
-        var taggableItem = request.ItemCase switch
-        {
-            UntagItemRequest.ItemOneofCase.File => new TaggableFile { Path = request.File.Path } as TaggableItem,
-            UntagItemRequest.ItemOneofCase.Folder => new TaggableFolder { Path = request.Folder.Path },
-            _ => throw new UnreachableException()
-        };
+        var tagBase = _tagMapper.MapFromDto(request.Tag);
+        var taggableItem = _taggableItemMapper.MapFromDto(request.Item);
 
         var command = new Commands.UntagItemRequest { Tag = tagBase, TaggableItem = taggableItem };
 

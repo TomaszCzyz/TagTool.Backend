@@ -1,5 +1,4 @@
-﻿using Google.Protobuf;
-using TagTool.Backend.DomainTypes;
+﻿using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Mappers;

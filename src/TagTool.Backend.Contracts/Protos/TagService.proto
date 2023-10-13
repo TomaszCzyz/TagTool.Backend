@@ -207,10 +207,7 @@ message UntagItemRequest {
   // The Tag to be removed from the item.
   google.protobuf.Any tag = 1;
   // The item to untag
-  oneof item {
-    FileDto file = 2;
-    FolderDto folder = 3;
-  };
+  TaggableItemDto item = 2;
 }
 
 // The reply indicating whether untagging was successful or not.
