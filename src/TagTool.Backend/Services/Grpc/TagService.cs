@@ -77,6 +77,8 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.Tag);
+
         var tag = _tagMapper.MapFromDto(request.Tag);
 
         var command = new Commands.DeleteTagRequest { Tag = tag };
