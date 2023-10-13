@@ -77,7 +77,7 @@ message CreateTagReply {
     // The newly created Tag's name.
     string createdTagName = 1;
     // The Error message.
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   };
 }
 
@@ -112,7 +112,7 @@ message DeleteTagReply {
     // The deleted Tag's name.
     string deletedTagName = 1;
     // The Error message in case of a failure.
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   };
 }
 
@@ -198,7 +198,7 @@ message TagItemReply {
     // The item with all its tags.
     TaggedItem Item = 1;
     // The Error message in case of a failure.
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   };
 }
 
@@ -219,7 +219,7 @@ message UntagItemReply {
     // The item with all its tags.
     TaggedItem taggedItem = 1;
     // The Error message in case of a failure.
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   }
 }
 
@@ -236,7 +236,7 @@ message GetItemReply {
     // The item associated tags.
     TaggedItem taggedItem = 1;
     // The Error message in case of a failure.
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   }
 }
 
@@ -341,7 +341,7 @@ message UndoReply {
     // The command's response message.
     string undoCommand = 1;
     // The error message, when undo operation failed. 
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   }
 }
 
@@ -354,7 +354,7 @@ message RedoReply {
     // The command's response message.
     string redoCommand = 1;
     // The error message, when redo operation failed.
-    string errorMessage = 2;
+    google.protobuf.StringValue errorMessage = 2;
   }
 }
 
