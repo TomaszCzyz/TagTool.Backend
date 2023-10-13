@@ -141,6 +141,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<AddChildReply> AddChild(AddChildRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.ChildTag);
+        ArgumentNullException.ThrowIfNull(request.ParentTag);
+
         var command = new Commands.AddChildRequest
         {
             ChildTag = _tagMapper.MapFromDto(request.ChildTag), ParentTag = _tagMapper.MapFromDto(request.ParentTag)
@@ -155,6 +158,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<RemoveChildReply> RemoveChild(RemoveChildRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.ChildTag);
+        ArgumentNullException.ThrowIfNull(request.ParentTag);
+
         var command = new Commands.RemoveChildRequest
         {
             ChildTag = _tagMapper.MapFromDto(request.ChildTag), ParentTag = _tagMapper.MapFromDto(request.ParentTag)

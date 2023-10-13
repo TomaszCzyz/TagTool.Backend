@@ -163,7 +163,7 @@ message AddChildRequest {
 
 message AddChildReply {
   oneof result {
-    string successMessage = 1;
+    google.protobuf.StringValue successMessage = 1;
     Error error = 2;
   }
 }
@@ -175,7 +175,7 @@ message RemoveChildRequest {
 
 message RemoveChildReply {
   oneof result {
-    string successMessage = 1;
+    google.protobuf.StringValue successMessage = 1;
     Error error = 2;
   }
 }
