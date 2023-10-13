@@ -23,7 +23,8 @@ public partial class TagServiceTests
     private readonly ITaggableItemMapper _taggableItemMapper = new TaggableItemMapper();
     private readonly TestServerCallContext _testServerCallContext = TestServerCallContext.Create();
 
-    private readonly FileDto _fileDto = new() { Path = "TestItemIdentifier" };
+    private readonly FileDto _fileDto = new() { Path = "TestFileDtoIdentifier" };
+    private readonly FolderDto _folderDto = new() { Path = "TestFolderDtoIdentifier" };
     private readonly NormalTag _textTag = new() { Name = "TestTag1" };
     private readonly DayTag _dayTag = new() { Day = (int)DayOfWeek.Monday };
 

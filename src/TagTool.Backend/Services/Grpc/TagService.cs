@@ -231,14 +231,21 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.QueryParams);
+
+        if (request.QueryParams.Any(param => param.Tag is null))
+        {
+            throw new ArgumentNullException(nameof(request), "No tag in a tag query can be null");
+        }
+
         // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
             .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param.State), Tag = _tagMapper.MapFromDto(param.Tag) })
             .ToArray();
 
-        var getItemsByTagsQuery = new GetItemsByTagsQuery { QuerySegments = querySegments };
+        var query = new GetItemsByTagsQuery { QuerySegments = querySegments };
 
-        var response = await _mediator.Send(getItemsByTagsQuery, context.CancellationToken);
+        var response = await _mediator.Send(query, context.CancellationToken);
 
         return new GetItemsByTagsReply { TaggedItems = { response.Select(MapItem) } };
     }
