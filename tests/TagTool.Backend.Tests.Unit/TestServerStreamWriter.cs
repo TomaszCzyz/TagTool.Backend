@@ -17,28 +17,6 @@ public class TestServerStreamWriter<T> : IServerStreamWriter<T> where T : class
         _serverCallContext = serverCallContext;
     }
 
-    public void Complete()
-    {
-        _channel.Writer.Complete();
-    }
-
-    public IAsyncEnumerable<T> ReadAllAsync()
-    {
-        return _channel.Reader.ReadAllAsync();
-    }
-
-    public async Task<T?> ReadNextAsync()
-    {
-        if (!await _channel.Reader.WaitToReadAsync())
-        {
-            return null;
-        }
-
-        _channel.Reader.TryRead(out var message);
-
-        return message;
-    }
-
     public Task WriteAsync(T message)
     {
         if (_serverCallContext.CancellationToken.IsCancellationRequested)
@@ -52,5 +30,21 @@ public class TestServerStreamWriter<T> : IServerStreamWriter<T> where T : class
         }
 
         return Task.CompletedTask;
+    }
+
+    public void Complete() => _channel.Writer.Complete();
+
+    public IAsyncEnumerable<T> ReadAllAsync() => _channel.Reader.ReadAllAsync();
+
+    public async Task<T?> ReadNextAsync()
+    {
+        if (!await _channel.Reader.WaitToReadAsync())
+        {
+            return null;
+        }
+
+        _channel.Reader.TryRead(out var message);
+
+        return message;
     }
 }

@@ -14,8 +14,8 @@ namespace TagTool.Backend.Tests.Unit.Commands;
 public class TagItemTests
 {
     private readonly TagItem _sut;
+
     private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
-    // private readonly DbSet<TagBase> _tags = Substitute.For<DbSet<TagBase>, IQueryable<TagBase>, IAsyncEnumerable<TagBase>>();
 
     private readonly TextTag _tag1 = new() { Text = "TestTag1" };
     private readonly TextTag _tag2 = new() { Text = "TestTag2" };

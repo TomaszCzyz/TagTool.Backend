@@ -34,7 +34,7 @@ public partial class TagServiceTests
         {
             new() { Error = new Error { Message = ArbitraryErrorMessage } },
             new() { Error = new Error { Message = ArbitraryErrorMessage } },
-            new(),
+            new()
         };
 
         var requestStream = new TestAsyncStreamReader<CanCreateTagRequest>(_testServerCallContext);
@@ -84,7 +84,7 @@ public partial class TagServiceTests
         {
             new() { Error = new Error { Message = ArbitraryErrorMessage } },
             new() { Error = new Error { Message = ArbitraryErrorMessage } },
-            new(),
+            new()
         };
 
         var requestStream = new TestAsyncStreamReader<CanCreateTagRequest>(_testServerCallContext);

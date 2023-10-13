@@ -85,7 +85,7 @@ public partial class TagServiceTests
     public async Task TagItem_InvalidRequest_ItemIsEmpty_Throws()
     {
         // Arrange
-        var request = new TagItemRequest { Item = new TaggableItemDto(), Tag = Any.Pack(_textTag)};
+        var request = new TagItemRequest { Item = new TaggableItemDto(), Tag = Any.Pack(_textTag) };
 
         // Act
         var act = () => _sut.TagItem(request, _testServerCallContext);

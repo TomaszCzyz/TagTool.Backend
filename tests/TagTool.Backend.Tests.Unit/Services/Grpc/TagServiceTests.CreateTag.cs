@@ -52,7 +52,7 @@ public partial class TagServiceTests
         var request = new CreateTagRequest();
 
         // Act
-        var act = ()=> _sut.CreateTag(request, _testServerCallContext);
+        var act = () => _sut.CreateTag(request, _testServerCallContext);
 
         // Assert
         await act.Should().ThrowAsync<ArgumentNullException>().WithMessage("*Tag*");

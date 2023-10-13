@@ -21,7 +21,7 @@ public partial class TagServiceTests
 
         var mediatorResponses = new List<ITagsRelationsManager.GroupDescription>
         {
-            new(groupName1, new List<TagBase>(), new List<string>()), new(groupName2, new List<TagBase>(), new List<string>()),
+            new(groupName1, new List<TagBase>(), new List<string>()), new(groupName2, new List<TagBase>(), new List<string>())
         };
 
         var replies = new List<GetAllTagsAssociationsReply> { new() { GroupName = groupName1 }, new() { GroupName = groupName2 } };

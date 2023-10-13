@@ -16,19 +16,6 @@ public class TestAsyncStreamReader<T> : IAsyncStreamReader<T> where T : class
         _serverCallContext = serverCallContext;
     }
 
-    public void AddMessage(T message)
-    {
-        if (!_channel.Writer.TryWrite(message))
-        {
-            throw new InvalidOperationException("Unable to write message.");
-        }
-    }
-
-    public void Complete()
-    {
-        _channel.Writer.Complete();
-    }
-
     public async Task<bool> MoveNext(CancellationToken cancellationToken)
     {
         _serverCallContext.CancellationToken.ThrowIfCancellationRequested();
@@ -43,4 +30,14 @@ public class TestAsyncStreamReader<T> : IAsyncStreamReader<T> where T : class
         Current = null!;
         return false;
     }
+
+    public void AddMessage(T message)
+    {
+        if (!_channel.Writer.TryWrite(message))
+        {
+            throw new InvalidOperationException("Unable to write message.");
+        }
+    }
+
+    public void Complete() => _channel.Writer.Complete();
 }
