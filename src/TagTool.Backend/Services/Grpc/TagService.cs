@@ -369,12 +369,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<ExecuteLinkedActionReply> ExecuteLinkedAction(ExecuteLinkedActionRequest request, ServerCallContext context)
     {
-        var taggableItem = request.ItemCase switch
-        {
-            ExecuteLinkedActionRequest.ItemOneofCase.File => new TaggableFile { Path = request.File.Path } as TaggableItem,
-            ExecuteLinkedActionRequest.ItemOneofCase.Folder => new TaggableFolder { Path = request.Folder.Path },
-            _ => throw new UnreachableException()
-        };
+        ArgumentNullException.ThrowIfNull(request.Item);
+
+        var taggableItem = _taggableItemMapper.MapFromDto(request.Item);
 
         var command = new ExecuteLinkedRequest { Item = taggableItem };
 

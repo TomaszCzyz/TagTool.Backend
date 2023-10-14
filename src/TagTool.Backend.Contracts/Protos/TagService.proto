@@ -379,10 +379,7 @@ message SetTagNamingConventionReply {
 }
 
 message ExecuteLinkedActionRequest {
-  oneof item {
-    FileDto file = 1;
-    FolderDto folder = 2;
-  };
+  TaggableItemDto item = 1;
 }
 
 message ExecuteLinkedActionReply {
