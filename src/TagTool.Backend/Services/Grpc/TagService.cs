@@ -315,7 +315,7 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var undoCommand = _commandsHistory.GetUndoCommand();
 
-        var result = await InvokeCommand(nameof(Undo), undoCommand);
+        var result = await InvokeCommand(nameof(Undo), undoCommand, context.CancellationToken);
 
         return result.Match(
             s => new UndoReply { UndoCommand = s },
@@ -326,21 +326,24 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         var redoCommand = _commandsHistory.GetRedoCommand();
 
-        var result = await InvokeCommand(nameof(Redo), redoCommand);
+        var result = await InvokeCommand(nameof(Redo), redoCommand, context.CancellationToken);
 
         return result.Match(
             s => new RedoReply { RedoCommand = s },
             errorResponse => new RedoReply { ErrorMessage = errorResponse.Message });
     }
 
-    private async Task<OneOf<string, ErrorResponse>> InvokeCommand(string undoOrRedo, IReversible? command)
+    private async Task<OneOf<string, ErrorResponse>> InvokeCommand(
+        string undoOrRedo,
+        IReversible? command,
+        CancellationToken cancellationToken)
     {
         if (command is null)
         {
             return new ErrorResponse($"Nothing to {undoOrRedo}.");
         }
 
-        var response = await _mediator.Send(command);
+        var response = await _mediator.Send(command, cancellationToken);
 
         if (response is IOneOf { Value: ErrorResponse errorResponse })
         {

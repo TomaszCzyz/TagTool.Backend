@@ -333,7 +333,7 @@ message UndoRequest {}
 message UndoReply {
   oneof result {
     // The command's response message.
-    string undoCommand = 1;
+    google.protobuf.StringValue undoCommand = 1;
     // The error message, when undo operation failed. 
     google.protobuf.StringValue errorMessage = 2;
   }
@@ -346,7 +346,7 @@ message RedoRequest {}
 message RedoReply {
   oneof result {
     // The command's response message.
-    string redoCommand = 1;
+    google.protobuf.StringValue redoCommand = 1;
     // The error message, when redo operation failed.
     google.protobuf.StringValue errorMessage = 2;
   }
