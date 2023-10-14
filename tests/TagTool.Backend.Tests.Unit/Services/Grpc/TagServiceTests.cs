@@ -18,7 +18,7 @@ public partial class TagServiceTests
 
     private readonly ILogger<Backend.Services.Grpc.TagService>? _loggerMock = Substitute.For<ILogger<Backend.Services.Grpc.TagService>>();
     private readonly IMediator _mediator = Substitute.For<IMediator>();
-    private readonly ICommandsHistory? _commandsHistory = Substitute.For<ICommandsHistory>();
+    private readonly ICommandsHistory _commandsHistory = Substitute.For<ICommandsHistory>();
     private readonly ITagMapper _tagMapper = TagMapperHelper.InitializeWithKnownMappers();
     private readonly ITaggableItemMapper _taggableItemMapper = new TaggableItemMapper();
     private readonly TestServerCallContext _testServerCallContext = TestServerCallContext.Create();
