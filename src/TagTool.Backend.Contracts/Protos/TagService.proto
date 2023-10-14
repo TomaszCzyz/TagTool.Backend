@@ -268,10 +268,7 @@ message GetItemsByTagsReply {
 // The request to check if given Item exists.
 message DoesItemExistsRequest {
   // The item to check.
-  oneof item {
-    FileDto file = 1;
-    FolderDto folder = 2;
-  };
+  TaggableItemDto item = 1;
 }
 
 // The reply indicating if item exists.

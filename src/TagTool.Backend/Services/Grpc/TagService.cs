@@ -252,12 +252,9 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesItemExistsReply> DoesItemExists(DoesItemExistsRequest request, ServerCallContext context)
     {
-        var taggableItem = request.ItemCase switch
-        {
-            DoesItemExistsRequest.ItemOneofCase.Folder => new TaggableFile { Path = request.File.Path } as TaggableItem,
-            DoesItemExistsRequest.ItemOneofCase.File => new TaggableFolder { Path = request.Folder.Path },
-            _ => throw new UnreachableException()
-        };
+        ArgumentNullException.ThrowIfNull(request.Item);
+
+        var taggableItem = _taggableItemMapper.MapFromDto(request.Item);
 
         var doesItemExistsQuery = new DoesItemExistsQuery { TaggableItem = taggableItem };
 
@@ -268,6 +265,8 @@ public class TagService : Backend.TagService.TagServiceBase
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
+        ArgumentNullException.ThrowIfNull(request.Tag);
+
         var tag = _tagMapper.MapFromDto(request.Tag);
 
         var doesTagExistsQuery = new GetTagQuery { TagBase = tag };
