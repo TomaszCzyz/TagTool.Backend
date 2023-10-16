@@ -1,40 +1,59 @@
-﻿using System.Collections.Concurrent;
-using MediatR;
+﻿using Hangfire;
+using JetBrains.Annotations;
+using TagTool.Backend.Actions;
+using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Services;
 
-public interface IEventTriggersManager
+public interface ITasksManager<in TTask> where TTask : IJustTask
 {
-    string[] GetTasksForEvent<T>() where T : INotification;
+    Task<bool> AddOrUpdate(TTask task);
 
-    Task<bool> AddTrigger(Type triggerType, string taskId);
+    Task<bool> Remove(string taskId);
 }
 
-public class EventTriggersManager : IEventTriggersManager
+[UsedImplicitly]
+public class EventTasksManager : ITasksManager<EventTask>
 {
-    // eventName -> list of jobs that are triggered by the event
-    private readonly ConcurrentDictionary<Type, string[]> _tasksTriggersCache = new();
+    private readonly EventTasksStorage _eventTasksStorage;
 
-    public string[] GetTasksForEvent<T>() where T : INotification
-        => _tasksTriggersCache.TryGetValue(typeof(T), out var taskIds) ? taskIds : Array.Empty<string>();
-
-    public Task<bool> AddTrigger(Type triggerType, string taskId)
+    public EventTasksManager(EventTasksStorage eventTasksStorage)
     {
-        // todo: add persistent storage 
-        _ = _tasksTriggersCache.AddOrUpdate(
-            triggerType,
-            _ => new[] { taskId },
-            (_, strings) => strings.Append(taskId).ToArray());
+        _eventTasksStorage = eventTasksStorage;
+    }
+
+    public Task<bool> AddOrUpdate(EventTask task)
+    {
+        _eventTasksStorage.AddOrUpdate(task);
 
         return Task.FromResult(true);
     }
 
-    // private static readonly Dictionary<string, Type> _notificationMappings
-    //     = new()
-    //     {
-    //         { nameof(TagCreatedNotification), typeof(TagCreatedNotification) },
-    //         { nameof(TagDeletedNotification), typeof(TagDeletedNotification) },
-    //         { nameof(ItemTaggedNotification), typeof(ItemTaggedNotification) },
-    //         { nameof(ItemUntaggedNotification), typeof(ItemUntaggedNotification) }
-    //     };
+    public Task<bool> Remove(string taskId) => throw new NotImplementedException();
+}
+
+[UsedImplicitly]
+public class CronTasksManager : ITasksManager<CronTask>
+{
+    private readonly IActionFactory _actionFactory;
+
+    public CronTasksManager(IActionFactory actionFactory)
+    {
+        _actionFactory = actionFactory;
+    }
+
+    public Task<bool> AddOrUpdate(CronTask task)
+    {
+        // todo: validation
+        var action = _actionFactory.Create(task.ActionId)!;
+
+        RecurringJob.AddOrUpdate(
+            task.TaskId,
+            () => action.ExecuteOnSchedule(task.TagQuery, task.ActionAttributes),
+            task.Cron);
+
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> Remove(string taskId) => throw new NotImplementedException();
 }

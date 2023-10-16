@@ -63,9 +63,14 @@ if (!Directory.Exists(path))
     Directory.CreateDirectory(path);
 }
 
+builder.Services.AddScoped<EventTasksManager>();
+builder.Services.AddScoped<EventTasksExecutor>();
+builder.Services.AddScoped<EventTasksStorage>();
+builder.Services.AddScoped<ITasksManager<EventTask>, EventTasksManager>();
+builder.Services.AddScoped<ITasksManager<CronTask>, CronTasksManager>();
+
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
 builder.Services.AddSingleton<ITaggableItemMapper, TaggableItemMapper>();
-builder.Services.AddSingleton<IEventTriggersManager, EventTriggersManager>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();

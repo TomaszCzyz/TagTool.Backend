@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using Hangfire;
+﻿using Hangfire.Annotations;
 using OneOf;
 using TagTool.Backend.Actions;
-using TagTool.Backend.Events;
 using TagTool.Backend.Models;
 using TagTool.Backend.Services;
 
@@ -21,67 +19,88 @@ public class AddOrUpdateTaskRequest : ICommand<OneOf<string, ErrorResponse>>
     public required Trigger[] Triggers { get; init; }
 }
 
+[UsedImplicitly]
 public class AddOrUpdateTask : ICommandHandler<AddOrUpdateTaskRequest, OneOf<string, ErrorResponse>>
 {
     private readonly IActionFactory _actionFactory;
-    private readonly IEventTriggersManager _triggersManager;
+    private readonly ITasksManager<EventTask> _eventTasksManager;
+    private readonly ITasksManager<CronTask> _cronTasksManager;
 
-    private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
+    // private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
 
-    public AddOrUpdateTask(IActionFactory actionFactory, IEventTriggersManager triggersManager)
+    public AddOrUpdateTask(IActionFactory actionFactory, ITasksManager<CronTask> cronTasksManager, ITasksManager<EventTask> eventTasksManager)
     {
         _actionFactory = actionFactory;
-        _triggersManager = triggersManager;
+        _eventTasksManager = eventTasksManager;
+        _cronTasksManager = cronTasksManager;
     }
 
     public Task<OneOf<string, ErrorResponse>> Handle(AddOrUpdateTaskRequest request, CancellationToken cancellationToken)
     {
-        var action = _actionFactory.Create(request.ActionId);
+        var actionAvailable = _actionFactory
+            .GetAvailableActions()
+            .Select(info => info.Id)
+            .Contains(request.ActionId);
 
-        if (action is null)
+        if (!actionAvailable)
         {
             // todo: add success/failure messages to reply
-            return Task.FromResult((OneOf<string, ErrorResponse>)new ErrorResponse($"Could not create an action for id {request.ActionId}"));
+            return Task.FromResult((OneOf<string, ErrorResponse>)new ErrorResponse($"Action with id {request.ActionId} is not defiened"));
         }
 
-        // var tagQueryMapped = request.QueryParams
-        //     .Select(param => new TagQuerySegment { Tag = _tagMapper.MapFromDto(param.Tag), State = MapQuerySegmentStateFromDto(param) })
-        //     .ToArray();
-
-        // var tagQuery = new TagQuery { QuerySegments = tagQueryMapped };
-
-        // var jobAttributes = request.ActionAttributes.Values.ToDictionary(pair => pair.Key, pair => pair.Value);
-
-        RecurringJob.AddOrUpdate(request.TaskId, () => action.ExecuteOnSchedule(request.TagQuery, request.ActionAttributes), Cron.Never);
-
-        foreach (var triggerInfo in request.Triggers)
-        {
-            switch (triggerInfo.Type)
-            {
-                case Models.TriggerType.Manual:
-                    break;
-                case Models.TriggerType.Cron:
-                    RecurringJob.AddOrUpdate(
-                        request.TaskId,
-                        () => action.ExecuteOnSchedule(request.TagQuery, request.ActionAttributes),
-                        triggerInfo.Arg);
-                    break;
-                case Models.TriggerType.Event:
-                    if (_notificationMappings.TryGetValue(triggerInfo.Arg, out var type))
-                    {
-                        _triggersManager.AddTrigger(type, request.TaskId);
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"no mapping for notification with name {triggerInfo.Arg}");
-                    }
-
-                    break;
-                default:
-                    throw new UnreachableException();
-            }
-        }
+        AddOrUpdateCronTask(request);
+        AddOrUpdateEventTask(request);
 
         return Task.FromResult(OneOf<string, ErrorResponse>.FromT0($"successfully added or updated task with id {request.TaskId}"));
+    }
+
+    private void AddOrUpdateEventTask(AddOrUpdateTaskRequest request)
+    {
+        var events = request.Triggers
+            .Where(trigger => trigger.Type is Models.TriggerType.Event)
+            .Select(trigger => trigger.Arg!) // todo: add validation
+            .ToArray();
+
+        if (events.Length != 0)
+        {
+            var eventTask = new EventTask
+            {
+                TaskId = request.TaskId,
+                ActionId = request.ActionId,
+                ActionAttributes = request.ActionAttributes,
+                Events = events
+            };
+
+            _eventTasksManager.AddOrUpdate(eventTask);
+        }
+        else
+        {
+            // If we updating existing task, we have to assume that it had event-triggered task before.
+            _eventTasksManager.Remove(request.TaskId);
+        }
+    }
+
+    private void AddOrUpdateCronTask(AddOrUpdateTaskRequest request)
+    {
+        var cronTrigger = Array.Find(request.Triggers, trigger => trigger.Type is Models.TriggerType.Cron);
+
+        if (cronTrigger is not null)
+        {
+            var cronTask = new CronTask
+            {
+                TaskId = request.TaskId,
+                ActionId = request.ActionId,
+                ActionAttributes = request.ActionAttributes,
+                TagQuery = request.TagQuery,
+                Cron = cronTrigger.Arg!
+            };
+
+            _cronTasksManager.AddOrUpdate(cronTask);
+        }
+        else
+        {
+            // If we updating existing task, we have to assume that it had cron-triggered task before.
+            _cronTasksManager.Remove(request.TaskId);
+        }
     }
 }

@@ -50,9 +50,9 @@ public class MoveAction : IAction
         return reply.Match(_ => ActionResult.Successful, _ => ActionResult.Failed);
     }
 
-    public Task<ActionResult> ExecuteByEvent(IEnumerable<Guid> items, Dictionary<string, string> data)
+    public Task<ActionResult> ExecuteByEvent(IEnumerable<Guid> itemIds, Dictionary<string, string> data)
     {
-        foreach (var taggableItem in items)
+        foreach (var taggableItem in itemIds)
         {
             // execute...
         }

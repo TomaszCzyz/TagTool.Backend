@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System.Text.Json;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TagTool.Backend.Events;
@@ -37,6 +38,8 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
     public DbSet<TaggableFile> TaggableFiles => Set<TaggableFile>();
 
     public DbSet<TaggableFolder> TaggableFolders => Set<TaggableFolder>();
+
+    public DbSet<EventTaskDto> EventTasks => Set<EventTaskDto>();
 
     public TagToolDbContext(IMediator mediator, DbContextOptions<TagToolDbContext> options) : base(options)
     {
@@ -109,6 +112,24 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
             .Entity<TaggableFolder>()
             .HasIndex(folder => folder.Path)
             .IsUnique();
+
+        modelBuilder
+            .Entity<EventTaskDto>()
+            .HasKey(dto => dto.TaskId);
+
+        modelBuilder
+            .Entity<EventTaskDto>()
+            .Property(dto => dto.ActionAttributes)
+            .HasConversion(
+                dictionary => JsonSerializer.Serialize(dictionary, JsonSerializerOptions.Default),
+                s => JsonSerializer.Deserialize<Dictionary<string, string>>(s, JsonSerializerOptions.Default) ?? new Dictionary<string, string>());
+
+        modelBuilder
+            .Entity<EventTaskDto>()
+            .Property(dto => dto.Events)
+            .HasConversion(
+                eventNames => JsonSerializer.Serialize(eventNames, JsonSerializerOptions.Default),
+                s => JsonSerializer.Deserialize<string[]>(s, JsonSerializerOptions.Default) ?? Array.Empty<string>());
     }
 
     private static void UpdateTimestamps(object? sender, EntityEntryEventArgs e)
@@ -137,7 +158,7 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
         switch (e.Entry.Entity)
         {
             case TagBase tagBase:
-                PublishTagCreatedOrRemoveNotification(e, tagBase);
+                // PublishTagCreatedOrRemoveNotification(e, tagBase);
                 break;
             case TagBaseTaggableItem tagBaseTaggableItem:
                 PublishItemTaggedOrUntaggedNotification(e, tagBaseTaggableItem);
@@ -150,24 +171,24 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
         switch (e.Entry.State)
         {
             case EntityState.Added:
-                _mediator.Publish(new ItemTaggedNotif { TaggableItemId = item.TaggableItemId, AddedTagId = item.TagBaseId });
+                _mediator.Publish(new ItemTaggedChanged { TaggableItemId = item.TaggableItemId, AddedTagId = item.TagBaseId });
                 break;
             case EntityState.Deleted:
-                _mediator.Publish(new ItemUntaggedNotif { TaggableItemId = item.TaggableItemId, RemovedTagId = item.TagBaseId });
+                _mediator.Publish(new ItemUntaggedChanged { TaggableItemId = item.TaggableItemId, RemovedTagId = item.TagBaseId });
                 break;
         }
     }
 
-    private void PublishTagCreatedOrRemoveNotification(EntityEntryEventArgs e, TagBase tagBase)
-    {
-        switch (e.Entry.State)
-        {
-            case EntityState.Added:
-                _mediator.Publish(new TagCreatedNotification { Tag = tagBase });
-                break;
-            case EntityState.Deleted:
-                _mediator.Publish(new TagDeletedNotification { Tag = tagBase });
-                break;
-        }
-    }
+    // private void PublishTagCreatedOrRemoveNotification(EntityEntryEventArgs e, TagBase tagBase)
+    // {
+    //     switch (e.Entry.State)
+    //     {
+    //         case EntityState.Added:
+    //             _mediator.Publish(new TagCreatedNotification { Tag = tagBase });
+    //             break;
+    //         case EntityState.Deleted:
+    //             _mediator.Publish(new TagDeletedNotification { Tag = tagBase });
+    //             break;
+    //     }
+    // }
 }

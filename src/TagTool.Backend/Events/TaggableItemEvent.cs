@@ -2,7 +2,9 @@
 
 namespace TagTool.Backend.Events;
 
-public interface ITaggableItemNotif : INotification
+public abstract class TaggableItemChanged : INotification
 {
-    Guid TaggableItemId { get; init; }
+    public abstract string EventName { get; }
+
+    public required Guid TaggableItemId { get; init; }
 }

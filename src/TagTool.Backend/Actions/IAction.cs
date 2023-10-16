@@ -25,5 +25,5 @@ public interface IAction
 
     Task<ActionResult> ExecuteOnSchedule(TagQuery tagQuery, Dictionary<string, string> data);
 
-    Task<ActionResult> ExecuteByEvent(IEnumerable<Guid> items, Dictionary<string, string> data);
+    Task<ActionResult> ExecuteByEvent(IEnumerable<Guid> itemIds, Dictionary<string, string> data);
 }
