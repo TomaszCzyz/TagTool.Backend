@@ -26,8 +26,6 @@ public class AddOrUpdateTask : ICommandHandler<AddOrUpdateTaskRequest, OneOf<str
     private readonly ITasksManager<EventTask> _eventTasksManager;
     private readonly ITasksManager<CronTask> _cronTasksManager;
 
-    // private readonly Dictionary<string, Type> _notificationMappings = new() { { "ItemTagged", typeof(ItemTaggedNotif) } };
-
     public AddOrUpdateTask(IActionFactory actionFactory, ITasksManager<CronTask> cronTasksManager, ITasksManager<EventTask> eventTasksManager)
     {
         _actionFactory = actionFactory;
@@ -45,7 +43,7 @@ public class AddOrUpdateTask : ICommandHandler<AddOrUpdateTaskRequest, OneOf<str
         if (!actionAvailable)
         {
             // todo: add success/failure messages to reply
-            return Task.FromResult((OneOf<string, ErrorResponse>)new ErrorResponse($"Action with id {request.ActionId} is not defiened"));
+            return Task.FromResult((OneOf<string, ErrorResponse>)new ErrorResponse($"Action with id {request.ActionId} is not defined"));
         }
 
         AddOrUpdateCronTask(request);

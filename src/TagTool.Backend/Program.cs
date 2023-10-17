@@ -63,9 +63,8 @@ if (!Directory.Exists(path))
     Directory.CreateDirectory(path);
 }
 
-builder.Services.AddScoped<EventTasksManager>();
-builder.Services.AddScoped<EventTasksExecutor>();
-builder.Services.AddScoped<EventTasksStorage>();
+builder.Services.AddScoped<IEventTasksExecutor, EventTasksExecutor>();
+builder.Services.AddScoped<IEventTasksStorage, EventTasksStorage>();
 builder.Services.AddScoped<ITasksManager<EventTask>, EventTasksManager>();
 builder.Services.AddScoped<ITasksManager<CronTask>, CronTasksManager>();
 

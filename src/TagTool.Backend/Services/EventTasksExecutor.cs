@@ -1,72 +1,22 @@
 ﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
 using TagTool.Backend.Actions;
-using TagTool.Backend.DbContext;
 using TagTool.Backend.Events;
-using TagTool.Backend.Models;
 
 namespace TagTool.Backend.Services;
 
-public class EventTasksStorage
+public interface IEventTasksExecutor
 {
-    private readonly TagToolDbContext _dbContext;
-
-    public EventTasksStorage(TagToolDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-    // // eventName -> list of jobs that are triggered by the event
-    // private readonly ConcurrentDictionary<Type, string[]> _tasksTriggersCache = new();
-    //
-    // public string[] GetTasksForEvent<T>() where T : INotification
-    //     => _tasksTriggersCache.TryGetValue(typeof(T), out var taskIds) ? taskIds : Array.Empty<string>();
-
-    public IEnumerable<EventTask> GetAll()
-        => _dbContext.EventTasks
-            .AsNoTracking()
-            .Select(dto
-                => new EventTask
-                {
-                    TaskId = dto.TaskId,
-                    ActionId = dto.ActionId,
-                    ActionAttributes = dto.ActionAttributes,
-                    Events = dto.Events
-                })
-            .AsEnumerable();
-
-    // todo: async it
-    public void AddOrUpdate(EventTask eventTask)
-    {
-        var eventTaskDto = _dbContext.EventTasks.Find(eventTask.TaskId);
-        if (eventTaskDto is not null)
-        {
-            eventTaskDto.ActionId = eventTask.ActionId;
-            eventTaskDto.ActionAttributes = eventTask.ActionAttributes;
-            eventTaskDto.Events = eventTask.Events;
-            _dbContext.EventTasks.Update(eventTaskDto); // todo: is this call necessary? 
-        }
-
-        eventTaskDto = new EventTaskDto
-        {
-            TaskId = eventTask.TaskId,
-            ActionId = eventTask.ActionId,
-            ActionAttributes = eventTask.ActionAttributes,
-            Events = eventTask.Events
-        };
-
-        _dbContext.Add(eventTaskDto);
-        _dbContext.SaveChanges();
-    }
+    Task Run(TaggableItemChanged itemChanged);
 }
 
 [UsedImplicitly]
-public class EventTasksExecutor
+public class EventTasksExecutor : IEventTasksExecutor
 {
     private readonly ILogger<EventTasksExecutor> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly EventTasksStorage _eventTasksStorage;
+    private readonly IEventTasksStorage _eventTasksStorage;
 
-    public EventTasksExecutor(ILogger<EventTasksExecutor> logger, EventTasksStorage eventTasksStorage, IServiceProvider serviceProvider)
+    public EventTasksExecutor(ILogger<EventTasksExecutor> logger, IEventTasksStorage eventTasksStorage, IServiceProvider serviceProvider)
     {
         _eventTasksStorage = eventTasksStorage;
         _serviceProvider = serviceProvider;
