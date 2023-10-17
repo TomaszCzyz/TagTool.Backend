@@ -24,7 +24,6 @@ public class EventTasksManagerTests
         {
             TaskId = "TestTaskId",
             ActionId = "TestActionId",
-            ActionAttributes = new Dictionary<string, string>(),
             Events = new[] { "TestEventName" }
         };
 

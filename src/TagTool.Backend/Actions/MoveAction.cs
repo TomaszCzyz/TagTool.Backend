@@ -39,7 +39,7 @@ public class MoveAction : IAction
         _mediator = mediator;
     }
 
-    public async Task<ActionResult> ExecuteOnSchedule(TagQuery tagQuery, Dictionary<string, string> data)
+    public async Task<ActionResult> ExecuteOnSchedule(TagQuery tagQuery, Dictionary<string, string>? data)
     {
         _logger.LogInformation("Executing job 'MoveFileJob' with args: {@TagQuery} and {@Attributes}", tagQuery, data);
 
@@ -50,7 +50,7 @@ public class MoveAction : IAction
         return reply.Match(_ => ActionResult.Successful, _ => ActionResult.Failed);
     }
 
-    public Task<ActionResult> ExecuteByEvent(IEnumerable<Guid> itemIds, Dictionary<string, string> data)
+    public Task<ActionResult> ExecuteByEvent(IEnumerable<Guid> itemIds, Dictionary<string, string>? data)
     {
         foreach (var taggableItem in itemIds)
         {

@@ -123,7 +123,7 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
             .Property(dto => dto.ActionAttributes)
             .HasConversion(
                 dictionary => JsonSerializer.Serialize(dictionary, JsonSerializerOptions.Default),
-                s => JsonSerializer.Deserialize<Dictionary<string, string>>(s, JsonSerializerOptions.Default) ?? new Dictionary<string, string>());
+                s => JsonSerializer.Deserialize<Dictionary<string, string>?>(s, JsonSerializerOptions.Default) ?? new Dictionary<string, string>());
 
         modelBuilder
             .Entity<EventTaskDto>()

@@ -31,14 +31,12 @@ public class EventTasksStorageTests
             {
                 TaskId = "TestTaskId1",
                 ActionId = "TestsActionId1",
-                ActionAttributes = new Dictionary<string, string>(),
                 Events = new[] { "TestEvent1" }
             },
             new()
             {
                 TaskId = "TestTaskId2",
                 ActionId = "TestsActionId2",
-                ActionAttributes = new Dictionary<string, string>(),
                 Events = new[] { "TestEvent2" }
             }
         };
@@ -78,7 +76,6 @@ public class EventTasksStorageTests
         {
             TaskId = "TestTaskId1",
             ActionId = "TestsActionId1",
-            ActionAttributes = new Dictionary<string, string>(),
             Events = new[] { "TestEvent1" }
         };
 
@@ -107,7 +104,6 @@ public class EventTasksStorageTests
         {
             TaskId = "TestTaskId1",
             ActionId = "TestsActionId1",
-            ActionAttributes = new Dictionary<string, string>(),
             Events = new[] { "TestEvent1" }
         };
 
@@ -130,7 +126,6 @@ public class EventTasksStorageTests
         {
             TaskId = taskId,
             ActionId = "TestsActionId1",
-            ActionAttributes = new Dictionary<string, string>(),
             Events = new[] { "TestEvent1" }
         };
 

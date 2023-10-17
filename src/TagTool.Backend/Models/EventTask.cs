@@ -10,7 +10,7 @@ public class EventTask : IJustTask
 
     public required string ActionId { get; init; }
 
-    public required Dictionary<string, string> ActionAttributes { get; init; }
+    public Dictionary<string, string>? ActionAttributes { get; init; }
 
     public required string[] Events { get; init; }
 }
@@ -21,7 +21,7 @@ public class CronTask : IJustTask
 
     public required string ActionId { get; init; }
 
-    public required Dictionary<string, string> ActionAttributes { get; init; }
+    public Dictionary<string, string>? ActionAttributes { get; init; }
 
     public required TagQuery TagQuery { get; init; }
 

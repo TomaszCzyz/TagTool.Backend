@@ -14,7 +14,7 @@ public class AddOrUpdateTaskRequest : ICommand<OneOf<string, ErrorResponse>>
 
     public required string ActionId { get; init; }
 
-    public required Dictionary<string, string> ActionAttributes { get; init; }
+    public Dictionary<string, string>? ActionAttributes { get; init; }
 
     public required Trigger[] Triggers { get; init; }
 }

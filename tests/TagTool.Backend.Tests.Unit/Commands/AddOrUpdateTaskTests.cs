@@ -39,7 +39,6 @@ public class AddOrUpdateTaskTests
             TaskId = "taskId",
             TagQuery = new TagQuery { QuerySegments = new[] { new TagQuerySegment { Tag = new MonthTag() } } },
             ActionId = "actionId",
-            ActionAttributes = new Dictionary<string, string>(),
             Triggers = Array.Empty<Trigger>()
         };
         _actionFactory.GetAvailableActions().Returns(_ => new List<Actions.ActionInfo>().AsReadOnly());
@@ -62,7 +61,6 @@ public class AddOrUpdateTaskTests
             TaskId = TaskId,
             TagQuery = _tagQuery,
             ActionId = ActionId,
-            ActionAttributes = new Dictionary<string, string>(),
             Triggers = new[] { _cronTrigger, _eventTrigger }
         };
 
@@ -103,7 +101,6 @@ public class AddOrUpdateTaskTests
             TaskId = TaskId,
             TagQuery = _tagQuery,
             ActionId = ActionId,
-            ActionAttributes = new Dictionary<string, string>(),
             Triggers = new[] { _eventTrigger }
         };
 
@@ -138,7 +135,6 @@ public class AddOrUpdateTaskTests
             TaskId = TaskId,
             TagQuery = _tagQuery,
             ActionId = ActionId,
-            ActionAttributes = new Dictionary<string, string>(),
             Triggers = Array.Empty<Trigger>()
         };
 

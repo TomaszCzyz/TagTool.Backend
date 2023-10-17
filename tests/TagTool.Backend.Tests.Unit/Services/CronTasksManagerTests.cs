@@ -31,7 +31,6 @@ public class CronTasksManagerTests
         {
             TaskId = "TestTaskId",
             ActionId = "TestActionId",
-            ActionAttributes = new Dictionary<string, string>(),
             TagQuery = _tagQuery,
             Cron = "* * * * *"
         };
@@ -66,7 +65,6 @@ public class CronTasksManagerTests
         {
             TaskId = "TestTaskId",
             ActionId = "TestActionId",
-            ActionAttributes = new Dictionary<string, string>(),
             TagQuery = _tagQuery,
             Cron = "* * * * *"
         };
