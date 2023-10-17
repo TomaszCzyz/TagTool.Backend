@@ -16,18 +16,13 @@ public interface IEventTasksStorage
 public class EventTasksStorage : IEventTasksStorage
 {
     private readonly ILogger<EventTasksStorage> _logger;
-    private readonly TagToolDbContext _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public EventTasksStorage(ILogger<EventTasksStorage> logger, TagToolDbContext dbContext)
+    public EventTasksStorage(ILogger<EventTasksStorage> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;
     }
-    // // eventName -> list of jobs that are triggered by the event
-    // private readonly ConcurrentDictionary<Type, string[]> _tasksTriggersCache = new();
-    //
-    // public string[] GetTasksForEvent<T>() where T : INotification
-    //     => _tasksTriggersCache.TryGetValue(typeof(T), out var taskIds) ? taskIds : Array.Empty<string>();
 
     public IEnumerable<EventTask> GetAll()
         => _dbContext.EventTasks
@@ -46,7 +41,20 @@ public class EventTasksStorage : IEventTasksStorage
     public void AddOrUpdate(EventTask eventTask)
     {
         var eventTaskDto = _dbContext.EventTasks.Find(eventTask.TaskId);
-        if (eventTaskDto is not null)
+        if (eventTaskDto is null)
+        {
+            eventTaskDto = new EventTaskDto
+            {
+                TaskId = eventTask.TaskId,
+                ActionId = eventTask.ActionId,
+                ActionAttributes = eventTask.ActionAttributes,
+                Events = eventTask.Events
+            };
+
+            _logger.LogInformation("Adding EventTask {@EventTask}", eventTaskDto);
+            _dbContext.EventTasks.Add(eventTaskDto);
+        }
+        else
         {
             eventTaskDto.ActionId = eventTask.ActionId;
             eventTaskDto.ActionAttributes = eventTask.ActionAttributes;
@@ -56,16 +64,6 @@ public class EventTasksStorage : IEventTasksStorage
             _dbContext.EventTasks.Update(eventTaskDto); // todo: is this call necessary? 
         }
 
-        eventTaskDto = new EventTaskDto
-        {
-            TaskId = eventTask.TaskId,
-            ActionId = eventTask.ActionId,
-            ActionAttributes = eventTask.ActionAttributes,
-            Events = eventTask.Events
-        };
-
-        _logger.LogInformation("Adding EventTask {@EventTask}", eventTaskDto);
-        _dbContext.Add(eventTaskDto);
         _dbContext.SaveChanges();
     }
 
@@ -78,7 +76,7 @@ public class EventTasksStorage : IEventTasksStorage
         }
 
         _logger.LogInformation("Removing EventTask {@EventTask}", eventTaskDto);
-        _dbContext.Remove(eventTaskDto);
+        _dbContext.EventTasks.Remove(eventTaskDto);
         _dbContext.SaveChanges();
     }
 }
