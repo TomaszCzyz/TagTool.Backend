@@ -2,6 +2,11 @@
 
 public interface IJustTask
 {
+    string TaskId { get; init; }
+
+    string ActionId { get; init; }
+
+    Dictionary<string, string>? ActionAttributes { get; init; }
 }
 
 public class EventTask : IJustTask

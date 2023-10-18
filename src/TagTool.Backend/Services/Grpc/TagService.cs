@@ -1,10 +1,7 @@
 ﻿using System.Diagnostics;
 using Grpc.Core;
-using Hangfire;
-using Hangfire.Storage;
 using MediatR;
 using OneOf;
-using TagTool.Backend.Actions;
 using TagTool.Backend.Commands;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Extensions;
@@ -434,41 +431,38 @@ public class TagService : Backend.TagService.TagServiceBase
         IServerStreamWriter<GetExistingTasksReply> responseStream,
         ServerCallContext context)
     {
-        using var connection = JobStorage.Current.GetConnection();
-        var recurringJobs = connection.GetRecurringJobs();
+        var query = new GetExistingTasksQuery();
 
-        foreach (var recurringJob in recurringJobs)
+        var tasks = await _mediator.Send(query, context.CancellationToken);
+
+        foreach (var group in tasks.GroupBy(task => task.TaskId))
         {
-            var jobArgs = recurringJob.Job.Args;
-            if (jobArgs.Count == 2 && jobArgs[0] is TagQuery tagQuery && jobArgs[1] is Dictionary<string, string> data)
+            var triggers = new List<TriggerInfo>();
+            var tagQueryParams = new List<TagQueryParam>();
+            foreach (var justTask in group)
             {
-                var tagQueryParams = tagQuery.QuerySegments.Select(MapTagQuerySegmentToDto);
-
-                if (!recurringJob.Job.Type.IsAssignableTo(typeof(IAction)))
+                if (justTask is CronTask cronTask)
                 {
-                    _logger.LogWarning("Recurring job with unknown job type {@RecurringJobDto}", recurringJob);
-                    return;
+                    tagQueryParams = cronTask.TagQuery.QuerySegments.Select(MapTagQuerySegmentToDto).ToList();
+                    triggers.Add(new TriggerInfo { Type = TriggerType.Cron, Arg = cronTask.Cron });
                 }
-
-                // todo: Rework this, because it hurts me eyes.
-                var instanceId = (Activator.CreateInstance(recurringJob.Job.Type) as IAction)!.Id;
-
-                // todo: add event triggers and decide what to do with multiple schedules of the same task (probably ban it)
-                var reply = new GetExistingTasksReply
+                else if (justTask is EventTask eventTask)
                 {
-                    TaskId = recurringJob.Id,
-                    QueryParams = { tagQueryParams },
-                    ActionId = instanceId,
-                    ActionAttributes = new Attributes { Values = { data } },
-                    Triggers = { new TriggerInfo { Type = TriggerType.Cron, Arg = recurringJob.Cron } }
-                };
+                    triggers.AddRange(eventTask.Events.Select(s => new TriggerInfo { Type = TriggerType.Event, Arg = s }));
+                }
+            }
 
-                await responseStream.WriteAsync(reply);
-            }
-            else
+            var first = group.First();
+            var reply = new GetExistingTasksReply
             {
-                _logger.LogWarning("Recurring job with unknown arguments {@RecurringJobDto}", recurringJob);
-            }
+                TaskId = group.Key,
+                QueryParams = { tagQueryParams },
+                ActionId = first.ActionId,
+                ActionAttributes = first.ActionAttributes is not null ? new Attributes { Values = { first.ActionAttributes } } : new Attributes(),
+                Triggers = { triggers }
+            };
+
+            await responseStream.WriteAsync(reply);
         }
     }
 
