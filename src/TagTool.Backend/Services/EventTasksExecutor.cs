@@ -37,6 +37,7 @@ public class EventTasksExecutor : IEventTasksExecutor
                 .GetRequiredService<IActionFactory>()
                 .Create(eventTask.ActionId)!;
 
+            _logger.LogInformation("Executing action {@Action} by {@TaggableItemChanged} event", action, itemChanged);
             var task = action.ExecuteByEvent(new[] { itemChanged.TaggableItemId }, eventTask.ActionAttributes);
 
             tasks.Add(task);
