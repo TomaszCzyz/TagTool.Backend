@@ -112,7 +112,7 @@ app.MapGrpcService<FileActionsService>();
 app.MapGrpcService<FolderActionsService>();
 app.MapGrpcService<FileSystemSearcher>();
 
-using var scope = app.Services.CreateScope();
+// using var scope = app.Services.CreateScope();
 // await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
 // {
 //     app.Logger.LogInformation("Executing EF migrations...");
@@ -124,6 +124,7 @@ app.Logger.LogInformation("Launching application...");
 await app.RunAsync();
 
 Log.CloseAndFlush();
+return;
 
 void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
 {

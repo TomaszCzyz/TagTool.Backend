@@ -46,6 +46,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="TagTool.Backend.Tests.Unit" />
+    <InternalsVisibleTo Include="TagTool.Backend.Tests.Integration" />
   </ItemGroup>
 
   <ItemGroup>
