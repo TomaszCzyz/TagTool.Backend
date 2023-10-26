@@ -9,13 +9,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Tests.Integration.Helpers;
+using Xunit;
 
 namespace TagTool.Backend.Tests.Integration;
 
 public delegate void LogMessage(LogLevel logLevel, string categoryName, EventId eventId, string message, Exception? exception);
 
 [UsedImplicitly]
-public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
+public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>, IAsyncLifetime where TProgram : class
 {
     public event LogMessage? LoggedMessage;
 
@@ -47,7 +48,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
                 // Create open SqliteConnection so EF won't automatically close it.
                 services.AddSingleton<DbConnection>(_ =>
                 {
-                    var testDbPath = Path.Combine(Path.GetTempPath(), "TagToolIntegrationTests");
+                    var testDbPath = Path.Combine(Path.GetTempPath(), "TagToolIntegrationTests.db");
                     var connection = new SqliteConnection($"DataSource={testDbPath}");
                     connection.Open();
 
@@ -60,4 +61,25 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
                     options.UseSqlite(connection);
                 });
             });
+
+    public async Task InitializeAsync()
+    {
+        var serviceScope = Services.CreateScope();
+        var dbContext = serviceScope.ServiceProvider.GetRequiredService<TagToolDbContext>();
+        var connection = serviceScope.ServiceProvider.GetRequiredService<DbConnection>();
+
+        // Because for integration tests I use Singleton connection, which is opened for the entire ClassFixture lifetime,
+        // I have to temporarily close connection to re-create db (release file lock).
+        await connection.CloseAsync();
+
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
+
+        await connection.OpenAsync();
+    }
+
+    public new async Task DisposeAsync()
+    {
+        await base.DisposeAsync();
+    }
 }
