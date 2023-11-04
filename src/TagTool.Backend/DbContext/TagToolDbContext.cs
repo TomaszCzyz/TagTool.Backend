@@ -18,6 +18,7 @@ public interface ITagToolDbContext : IDisposable
     DbSet<TaggableFile> TaggableFiles { get; }
     DbSet<TaggableFolder> TaggableFolders { get; }
     DbSet<EventTaskDto> EventTasks { get; }
+    EntityEntry Entry(object entity);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     int SaveChanges();
 }

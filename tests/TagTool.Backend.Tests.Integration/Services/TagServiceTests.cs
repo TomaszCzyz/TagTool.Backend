@@ -53,12 +53,14 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
         var response = await client.CreateTagAsync(new CreateTagRequest { Tag = Any.Pack(testNormalTag) });
 
         // Assert
+        response.ResultCase.Should().Be(CreateTagReply.ResultOneofCase.Tag);
         response.Tag.Is(NormalTag.Descriptor).Should().BeTrue();
         response.Tag.Unpack<NormalTag>().Name.Should().Be(testNormalTag.Name);
         _dbContext.Tags.OfType<TextTag>().Should().Contain(tag => tag.Text == testNormalTag.Name);
 
         // cleanup
         _dbContext.Tags.Remove(_dbContext.Tags.OfType<TextTag>().Single(t => t.Text == testNormalTag.Name));
+        _dbContext.SaveChanges();
     }
 
     [Fact]
@@ -179,11 +181,17 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
         response.ResultCase.Should().Be(DeleteTagReply.ResultOneofCase.Tag);
         response.Tag.Is(NormalTag.Descriptor).Should().BeTrue();
         response.Tag.Unpack<NormalTag>().Name.Should().Be(testNormalTag.Name);
-
         _dbContext.Tags.OfType<TextTag>().Should().NotContain(tag => tag.Text == testNormalTag.Name);
+
+        // force refreshing entity on next load to get updated tags list
+        _dbContext.Entry(taggableItem).State = EntityState.Detached;
 
         var item = _dbContext.TaggedItems.Include(item => item.Tags).Single(item => item.Id == taggableItem.Id);
         item.Should().NotBeNull();
         item.Tags.Should().NotContain(textTag);
+
+        // cleanup
+        _dbContext.TaggedItems.Remove(item);
+        _dbContext.SaveChanges();
     }
 }
