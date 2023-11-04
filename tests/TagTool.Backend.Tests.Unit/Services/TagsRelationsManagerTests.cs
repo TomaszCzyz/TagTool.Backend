@@ -99,7 +99,6 @@ public class TagsRelationsManagerTests
         // Arrange
         _synonymsGroup1.Synonyms.Add(_catTag);
         _synonymsGroup1.Synonyms.Add(_cat2Tag);
-
         _synonymsGroup2.Synonyms.Add(_pussyTag);
 
         // Act

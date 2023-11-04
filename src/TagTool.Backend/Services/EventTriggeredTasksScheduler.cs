@@ -12,10 +12,10 @@ namespace TagTool.Backend.Services;
 /// </remarks>
 public class EventTriggeredTasksScheduler<T> : INotificationHandler<T> where T : TaggableItemChanged
 {
-    private readonly EventTasksExecutor _tasksExecutor;
+    private readonly IEventTasksExecutor _tasksExecutor;
 
     // todo: consider merging this implementation with EventTasksExecutor 
-    public EventTriggeredTasksScheduler(EventTasksExecutor tasksExecutor)
+    public EventTriggeredTasksScheduler(IEventTasksExecutor tasksExecutor)
     {
         _tasksExecutor = tasksExecutor;
     }

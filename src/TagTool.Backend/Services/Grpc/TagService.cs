@@ -58,9 +58,15 @@ public class TagService : Backend.TagService.TagServiceBase
     {
         while (await requestStream.MoveNext())
         {
-            var canCreateTagRequest = requestStream.Current;
+            var request = requestStream.Current;
 
-            var query = new CanCreateTagQuery { NewTagName = canCreateTagRequest.TagName };
+            if (string.IsNullOrEmpty(request.TagName))
+            {
+                await responseStream.WriteAsync(new CanCreateTagReply { Error = new Error { Message = "Tag name cannot be empty." } });
+                continue;
+            }
+
+            var query = new CanCreateTagQuery { NewTagName = request.TagName };
 
             var response = await _mediator.Send(query, context.CancellationToken);
 
@@ -78,7 +84,7 @@ public class TagService : Backend.TagService.TagServiceBase
 
         var tag = _tagMapper.MapFromDto(request.Tag);
 
-        var command = new Commands.DeleteTagRequest { Tag = tag };
+        var command = new Commands.DeleteTagRequest { Tag = tag, DeleteUsedToo = request.DeleteUsedToo };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 

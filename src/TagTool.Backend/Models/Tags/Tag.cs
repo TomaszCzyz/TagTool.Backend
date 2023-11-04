@@ -26,6 +26,8 @@ public abstract class TagBase : ITagBase, IHasTimestamps
     public DateTime? Deleted { get; set; }
 
     public DateTime? Modified { get; set; }
+
+    public override string ToString() => FormattedName;
 }
 
 public sealed class TagBaseDeconstructPolicy : IDestructuringPolicy
