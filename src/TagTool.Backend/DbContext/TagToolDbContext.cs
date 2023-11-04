@@ -8,7 +8,7 @@ using TagTool.Backend.Models.Tags;
 
 namespace TagTool.Backend.DbContext;
 
-public interface ITagToolDbContext
+public interface ITagToolDbContext : IDisposable
 {
     DbSet<TagBase> Tags { get; }
     DbSet<TextTag> NormalTags { get; }
