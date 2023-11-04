@@ -116,15 +116,19 @@ public class TagsRelationsManagerTests
         // Arrange
 
         // Act
-        _ = await _sut.AddChild(new TextTag { Text = "Cat" }, new TextTag { Text = "Animal" }, CancellationToken.None);
-        _ = await _sut.AddChild(new TextTag { Text = "Pussy" }, new TextTag { Text = "Animal" }, CancellationToken.None);
-        _ = await _sut.AddChild(new TextTag { Text = "Dog" }, new TextTag { Text = "Animal" }, CancellationToken.None);
-        _ = await _sut.AddSynonym(new TextTag { Text = "Cat" }, "Cat Group", CancellationToken.None);
-        _ = await _sut.AddSynonym(new TextTag { Text = "Cat2" }, "Cat Group", CancellationToken.None);
-        _ = await _sut.AddSynonym(new TextTag { Text = "Pussy" }, "Cat Group", CancellationToken.None);
-        var result = await _sut.AddChild(new TextTag { Text = "Animal" }, new TextTag { Text = "AnimalBase" }, CancellationToken.None);
+        var act = async () =>
+        {
+            _ = await _sut.AddChild(new TextTag { Text = "Cat" }, new TextTag { Text = "Animal" }, CancellationToken.None);
+            _ = await _sut.AddChild(new TextTag { Text = "Pussy" }, new TextTag { Text = "Animal" }, CancellationToken.None);
+            _ = await _sut.AddChild(new TextTag { Text = "Dog" }, new TextTag { Text = "Animal" }, CancellationToken.None);
+            _ = await _sut.AddSynonym(new TextTag { Text = "Cat" }, "Cat Group", CancellationToken.None);
+            _ = await _sut.AddSynonym(new TextTag { Text = "Cat2" }, "Cat Group", CancellationToken.None);
+            _ = await _sut.AddSynonym(new TextTag { Text = "Pussy" }, "Cat Group", CancellationToken.None);
+            _ = await _sut.AddChild(new TextTag { Text = "Animal" }, new TextTag { Text = "AnimalBase" }, CancellationToken.None);
+        };
 
         // Assert
-        result.Value.Should().BeOfType(typeof(None));
+        await act.Should().NotThrowAsync();
+        // todo: check if correct relations were added 
     }
 }

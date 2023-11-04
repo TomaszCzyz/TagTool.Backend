@@ -447,19 +447,20 @@ public class TagsRelationsManager : ITagsRelationsManager
         synonymsGroup = new TagSynonymsGroup { Name = groupName, Synonyms = new List<TagBase>() };
 
         // _logger.LogInformation("Creating new synonym group with the name {SynonymGroupName}", groupName);
-        var entry = await _dbContext.TagSynonymsGroups.AddAsync(synonymsGroup, cancellationToken);
+        _ = await _dbContext.TagSynonymsGroups.AddAsync(synonymsGroup, cancellationToken);
         _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return (entry.Entity, true);
+        return (synonymsGroup, true);
     }
 
     private async Task<TagSynonymsGroup> CreateDefaultGroup(TagBase tag, CancellationToken cancellationToken)
     {
         var tagSynonymsGroup = new TagSynonymsGroup { Name = $"{tag.FormattedName}_{DefaultGroupSuffix}", Synonyms = new List<TagBase> { tag } };
-        var entry = await _dbContext.TagSynonymsGroups.AddAsync(tagSynonymsGroup, cancellationToken);
-        _ = _dbContext.SaveChangesAsync(cancellationToken);
 
-        return entry.Entity;
+        _ = await _dbContext.TagSynonymsGroups.AddAsync(tagSynonymsGroup, cancellationToken);
+        _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return tagSynonymsGroup;
     }
 
     private async Task<(TagsHierarchy? Hierarchy1, TagsHierarchy? Hierarchy2)> GetHierarchies(
