@@ -157,6 +157,7 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
 
         // cleanup
         _dbContext.TaggedItems.Remove(taggableItem);
+        _dbContext.Tags.Remove(textTag);
         _dbContext.SaveChanges();
     }
 
