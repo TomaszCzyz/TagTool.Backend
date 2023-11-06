@@ -16,8 +16,11 @@ namespace TagTool.Backend.Tests.Integration.Services;
 
 public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<AssemblyMarker>>
 {
+    private const string TestTagName = "IntegrationTestTag";
     private readonly CustomWebApplicationFactory<AssemblyMarker> _factory;
     private readonly ITagToolDbContext _dbContext;
+
+    private TagService.TagServiceClient Client => new(_factory.Channel);
 
     public TagServiceTests(CustomWebApplicationFactory<AssemblyMarker> factory)
     {
@@ -46,11 +49,10 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
     public async Task CreateTag_ValidRequest_TagCreated()
     {
         // Arrange
-        var testNormalTag = new NormalTag { Name = "IntegrationTestTag" };
-        var client = new TagService.TagServiceClient(_factory.Channel);
+        var testNormalTag = new NormalTag { Name = TestTagName };
 
         // Act
-        var response = await client.CreateTagAsync(new CreateTagRequest { Tag = Any.Pack(testNormalTag) });
+        var response = await Client.CreateTagAsync(new CreateTagRequest { Tag = Any.Pack(testNormalTag) });
 
         // Assert
         response.ResultCase.Should().Be(CreateTagReply.ResultOneofCase.Tag);
@@ -67,10 +69,8 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
     public async Task CreateTag_InvalidRequest_EmptyTag_Throws()
     {
         // Arrange
-        var client = new TagService.TagServiceClient(_factory.Channel);
-
         // Act
-        var act = async () => await client.CreateTagAsync(new CreateTagRequest());
+        var act = async () => await Client.CreateTagAsync(new CreateTagRequest());
 
         // Assert
         await act.Should().ThrowAsync<RpcException>().WithMessage("*Tag*");
@@ -80,13 +80,12 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
     public async Task CanCreateTag_ValidRequests_ReturnsCorrectReplies()
     {
         // Arrange
-        var client = new TagService.TagServiceClient(_factory.Channel);
         var textTag = new TextTag { Text = "TakenName" };
         _dbContext.Tags.Add(textTag);
         _dbContext.SaveChanges();
 
         // Act
-        var streamingCall = client.CanCreateTag();
+        var streamingCall = Client.CanCreateTag();
         await streamingCall.RequestStream.WriteAsync(new CanCreateTagRequest { TagName = "TakenName" });
         await streamingCall.RequestStream.WriteAsync(new CanCreateTagRequest { TagName = "Monday" });
         await streamingCall.RequestStream.WriteAsync(new CanCreateTagRequest());
@@ -113,17 +112,14 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
     public async Task DeleteTag_TagExistsAndIsUnused_TagDeleted()
     {
         // Arrange
-        const string name = "IntegrationTestTag";
-        var testNormalTag = new NormalTag { Name = name };
-        var textTag = new TextTag { Text = name };
-
-        var client = new TagService.TagServiceClient(_factory.Channel);
+        var testNormalTag = new NormalTag { Name = TestTagName };
+        var textTag = new TextTag { Text = TestTagName };
 
         _dbContext.Tags.Add(textTag);
         _dbContext.SaveChanges();
 
         // Act
-        var response = await client.DeleteTagAsync(new DeleteTagRequest { Tag = Any.Pack(testNormalTag) });
+        var response = await Client.DeleteTagAsync(new DeleteTagRequest { Tag = Any.Pack(testNormalTag) });
 
         // Assert
         response.Tag.Is(NormalTag.Descriptor).Should().BeTrue();
@@ -135,18 +131,15 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
     public async Task DeleteTag_TagExistsButIsUsed_ReturnError()
     {
         // Arrange
-        const string name = "IntegrationTestTag";
-        var testNormalTag = new NormalTag { Name = name };
-
-        var textTag = new TextTag { Text = name };
+        var testNormalTag = new NormalTag { Name = TestTagName };
+        var textTag = new TextTag { Text = TestTagName };
         var taggableItem = new TaggableFile { Path = "TestPath", Tags = new List<TagBase> { textTag } };
 
         _dbContext.TaggedItems.Add(taggableItem);
         _dbContext.SaveChanges();
-        var client = new TagService.TagServiceClient(_factory.Channel);
 
         // Act
-        var response = await client.DeleteTagAsync(new DeleteTagRequest { Tag = Any.Pack(testNormalTag) });
+        var response = await Client.DeleteTagAsync(new DeleteTagRequest { Tag = Any.Pack(testNormalTag) });
 
         // Assert
         response.ResultCase.Should().Be(DeleteTagReply.ResultOneofCase.ErrorMessage);
@@ -165,18 +158,15 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
     public async Task DeleteTag_TagExistsButIsUsed_WithFlag_DeletesTagAndUntagsItems()
     {
         // Arrange
-        const string name = "IntegrationTestTag";
-        var testNormalTag = new NormalTag { Name = name };
-
-        var textTag = new TextTag { Text = name };
+        var testNormalTag = new NormalTag { Name = TestTagName };
+        var textTag = new TextTag { Text = TestTagName };
         var taggableItem = new TaggableFile { Path = "TestPath", Tags = new List<TagBase> { textTag } };
 
         _dbContext.TaggedItems.Add(taggableItem);
         _dbContext.SaveChanges();
-        var client = new TagService.TagServiceClient(_factory.Channel);
 
         // Act
-        var response = await client.DeleteTagAsync(new DeleteTagRequest { Tag = Any.Pack(testNormalTag), DeleteUsedToo = true });
+        var response = await Client.DeleteTagAsync(new DeleteTagRequest { Tag = Any.Pack(testNormalTag), DeleteUsedToo = true });
 
         // Assert
         response.ResultCase.Should().Be(DeleteTagReply.ResultOneofCase.Tag);
@@ -184,7 +174,7 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
         response.Tag.Unpack<NormalTag>().Name.Should().Be(testNormalTag.Name);
         _dbContext.Tags.OfType<TextTag>().Should().NotContain(tag => tag.Text == testNormalTag.Name);
 
-        // force refreshing entity on next load to get updated tags list
+        // Force refreshing entity on next load to get updated tags list
         _dbContext.Entry(taggableItem).State = EntityState.Detached;
 
         var item = _dbContext.TaggedItems.Include(item => item.Tags).Single(item => item.Id == taggableItem.Id);
