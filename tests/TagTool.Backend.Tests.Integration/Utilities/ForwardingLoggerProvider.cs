@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace TagTool.Backend.Tests.Integration.Helpers;
+namespace TagTool.Backend.Tests.Integration.Utilities;
 
 internal sealed class ForwardingLoggerProvider : ILoggerProvider
 {

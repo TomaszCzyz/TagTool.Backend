@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TagTool.Backend.DbContext;
-using TagTool.Backend.Tests.Integration.Helpers;
+using TagTool.Backend.Tests.Integration.Utilities;
 using Xunit;
 
 namespace TagTool.Backend.Tests.Integration;

@@ -10,6 +10,7 @@ namespace TagTool.Backend.DbContext;
 
 public interface ITagToolDbContext : IDisposable
 {
+    ChangeTracker ChangeTracker { get; }
     DbSet<TagBase> Tags { get; }
     DbSet<TextTag> NormalTags { get; }
     DbSet<TagSynonymsGroup> TagSynonymsGroups { get; }
