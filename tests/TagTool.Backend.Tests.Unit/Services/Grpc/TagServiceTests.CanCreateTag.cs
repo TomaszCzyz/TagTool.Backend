@@ -76,21 +76,20 @@ public partial class TagServiceTests
         var mediatorResponses = new List<OneOf<ErrorResponse, None>>
         {
             new ErrorResponse(ArbitraryErrorMessage),
-            new ErrorResponse(ArbitraryErrorMessage),
             new None()
         };
 
-        var replies = new List<CanCreateTagReply>
+        var expectedReplies = new List<CanCreateTagReply>
         {
             new() { Error = new Error { Message = ArbitraryErrorMessage } },
-            new() { Error = new Error { Message = ArbitraryErrorMessage } },
+            new() { Error = new Error { Message = "Tag name cannot be empty." } },
             new()
         };
 
         var requestStream = new TestAsyncStreamReader<CanCreateTagRequest>(_testServerCallContext);
         var responseStream = new TestServerStreamWriter<CanCreateTagReply>(_testServerCallContext);
 
-        _mediator.Send(Arg.Any<CanCreateTagQuery>()).Returns(mediatorResponses[0], mediatorResponses[1], mediatorResponses[2]);
+        _mediator.Send(Arg.Any<CanCreateTagQuery>()).Returns(mediatorResponses[0], mediatorResponses[1]);
 
         // Act
         using var call = _sut.CanCreateTag(requestStream, responseStream, _testServerCallContext);
@@ -100,7 +99,7 @@ public partial class TagServiceTests
         {
             requestStream.AddMessage(requests[i]);
             var reply = await responseStream.ReadNextAsync();
-            reply.Should().BeEquivalentTo(replies[i]);
+            reply.Should().BeEquivalentTo(expectedReplies[i]);
         }
 
         requestStream.Complete();
@@ -109,6 +108,6 @@ public partial class TagServiceTests
 
         var canCreateTagReply = await responseStream.ReadNextAsync();
         canCreateTagReply.Should().BeNull();
-        await _mediator.Received(3).Send(Arg.Any<CanCreateTagQuery>());
+        await _mediator.Received(2).Send(Arg.Any<CanCreateTagQuery>());
     }
 }
