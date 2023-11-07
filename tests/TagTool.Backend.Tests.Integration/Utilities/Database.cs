@@ -8,7 +8,7 @@ public static class Database
 {
     public static void InitializeDbForTests(ITagToolDbContext db)
     {
-        db.Tags.AddRange(GetSeedingTextTags());
+        // db.Tags.AddRange(GetSeedingTextTags());
         db.SaveChanges();
         db.ChangeTracker.Clear();
     }
@@ -16,6 +16,8 @@ public static class Database
     public static void ReinitializeDbForTests(ITagToolDbContext db)
     {
         db.Tags.RemoveRange(db.Tags.OfType<TextTag>());
+        ClearTagsAssociations(db);
+
         InitializeDbForTests(db);
     }
 
