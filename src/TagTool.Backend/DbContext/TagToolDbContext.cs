@@ -72,11 +72,13 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
         modelBuilder
             .Entity<TagBase>()
             .Property(tag => tag.FormattedName)
+            .HasMaxLength(60)
             .UseCollation("NOCASE");
 
         modelBuilder
             .Entity<TextTag>()
             .Property(tag => tag.Text)
+            .HasMaxLength(32)
             .UseCollation("NOCASE");
 
         modelBuilder
@@ -112,13 +114,38 @@ public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, 
             .IsUnique();
 
         modelBuilder
+            .Entity<TaggableFile>()
+            .Property(file => file.Path)
+            .HasMaxLength(260);
+
+        modelBuilder
             .Entity<TaggableFolder>()
             .HasIndex(folder => folder.Path)
             .IsUnique();
 
         modelBuilder
+            .Entity<TaggableFolder>()
+            .Property(file => file.Path)
+            .HasMaxLength(260);
+
+        modelBuilder
+            .Entity<TagSynonymsGroup>()
+            .Property(group => group.Name)
+            .HasMaxLength(40);
+
+        modelBuilder
             .Entity<EventTaskDto>()
             .HasKey(dto => dto.TaskId);
+
+        modelBuilder
+            .Entity<EventTaskDto>()
+            .Property(dto => dto.TaskId)
+            .HasMaxLength(20);
+
+        modelBuilder
+            .Entity<EventTaskDto>()
+            .Property(dto => dto.ActionId)
+            .HasMaxLength(20);
 
         modelBuilder
             .Entity<EventTaskDto>()
