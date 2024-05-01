@@ -5,9 +5,7 @@ using Serilog.Events;
 
 namespace TagTool.Backend.Models.Tags;
 
-public interface ITagBase
-{
-}
+public interface ITagBase;
 
 [DebuggerDisplay("{FormattedName}")]
 public abstract class TagBase : ITagBase, IHasTimestamps
@@ -34,10 +32,7 @@ public sealed class TagBaseDeconstructPolicy : IDestructuringPolicy
 {
     public bool TryDestructure(object value, ILogEventPropertyValueFactory propertyValueFactory, [UnscopedRef] out LogEventPropertyValue result)
     {
-        if (value == null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         if (value is not TagBase tag)
         {

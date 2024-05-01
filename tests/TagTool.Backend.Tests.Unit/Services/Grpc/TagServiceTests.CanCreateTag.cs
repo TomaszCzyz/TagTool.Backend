@@ -6,7 +6,6 @@ using TagTool.Backend.Models;
 using TagTool.Backend.Queries;
 using Xunit;
 using Error = TagTool.Backend.DomainTypes.Error;
-using YearTagDto = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 

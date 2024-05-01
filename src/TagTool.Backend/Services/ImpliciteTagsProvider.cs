@@ -11,6 +11,7 @@ public interface IImplicitTagsProvider
     ///     Calculates implicit tags.
     /// </summary>
     /// <param name="taggableItem">Existing entity with correct id</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Tags that should be added to item</returns>
     Task<IEnumerable<TagBase>> GetImplicitTags(TaggableItem taggableItem, CancellationToken cancellationToken);
 }

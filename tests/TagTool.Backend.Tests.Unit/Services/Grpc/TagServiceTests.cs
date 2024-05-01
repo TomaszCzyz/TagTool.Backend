@@ -4,7 +4,6 @@ using NSubstitute;
 using TagTool.Backend.DomainTypes;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Services;
-using YearTagDto = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 

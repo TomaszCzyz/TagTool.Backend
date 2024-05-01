@@ -1,12 +1,10 @@
 ﻿using FluentAssertions;
-using Google.Protobuf.WellKnownTypes;
 using NSubstitute;
 using OneOf;
 using TagTool.Backend.Commands;
 using TagTool.Backend.Models;
 using TagTool.Backend.Models.Tags;
 using Xunit;
-using YearTagDto = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 
@@ -52,7 +50,7 @@ public partial class TagServiceTests
     public async Task Redo_ValidRequest_RedoIsUnsuccessful_CommandFailed_ReturnsErrorMessage()
     {
         // Arrange
-        var arbitraryReversibleCommand = new TagTool.Backend.Commands.CreateTagRequest { Tag = new TextTag { Text = "Test" } };
+        var arbitraryReversibleCommand = new Backend.Commands.CreateTagRequest { Tag = new TextTag { Text = "Test" } };
         var request = new RedoRequest();
 
         _commandsHistory.GetRedoCommand().Returns(_ => arbitraryReversibleCommand);

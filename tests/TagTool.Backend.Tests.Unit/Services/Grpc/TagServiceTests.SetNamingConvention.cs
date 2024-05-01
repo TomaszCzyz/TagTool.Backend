@@ -4,7 +4,6 @@ using OneOf.Types;
 using TagTool.Backend.Commands;
 using TagTool.Backend.Models;
 using Xunit;
-using YearTagDto = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 

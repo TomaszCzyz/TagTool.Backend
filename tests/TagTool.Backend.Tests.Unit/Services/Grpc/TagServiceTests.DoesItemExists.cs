@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using NSubstitute;
 using TagTool.Backend.DomainTypes;
-using TagTool.Backend.Models;
 using TagTool.Backend.Queries;
 using Xunit;
-using YearTagDto = TagTool.Backend.DomainTypes.YearTag;
 
 namespace TagTool.Backend.Tests.Unit.Services.Grpc;
 
