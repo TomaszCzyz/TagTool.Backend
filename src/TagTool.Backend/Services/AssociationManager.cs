@@ -17,7 +17,7 @@ namespace TagTool.Backend.Services;
 ///     <see cref="TagTool.Backend.DbContext.ITagToolDbContext.TagsHierarchy" />
 ///     should not be accessed only from classes implementing this interface.
 /// </summary>
-/// <remarks>We assume that provided tag always exists. Providing non existing tag will cause exception</remarks>
+/// <remarks>We assume that provided tag always exists. Providing non-existing tag will cause exception</remarks>
 public interface ITagsRelationsManager
 {
     Task<OneOf<None, ErrorResponse>> AddSynonym(TagBase tag, string groupName, CancellationToken cancellationToken);
@@ -73,7 +73,7 @@ public class TagsRelationsManager : ITagsRelationsManager
         }
 
         // At this point, we cope with a group created automatically for child-parent relation for group-less tag
-        // i.e. this group can merged into other groups with the same parent tag.
+        // i.e. this group can merge into other groups with the same parent tag.
         // We have to remember to inherit parent.
         var (synonymsGroup, _) = await EnsureGroupExists(groupName, cancellationToken);
         var (canBeMerged, hierarchy) = await CanBeMerged(groupWithRequestedTag, synonymsGroup, cancellationToken);
@@ -323,7 +323,7 @@ public class TagsRelationsManager : ITagsRelationsManager
             else
             {
                 // Check if parent of this hierarchy is already a part of the tree.
-                // If it is, then add group as child. Otherwise add it to root.
+                // If it is, then add group as child. Otherwise, add it to root.
                 var parentGroupNode = groupsTree.FirstOrDefault(node => node.Item == hierarchy.ParentGroup);
                 if (parentGroupNode is not null)
                 {
@@ -344,8 +344,6 @@ public class TagsRelationsManager : ITagsRelationsManager
     /// <summary>
     ///     Checks if nodes temporarily attached to root can be moved to correct parent.
     /// </summary>
-    /// <param name="groupsTree"></param>
-    /// <param name="hierarchies"></param>
     private static void AdjustTree(MutableEntityTreeNode<int, TagSynonymsGroup> groupsTree, TagsHierarchy[] hierarchies)
     {
         foreach (var groupNode in groupsTree.Children.ToArray())
@@ -384,9 +382,6 @@ public class TagsRelationsManager : ITagsRelationsManager
     ///     - both groups have the same parent
     ///     - one group has no parent (it will inherit parent of other group)
     /// </summary>
-    /// <param name="group1"></param>
-    /// <param name="group2"></param>
-    /// <param name="cancellationToken"></param>
     private async Task<(bool, TagsHierarchy?)> CanBeMerged(TagSynonymsGroup group1, TagSynonymsGroup group2, CancellationToken cancellationToken)
     {
         var (hierarchy1, hierarchy2) = await GetHierarchies(group1, group2, cancellationToken);
@@ -510,7 +505,5 @@ public class TagsRelationsManager : ITagsRelationsManager
             : (tagBases[1], tagBases[0]);
     }
 
-    private class RootTagSynonymsGroup : TagSynonymsGroup
-    {
-    }
+    private class RootTagSynonymsGroup : TagSynonymsGroup;
 }

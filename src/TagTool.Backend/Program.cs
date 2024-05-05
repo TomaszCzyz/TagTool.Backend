@@ -97,7 +97,7 @@ builder.Services.AddDbContext<ITagToolDbContext, TagToolDbContext>(options
 builder.Services.AddJobs(typeof(Program));
 builder.Services.AddHangfire(configuration
     => configuration
-        // the other matters(storage before serializer settings)!!! because during the registration the serializer settings are overwritten
+        // the order matters(storage before serializer settings)!!! because during the registration the serializer settings are overwritten
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
         .UseSQLiteStorage($"{Constants.BasePath}/hangfire.db")
         .UseSimpleAssemblyNameTypeSerializer()
@@ -112,13 +112,12 @@ app.MapGrpcService<FileActionsService>();
 app.MapGrpcService<FolderActionsService>();
 app.MapGrpcService<FileSystemSearcher>();
 
-// using var scope = app.Services.CreateScope();
-// await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
-// {
-//     app.Logger.LogInformation("Executing EF migrations...");
-//     db.Database.EnsureCreated();
-//     db.Database.Migrate();
-// }
+using var scope = app.Services.CreateScope();
+await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
+{
+    app.Logger.LogInformation("Executing migrations...");
+    await db.Database.MigrateAsync();
+}
 
 app.Logger.LogInformation("Launching application...");
 await app.RunAsync();
