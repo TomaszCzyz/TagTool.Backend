@@ -23,7 +23,7 @@ public class AddOrUpdateTaskTests
     private readonly Trigger _cronTrigger = new() { Type = Models.TriggerType.Cron, Arg = "* * * * *" };
     private readonly Trigger _eventTrigger = new() { Type = Models.TriggerType.Event, Arg = "TestEventName" };
     private readonly Actions.ActionInfo _actionInfo = new(ActionId, "TestDescription", new Dictionary<string, string>(), Array.Empty<ItemTypeTag>());
-    private readonly TagQuery _tagQuery = new() { QuerySegments = new[] { new TagQuerySegment { Tag = new MonthTag() } } };
+    private readonly TagQuery _tagQuery = new() { QuerySegments = [new TagQuerySegment { Tag = new MonthTag() }] };
 
     public AddOrUpdateTaskTests()
     {
@@ -37,7 +37,7 @@ public class AddOrUpdateTaskTests
         var command = new Backend.Commands.AddOrUpdateTaskRequest
         {
             TaskId = "taskId",
-            TagQuery = new TagQuery { QuerySegments = new[] { new TagQuerySegment { Tag = new MonthTag() } } },
+            TagQuery = new TagQuery { QuerySegments = [new TagQuerySegment { Tag = new MonthTag() }] },
             ActionId = "actionId",
             Triggers = Array.Empty<Trigger>()
         };
@@ -61,7 +61,7 @@ public class AddOrUpdateTaskTests
             TaskId = TaskId,
             TagQuery = _tagQuery,
             ActionId = ActionId,
-            Triggers = new[] { _cronTrigger, _eventTrigger }
+            Triggers = [_cronTrigger, _eventTrigger]
         };
 
         _actionFactory.GetAvailableActions().Returns(_ => new List<Actions.ActionInfo> { _actionInfo });
@@ -101,7 +101,7 @@ public class AddOrUpdateTaskTests
             TaskId = TaskId,
             TagQuery = _tagQuery,
             ActionId = ActionId,
-            Triggers = new[] { _eventTrigger }
+            Triggers = [_eventTrigger]
         };
 
         _actionFactory.GetAvailableActions().Returns(_ => new List<Actions.ActionInfo> { _actionInfo });

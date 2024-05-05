@@ -49,19 +49,19 @@ public class EventTasksExecutorTests
             {
                 TaskId = "TaskId1",
                 ActionId = "ActionId1",
-                Events = new[] { item.EventName }
+                Events = [item.EventName]
             },
             new()
             {
                 TaskId = "TaskId2",
                 ActionId = "ActionId1",
-                Events = new[] { item.EventName }
+                Events = [item.EventName]
             },
             new()
             {
                 TaskId = "TaskId3",
                 ActionId = "ActionId2",
-                Events = new[] { "EventName1" }
+                Events = ["EventName1"]
             }
         };
 

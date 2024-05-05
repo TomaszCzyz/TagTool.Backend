@@ -20,20 +20,20 @@ public partial class TagServiceTests
         {
             TaskId = taskId1,
             ActionId = actionId1,
-            TagQuery = new TagQuery { QuerySegments = new[] { new TagQuerySegment { Tag = new TextTag { Text = "TestText" } } } },
+            TagQuery = new TagQuery { QuerySegments = [new TagQuerySegment { Tag = new TextTag { Text = "TestText" } }] },
             Cron = "* * * * *"
         };
         var eventTaskWithId1 = new EventTask
         {
             TaskId = taskId1,
             ActionId = actionId1,
-            Events = new[] { "TestEventName" }
+            Events = ["TestEventName"]
         };
         var eventTaskWithId2 = new EventTask
         {
             TaskId = "TaskId2",
             ActionId = "ActionId2",
-            Events = new[] { "TestEventName" }
+            Events = ["TestEventName"]
         };
 
         var mediatorResponses = new List<IJustTask>

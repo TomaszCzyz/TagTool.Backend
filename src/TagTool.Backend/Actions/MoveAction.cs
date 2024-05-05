@@ -22,7 +22,7 @@ public class MoveAction : IAction
     public IDictionary<string, string>? AttributesDescriptions { get; }
         = new Dictionary<string, string> { { "from", "TaggableFile.Path" }, { "to", "path/CommonStorage" } };
 
-    public ItemTypeTag[] ItemTypes { get; } = { new() { Type = typeof(TaggableFile) } };
+    public ItemTypeTag[] ItemTypes { get; } = [new ItemTypeTag { Type = typeof(TaggableFile) }];
 
     /// <summary>
     ///     Ctor used to register the job.

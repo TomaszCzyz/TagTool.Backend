@@ -27,13 +27,13 @@ public class ImplicitTagsProvider : IImplicitTagsProvider
     private readonly Dictionary<string, TagBase[]> _extensionsToTagsMap
         = new()
         {
-            { ".txt", new TagBase[] { new TextTag { Text = "TXT" }, new TextTag { Text = "Text" } } },
-            { ".jpg", new TagBase[] { new TextTag { Text = "JPG" }, new TextTag { Text = "Photo" }, new TextTag { Text = "Graphics" } } },
-            { ".png", new TagBase[] { new TextTag { Text = "PNG" }, new TextTag { Text = "Graphics" } } },
-            { ".pdf", new TagBase[] { new TextTag { Text = "PDF" }, new TextTag { Text = "Document" } } },
-            { ".svg", new TagBase[] { new TextTag { Text = "SVG" }, new TextTag { Text = "Graphics" } } },
-            { ".docx", new TagBase[] { new TextTag { Text = "DOCX" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" } } },
-            { ".doc", new TagBase[] { new TextTag { Text = "DOC" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" } } }
+            { ".txt", [new TextTag { Text = "TXT" }, new TextTag { Text = "Text" }] },
+            { ".jpg", [new TextTag { Text = "JPG" }, new TextTag { Text = "Photo" }, new TextTag { Text = "Graphics" }] },
+            { ".png", [new TextTag { Text = "PNG" }, new TextTag { Text = "Graphics" }] },
+            { ".pdf", [new TextTag { Text = "PDF" }, new TextTag { Text = "Document" }] },
+            { ".svg", [new TextTag { Text = "SVG" }, new TextTag { Text = "Graphics" }] },
+            { ".docx", [new TextTag { Text = "DOCX" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" }] },
+            { ".doc", [new TextTag { Text = "DOC" }, new TextTag { Text = "Document" }, new TextTag { Text = "Text" }] }
         };
 
     private readonly ITagsRelationsManager _tagsRelationsManager;

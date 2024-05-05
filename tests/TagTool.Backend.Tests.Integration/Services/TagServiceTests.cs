@@ -136,7 +136,7 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
         // Arrange
         var testNormalTag = new NormalTag { Name = TestTagName };
         var textTag = new TextTag { Text = TestTagName };
-        var taggableItem = new TaggableFile { Path = "TestPath", Tags = new List<TagBase> { textTag } };
+        var taggableItem = new TaggableFile { Path = "TestPath", Tags = [textTag] };
 
         _dbContext.TaggedItems.Add(taggableItem);
         _dbContext.SaveChanges();
@@ -163,7 +163,7 @@ public class TagServiceTests : IClassFixture<CustomWebApplicationFactory<Assembl
         // Arrange
         var testNormalTag = new NormalTag { Name = TestTagName };
         var textTag = new TextTag { Text = TestTagName };
-        var taggableItem = new TaggableFile { Path = "TestPath", Tags = new List<TagBase> { textTag } };
+        var taggableItem = new TaggableFile { Path = "TestPath", Tags = [textTag] };
 
         _dbContext.TaggedItems.Add(taggableItem);
         _dbContext.SaveChanges();

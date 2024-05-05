@@ -24,7 +24,7 @@ public class EventTasksManagerTests
         {
             TaskId = "TestTaskId",
             ActionId = "TestActionId",
-            Events = new[] { "TestEventName" }
+            Events = ["TestEventName"]
         };
 
         // Act

@@ -16,7 +16,7 @@ public class CronTasksManagerTests
     private readonly IActionFactory _actionFactory = Substitute.For<IActionFactory>();
     private readonly IRecurringJobManagerV2 _recurringJobManager = Substitute.For<IRecurringJobManagerV2>();
 
-    private readonly TagQuery _tagQuery = new() { QuerySegments = new[] { new TagQuerySegment { Tag = new MonthTag() } } };
+    private readonly TagQuery _tagQuery = new() { QuerySegments = [new TagQuerySegment { Tag = new MonthTag() }] };
 
     public CronTasksManagerTests()
     {

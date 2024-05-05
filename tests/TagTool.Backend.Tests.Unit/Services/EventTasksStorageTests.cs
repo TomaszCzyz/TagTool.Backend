@@ -31,13 +31,13 @@ public class EventTasksStorageTests
             {
                 TaskId = "TestTaskId1",
                 ActionId = "TestsActionId1",
-                Events = new[] { "TestEvent1" }
+                Events = ["TestEvent1"]
             },
             new()
             {
                 TaskId = "TestTaskId2",
                 ActionId = "TestsActionId2",
-                Events = new[] { "TestEvent2" }
+                Events = ["TestEvent2"]
             }
         };
         var tasksMock = eventTaskDtos.AsQueryable().BuildMockDbSet();
@@ -76,7 +76,7 @@ public class EventTasksStorageTests
         {
             TaskId = "TestTaskId1",
             ActionId = "TestsActionId1",
-            Events = new[] { "TestEvent1" }
+            Events = ["TestEvent1"]
         };
 
         var eventTaskDtos = new List<EventTaskDto>();
@@ -104,7 +104,7 @@ public class EventTasksStorageTests
         {
             TaskId = "TestTaskId1",
             ActionId = "TestsActionId1",
-            Events = new[] { "TestEvent1" }
+            Events = ["TestEvent1"]
         };
 
         _dbContext.EventTasks.Find(Arg.Any<string>()).Returns(MapToDto(oldEventTask));
@@ -126,7 +126,7 @@ public class EventTasksStorageTests
         {
             TaskId = taskId,
             ActionId = "TestsActionId1",
-            Events = new[] { "TestEvent1" }
+            Events = ["TestEvent1"]
         };
 
         _dbContext.EventTasks.Find(Arg.Any<string>()).Returns(MapToDto(oldEventTask));
