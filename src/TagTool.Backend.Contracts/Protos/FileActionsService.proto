@@ -15,8 +15,10 @@ service FileActionsService {
   rpc MoveFile (MoveFileRequest) returns (MoveFileReply);
   // Deletes a specified file.
   rpc DeleteFile (DeleteFileRequest) returns (DeleteFileReply);
-  // Opens a file with default system application using shell. 
+  // Opens a file with default system application using shell.
   rpc OpenFile (OpenFileRequest) returns (OpenFileReply);
+  // Detect new files (and folders?).
+  rpc DetectNewItems (DetectNewItemsRequest) returns (DetectNewItemsReply);
 }
 
 message CanRenameFileRequest {
@@ -56,7 +58,7 @@ message RenameFileReply {
 
 // The request to move file to new location.
 message MoveFileRequest {
-  // The file to move. 
+  // The file to move.
   FileDto file = 1;
   // The destination as full path, i.e. with filename.
   string destination = 2;
@@ -74,7 +76,7 @@ message MoveFileReply {
   optional string infoMessage = 3;
 }
 
-// The delete request. 
+// The delete request.
 message DeleteFileRequest {
   // The item to be deleted.
   FileDto file = 1;
@@ -100,8 +102,15 @@ message OpenFileRequest {
 // The reply indicating if process started.
 message OpenFileReply {
   // The result indicating opening was successful.
-  // None if operation was successful. 
+  // None if operation was successful.
   oneof result {
     Error error = 1;
   }
+}
+
+message DetectNewItemsRequest {
+}
+
+message DetectNewItemsReply {
+  repeated TaggableItemDto items = 1;
 }

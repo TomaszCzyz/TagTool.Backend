@@ -2,16 +2,19 @@
 using Grpc.Core;
 using MediatR;
 using TagTool.Backend.DomainTypes;
+using TagTool.Backend.Mappers;
 
 namespace TagTool.Backend.Services.Grpc;
 
 public class FileActionsService : Backend.FileActionsService.FileActionsServiceBase
 {
     private readonly IMediator _mediator;
+    private readonly ITaggableItemMapper _taggableItemMapper;
 
-    public FileActionsService(IMediator mediator)
+    public FileActionsService(IMediator mediator, ITaggableItemMapper taggableItemMapper)
     {
         _mediator = mediator;
+        _taggableItemMapper = taggableItemMapper;
     }
 
     public override async Task CanRenameFile(
@@ -82,5 +85,12 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
         process.Start();
 
         return await Task.FromResult(new OpenFileReply());
+    }
+
+    public override async Task<DetectNewItemsReply> DetectNewItems(DetectNewItemsRequest request, ServerCallContext context)
+    {
+        var response = await _mediator.Send(new Commands.DetectNewItemsRequest());
+
+        return new DetectNewItemsReply { Items = { response.AsT0.Select(_taggableItemMapper.MapToDto) } };
     }
 }
