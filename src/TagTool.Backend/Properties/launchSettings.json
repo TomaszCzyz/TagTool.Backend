@@ -5,7 +5,8 @@
       "dotnetRunMessages": true,
       "launchBrowser": false,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "USE_GRPC_VIA_HTTP": "false"
       }
     },
     "TagToolBackendGrpcViaHttp": {
@@ -13,7 +14,8 @@
       "dotnetRunMessages": true,
       "launchBrowser": false,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "GrpcDevelopment"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "USE_GRPC_VIA_HTTP": "true"
       }
     }
   }

@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="AhoCorasick" />
     <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.Core" />
     <PackageReference Include="Hangfire.Storage.SQLite" />

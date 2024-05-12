@@ -104,6 +104,11 @@ builder.Services.AddHangfire(configuration
         .UseRecommendedSerializerSettings()
         .UseSerilogLogProvider());
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddGrpcReflection();
+}
+
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
@@ -111,6 +116,11 @@ app.MapGrpcService<TagService>();
 app.MapGrpcService<FileActionsService>();
 app.MapGrpcService<FolderActionsService>();
 app.MapGrpcService<FileSystemSearcher>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService();
+}
 
 using var scope = app.Services.CreateScope();
 await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
@@ -127,7 +137,7 @@ return;
 
 void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
 {
-    if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "GrpcDevelopment")
+    if (Environment.GetEnvironmentVariable("USE_GRPC_VIA_HTTP") != "true")
     {
         if (File.Exists(Constants.SocketPath))
         {
