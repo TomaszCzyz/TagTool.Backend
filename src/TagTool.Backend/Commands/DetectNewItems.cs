@@ -36,7 +36,7 @@ public class DetectNewItems : ICommandHandler<DetectNewItemsRequest, OneOf<IEnum
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e, "Unable to crate DirectoryInfo from path {DirPath}", watchedDir);
+                _logger.LogWarning(e, "Unable to create DirectoryInfo from path {DirPath}", watchedDir);
             }
         }
 

@@ -8,7 +8,7 @@ public static class Constants
 
     public static readonly string BasePath = Path.Join(_localAppDataPath, ApplicationName, "Backend");
 
-    // todo: move socket file location to AppData/.. 
+    // todo: move socket file location to AppData/..
     public static readonly string SocketPath = Path.Combine(Path.GetTempPath(), "socket.tmp");
 
     public static readonly string DbPath = Path.Join(BasePath, "TagTool.db");

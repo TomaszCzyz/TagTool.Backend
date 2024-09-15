@@ -1,10 +1,12 @@
 ﻿#pragma warning disable CA1852
 using System.Globalization;
+using System.Text.Json;
 using Hangfire;
 using Hangfire.Storage.SQLite;
 using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
@@ -16,6 +18,7 @@ using TagTool.Backend.DbContext;
 using TagTool.Backend.Extensions;
 using TagTool.Backend.Mappers;
 using TagTool.Backend.Models;
+using TagTool.Backend.Models.Options;
 using TagTool.Backend.Models.Tags;
 using TagTool.Backend.Services;
 using TagTool.Backend.Services.Grpc;
@@ -68,6 +71,26 @@ builder.Services.AddScoped<IEventTasksStorage, EventTasksStorage>();
 builder.Services.AddScoped<ITasksManager<EventTask>, EventTasksManager>();
 builder.Services.AddScoped<ITasksManager<CronTask>, CronTasksManager>();
 
+builder.Services.AddSingleton<UserConfiguration>(
+    provider =>
+    {
+        var appOptions = provider.GetRequiredService<IOptions<AppOptions>>();
+
+        if (File.Exists(appOptions.Value.UserConfigFilePath))
+        {
+            var userConfiguration = JsonSerializer.Deserialize<UserConfiguration>(File.OpenRead(appOptions.Value.UserConfigFilePath));
+
+            if (userConfiguration is not null)
+            {
+                return userConfiguration;
+            }
+
+            Log.Warning("Could not load user configuration file");
+        }
+
+        return new UserConfiguration();
+    });
+builder.Services.AddSingleton<UserConfigurationWatcher>();
 builder.Services.AddSingleton<ITagMapper, TagMapper>();
 builder.Services.AddSingleton<ITaggableItemMapper, TaggableItemMapper>();
 builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
