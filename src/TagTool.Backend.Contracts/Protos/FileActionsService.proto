@@ -113,4 +113,5 @@ message DetectNewItemsRequest {
 
 message DetectNewItemsReply {
   repeated TaggableItemDto items = 1;
+  optional Error error = 2;
 }

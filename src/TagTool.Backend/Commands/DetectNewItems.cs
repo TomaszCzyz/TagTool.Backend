@@ -1,32 +1,43 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
+using OneOf.Types;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
+using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Commands;
 
-public class DetectNewItemsRequest : ICommand<OneOf<IEnumerable<TaggableItem>>>;
+using Response = OneOf<IEnumerable<TaggableItem>, NoWatchedLocations>;
+
+public struct NoWatchedLocations;
+
+public class DetectNewItemsRequest : ICommand<Response>;
 
 [UsedImplicitly]
-public class DetectNewItems : ICommandHandler<DetectNewItemsRequest, OneOf<IEnumerable<TaggableItem>>>
+public class DetectNewItems : ICommandHandler<DetectNewItemsRequest, Response>
 {
-    private readonly string[] _watchedDirs = ["/home/tczyz/Downloads"];
-
     private readonly ILogger<DetectNewItems> _logger;
     private readonly ITagToolDbContext _dbContext;
+    private readonly UserConfiguration _userConfiguration;
 
-    public DetectNewItems(ILogger<DetectNewItems> logger, ITagToolDbContext dbContext)
+    public DetectNewItems(ILogger<DetectNewItems> logger, ITagToolDbContext dbContext, UserConfiguration userConfiguration)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _userConfiguration = userConfiguration;
     }
 
-    public async Task<OneOf<IEnumerable<TaggableItem>>> Handle(DetectNewItemsRequest request, CancellationToken cancellationToken)
+    public async Task<Response> Handle(DetectNewItemsRequest request, CancellationToken cancellationToken)
     {
+        if (_userConfiguration.WatchedLocations.Count == 0)
+        {
+            return new NoWatchedLocations();
+        }
+
         var notTaggedItems = new List<TaggableItem>();
 
-        foreach (var watchedDir in _watchedDirs)
+        foreach (var watchedDir in _userConfiguration.WatchedLocations)
         {
             try
             {

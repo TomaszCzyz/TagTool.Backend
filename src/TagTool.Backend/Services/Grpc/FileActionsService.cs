@@ -89,8 +89,10 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
 
     public override async Task<DetectNewItemsReply> DetectNewItems(DetectNewItemsRequest request, ServerCallContext context)
     {
-        var response = await _mediator.Send(new Commands.DetectNewItemsRequest());
+        var result = await _mediator.Send(new Commands.DetectNewItemsRequest());
 
-        return new DetectNewItemsReply { Items = { response.AsT0.Select(_taggableItemMapper.MapToDto) } };
+        return result.Match(
+            items => new DetectNewItemsReply { Items = { items.Select(_taggableItemMapper.MapToDto) } },
+            _ => new DetectNewItemsReply { Error = new Error { Message = "NoWatchedLocations" } });
     }
 }

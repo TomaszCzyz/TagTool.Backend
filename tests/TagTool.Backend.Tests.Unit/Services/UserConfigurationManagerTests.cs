@@ -28,7 +28,7 @@ public class UserConfigurationTests : IDisposable
         // Arrange
         var testLocation = "test_location";
 
-        var initialUserConfiguration = new UserConfiguration { ObservedLocations = [testLocation], };
+        var initialUserConfiguration = new UserConfiguration { WatchedLocations = [testLocation], };
         File.WriteAllText(_userConfigFilePath, JsonSerializer.Serialize(initialUserConfiguration));
 
         // TODO: implement
@@ -42,17 +42,17 @@ public class UserConfigurationTests : IDisposable
         var testLocations2 = "test_locations2";
 
         var userConfiguration = new UserConfiguration();
-        userConfiguration.ObservedLocations.Add(testLocation);
+        userConfiguration.WatchedLocations.Add(testLocation);
         var sut = new UserConfigurationWatcher(_logger, _appOptions, userConfiguration);
 
         // Act
-        userConfiguration.ObservedLocations.Add(testLocations2);
+        userConfiguration.WatchedLocations.Add(testLocations2);
 
         // Assert
         var configuration = JsonSerializer.Deserialize<UserConfiguration>(File.ReadAllText(_userConfigFilePath));
 
         configuration.Should().NotBeNull();
-        configuration!.ObservedLocations.Should().Contain([testLocation, testLocations2]);
+        configuration!.WatchedLocations.Should().Contain([testLocation, testLocations2]);
     }
 
     public void Dispose()
