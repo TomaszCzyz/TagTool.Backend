@@ -3,6 +3,4 @@
 namespace TagTool.Backend;
 
 [UsedImplicitly]
-public class AssemblyMarker
-{
-}
+public class AssemblyMarker;

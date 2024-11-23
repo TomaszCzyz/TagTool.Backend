@@ -16,15 +16,15 @@ public static class ServiceCollectionExtensions
             tagToDtoMappers.AddRange(marker.Assembly.ExportedTypes.CreateInstances<ITagToDtoMapper>());
         }
 
-        services.AddSingleton(tagFromDtoMappers as IReadOnlyCollection<ITagFromDtoMapper>);
-        services.AddSingleton(tagToDtoMappers as IReadOnlyCollection<ITagToDtoMapper>);
+        services.AddSingleton<IReadOnlyCollection<ITagFromDtoMapper>>(tagFromDtoMappers);
+        services.AddSingleton<IReadOnlyCollection<ITagToDtoMapper>>(tagToDtoMappers);
     }
 
     public static void AddJobs(this IServiceCollection services, params Type[] scanMarkers)
     {
         // I create an instance of a job just to access properties...
         // maybe it could be done better with static abstract members, however it requires more manual
-        // registration code and makes auto detecting jobs harder. 
+        // registration code and makes auto detecting jobs harder.
         var jobs = scanMarkers
             .SelectMany(marker => marker.Assembly.ExportedTypes
                 .Where(x => typeof(IAction).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))

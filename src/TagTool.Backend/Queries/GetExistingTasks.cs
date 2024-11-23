@@ -7,9 +7,7 @@ using TagTool.Backend.Services;
 
 namespace TagTool.Backend.Queries;
 
-public class GetExistingTasksQuery : IQuery<IEnumerable<IJustTask>>
-{
-}
+public class GetExistingTasksQuery : IQuery<IEnumerable<IJustTask>>;
 
 [UsedImplicitly]
 public class GetExistingTasks : IQueryHandler<GetExistingTasksQuery, IEnumerable<IJustTask>>

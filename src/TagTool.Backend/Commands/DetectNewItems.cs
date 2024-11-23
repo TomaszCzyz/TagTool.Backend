@@ -1,7 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using OneOf;
-using OneOf.Types;
 using TagTool.Backend.DbContext;
 using TagTool.Backend.Models;
 using TagTool.Backend.Services;

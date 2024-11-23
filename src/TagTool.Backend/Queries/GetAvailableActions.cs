@@ -2,9 +2,7 @@
 
 namespace TagTool.Backend.Queries;
 
-public class GetAvailableActionsQuery : IQuery<IEnumerable<Actions.ActionInfo>>
-{
-}
+public class GetAvailableActionsQuery : IQuery<IEnumerable<Actions.ActionInfo>>;
 
 public class GetAvailableActions : IQueryHandler<GetAvailableActionsQuery, IEnumerable<Actions.ActionInfo>>
 {
