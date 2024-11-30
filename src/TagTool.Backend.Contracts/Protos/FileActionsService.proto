@@ -19,6 +19,10 @@ service FileActionsService {
   rpc OpenFile (OpenFileRequest) returns (OpenFileReply);
   // Detect new files (and folders?).
   rpc DetectNewItems (DetectNewItemsRequest) returns (DetectNewItemsReply);
+  // Add new watched location
+  rpc AddWatchedLocation (AddWatchedLocationRequest) returns (AddWatchedLocationReply);
+  // Delete a watched location
+  rpc DeleteWatchedLocation (DeleteWatchedLocationRequest) returns (DeleteWatchedLocationReply);
 }
 
 message CanRenameFileRequest {
@@ -114,4 +118,24 @@ message DetectNewItemsRequest {
 message DetectNewItemsReply {
   repeated TaggableItemDto items = 1;
   optional Error error = 2;
+}
+
+message AddWatchedLocationRequest {
+  string path = 1;
+}
+
+message AddWatchedLocationReply {
+  oneof result {
+    Error error = 2;
+  }
+}
+
+message DeleteWatchedLocationRequest {
+  string path = 1;
+}
+
+message DeleteWatchedLocationReply {
+  oneof result {
+    Error error = 2;
+  }
 }

@@ -95,4 +95,30 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             items => new DetectNewItemsReply { Items = { items.Select(_taggableItemMapper.MapToDto) } },
             _ => new DetectNewItemsReply { Error = new Error { Message = "NoWatchedLocations" } });
     }
+
+    public override async Task<AddWatchedLocationReply> AddWatchedLocation(AddWatchedLocationRequest request, ServerCallContext context)
+    {
+        var result = await _mediator.Send(new Commands.AddWatchedLocationRequest { Path = request.Path });
+
+        return result.Match(
+            _ => new AddWatchedLocationReply(),
+            _ => new AddWatchedLocationReply { Error = new Error { Message = "Cannot access specified path for security reasons." } },
+            _ => new AddWatchedLocationReply { Error = new Error { Message = "Path is too long." } },
+            _ => new AddWatchedLocationReply { Error = new Error { Message = "Directory does not exist." } });
+    }
+
+    public override async Task<DeleteWatchedLocationReply> DeleteWatchedLocation(DeleteWatchedLocationRequest request, ServerCallContext context)
+    {
+        var result = await _mediator.Send(new Commands.DeleteWatchedLocationRequest { Path = request.Path });
+
+        return result.Match(
+            _ => new DeleteWatchedLocationReply(),
+            _ => new DeleteWatchedLocationReply { Error = new Error { Message = "Cannot access specified path for security reasons." } },
+            _ => new DeleteWatchedLocationReply { Error = new Error { Message = "Path is too long." } },
+            _ => new DeleteWatchedLocationReply { Error = new Error { Message = "Directory does not exist." } },
+            _ => new DeleteWatchedLocationReply
+            {
+                Error = new Error { Message = "'Watched Location' has not been found in the user configuration." }
+            });
+    }
 }
