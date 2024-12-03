@@ -19,6 +19,8 @@ service FileActionsService {
   rpc OpenFile (OpenFileRequest) returns (OpenFileReply);
   // Detect new files (and folders?).
   rpc DetectNewItems (DetectNewItemsRequest) returns (DetectNewItemsReply);
+  // Get all watched locations
+  rpc GetWatchedLocations (GetWatchedLocationsRequest) returns (GetWatchedLocationsReply);
   // Add new watched location
   rpc AddWatchedLocation (AddWatchedLocationRequest) returns (AddWatchedLocationReply);
   // Delete a watched location
@@ -118,6 +120,13 @@ message DetectNewItemsRequest {
 message DetectNewItemsReply {
   repeated TaggableItemDto items = 1;
   optional Error error = 2;
+}
+
+message GetWatchedLocationsRequest {
+}
+
+message GetWatchedLocationsReply {
+  repeated string paths = 1;
 }
 
 message AddWatchedLocationRequest {

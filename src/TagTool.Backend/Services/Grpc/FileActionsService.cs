@@ -96,6 +96,13 @@ public class FileActionsService : Backend.FileActionsService.FileActionsServiceB
             _ => new DetectNewItemsReply { Error = new Error { Message = "NoWatchedLocations" } });
     }
 
+    public override async Task<GetWatchedLocationsReply> GetWatchedLocations(GetWatchedLocationsRequest request, ServerCallContext context)
+    {
+        var result = await _mediator.Send(new Commands.GetWatchedLocationsRequest());
+
+        return result.Match(paths => new GetWatchedLocationsReply { Paths = { paths } });
+    }
+
     public override async Task<AddWatchedLocationReply> AddWatchedLocation(AddWatchedLocationRequest request, ServerCallContext context)
     {
         var result = await _mediator.Send(new Commands.AddWatchedLocationRequest { Path = request.Path });
