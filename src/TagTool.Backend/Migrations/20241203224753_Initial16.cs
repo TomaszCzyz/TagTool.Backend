@@ -5,7 +5,7 @@
 namespace TagTool.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial15 : Migration
+    public partial class Initial16 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,14 @@ namespace TagTool.Backend.Migrations
                 {
                     table.PrimaryKey("PK_EventTasks", x => x.TaskId);
                 });
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ActionAttributes",
+                table: "EventTasks",
+                type: "TEXT",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "TEXT");
         }
 
         /// <inheritdoc />
@@ -30,6 +38,16 @@ namespace TagTool.Backend.Migrations
         {
             migrationBuilder.DropTable(
                 name: "EventTasks");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ActionAttributes",
+                table: "EventTasks",
+                type: "TEXT",
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "TEXT",
+                oldNullable: true);
         }
     }
 }

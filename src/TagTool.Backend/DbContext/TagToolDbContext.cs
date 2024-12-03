@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
+using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using TagTool.Backend.Events;
 using TagTool.Backend.Models;
@@ -24,6 +26,18 @@ public interface ITagToolDbContext : IDisposable, IAsyncDisposable
     EntityEntry Entry(object entity);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     int SaveChanges();
+}
+
+[UsedImplicitly]
+public class TagToolDbContextFactory : IDesignTimeDbContextFactory<TagToolDbContext>
+{
+    public TagToolDbContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<TagToolDbContext>();
+        optionsBuilder.UseSqlite("Data Source=blog.db");
+
+        return new TagToolDbContext(null!, optionsBuilder.Options);
+    }
 }
 
 public sealed class TagToolDbContext : Microsoft.EntityFrameworkCore.DbContext, ITagToolDbContext

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TagTool.Backend.DbContext;
 
@@ -10,9 +11,11 @@ using TagTool.Backend.DbContext;
 namespace TagTool.Backend.Migrations
 {
     [DbContext(typeof(TagToolDbContext))]
-    partial class TagToolDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241203224753_Initial16")]
+    partial class Initial16
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");

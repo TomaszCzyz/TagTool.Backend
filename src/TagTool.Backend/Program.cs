@@ -149,7 +149,8 @@ using var scope = app.Services.CreateScope();
 await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
 {
     app.Logger.LogInformation("Executing migrations...");
-    await db.Database.MigrateAsync();
+    // it freezes with .NET 9 nuget versions, use cli for now
+    // await db.Database.MigrateAsync();
 }
 
 app.Logger.LogInformation("Launching application...");
