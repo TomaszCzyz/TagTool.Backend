@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.Backend.Tests.Integration", "tests\TagTool.Backend.Tests.Integration\TagTool.Backend.Tests.Integration.csproj", "{E0060E26-E6EE-4D65-A4BF-65FE2D7108C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew", "src\TagTool.BackendNew\TagTool.BackendNew.csproj", "{0992A7B7-F908-489C-AD22-4FD540314B79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,5 +43,9 @@ Global
 		{E0060E26-E6EE-4D65-A4BF-65FE2D7108C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0060E26-E6EE-4D65-A4BF-65FE2D7108C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0060E26-E6EE-4D65-A4BF-65FE2D7108C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0992A7B7-F908-489C-AD22-4FD540314B79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0992A7B7-F908-489C-AD22-4FD540314B79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0992A7B7-F908-489C-AD22-4FD540314B79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0992A7B7-F908-489C-AD22-4FD540314B79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

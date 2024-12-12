@@ -1,0 +1,301 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "TagTool.BackendNew";
+
+package TagToolBackendNew;
+
+service TagService {
+  // Creates a new Tag. If tag cannot be created returns error message.
+  rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
+  // Checks if tag with given name can be created.
+  rpc CanCreateTag(stream CanCreateTagRequest) returns (stream CanCreateTagReply);
+  // Deletes a Tag if tag exists and is unused, otherwise return error message.
+  // Used tags can be deleted be setting 'deleteUsedToo' flag .
+  rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
+  // Updates a tag
+  //  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagReply);
+
+  // Tags an item.
+  rpc TagItem(TagItemRequest) returns (TagItemReply);
+  // Untags an item if one exists.
+  rpc UntagItem(UntagItemRequest) returns (UntagItemReply);
+
+  // Gets an info about an item if one exists.
+  rpc GetItem(GetItemRequest) returns (GetItemReply);
+  // Gets items which tags are meet the request conditions.
+  rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
+
+  // Checks if given Tags already exists.
+  rpc DoesTagExists(DoesTagExistsRequest) returns (DoesTagExistsReply);
+
+  // Searches existing tags for matches or partial matches.
+  rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
+
+  // Reverts effects of the last command, such as CreateTag, TagItem, e.t.c.
+  rpc Undo(UndoRequest) returns (UndoReply);
+  // Repeats command reverted by Undo endpoint.
+  rpc Redo(RedoRequest) returns (RedoReply);
+
+  // Sets convention of tag names. The convention is applied when tag is created
+  // and tag name is stored in given format.
+  rpc SetTagNamingConvention(SetTagNamingConventionRequest) returns (SetTagNamingConventionReply);
+}
+
+// The unified error type.
+message Error {
+  // The error's id.
+  int32 errorId = 1;
+  // The description of an error.
+  string message = 2;
+}
+
+message TaggableItemDto {
+  oneof item {
+    string file = 2;
+    string folder = 3;
+  };
+}
+
+
+// The message that unambiguously represents taggable item with associated tags.
+// It should be used in replies (does not make sense for requests).
+message TaggedItem {
+  string id = 1;
+  repeated Tag tags = 2;
+  string displayName = 3;
+}
+
+message Tag {
+  string id = 1;
+  string text = 2;
+}
+
+// The request to create a new tag.
+message CreateTagRequest {
+  // The tag.
+  string text = 2;
+}
+
+// The reply indicating whether tag creation was successful or not.
+message CreateTagReply {
+  oneof result {
+    // The newly created Tag.
+    Tag tag = 1;
+    // The Error message.
+    google.protobuf.StringValue errorMessage = 2;
+  };
+}
+
+// The request to check if a tag with a given name can be created.
+message CanCreateTagRequest {
+  // The name of a new tag.
+  string tagName = 1;
+}
+
+// The reply indicating whether requested tag name is valid and can be created.
+message CanCreateTagReply {
+  // The result that contains error when given name is already taken or reserved.
+  // 'None' response for valid name.
+  oneof result {
+    // The error with description why given name cannot be used.
+    Error error = 1;
+  }
+}
+
+// The request to delete a tag.
+message DeleteTagRequest {
+  // The ID of the tag to be deleted.
+  string tagId = 1;
+  // The flag that allows to delete tag that is associated with an item(s).
+  // All items will be untagged from the given tag.
+  bool deleteUsedToo = 2;
+}
+
+// The reply indicating whether tag deletion was successful or not.
+message DeleteTagReply {
+  oneof result {
+    // The deleted Tag.
+    Tag tag = 1;
+    // The Error message in case of a failure.
+    google.protobuf.StringValue errorMessage = 2;
+  };
+}
+
+// The request to tag a given item.
+message TagItemRequest {
+  string tagId = 1;
+  string itemId = 2;
+}
+
+// The reply indicating whether tagging was successful or not.
+message TagItemReply {
+  oneof result {
+    // The item with all its tags.
+    TaggedItem Item = 1;
+    // The Error message in case of a failure.
+    google.protobuf.StringValue errorMessage = 2;
+  };
+}
+
+// The request to untag a given item.
+message UntagItemRequest {
+  string tagId = 1;
+  string itemId = 2;
+}
+
+// The reply indicating whether untagging was successful or not.
+message UntagItemReply {
+  oneof result {
+    // The item with all its tags.
+    TaggedItem taggedItem = 1;
+    // The Error message in case of a failure.
+    google.protobuf.StringValue errorMessage = 2;
+  }
+}
+
+// The request to get information about an specified Item
+message GetItemRequest {
+  string itemId = 1;
+}
+
+// The reply with information about an item or error message
+message GetItemReply {
+  oneof result {
+    // The item associated tags.
+    TaggedItem taggedItem = 1;
+    // The Error message in case of a failure.
+    google.protobuf.StringValue errorMessage = 2;
+  }
+}
+
+// The request to retrieve all tags that meet tags conditions,
+// e.g. include tag 'Tag1' and exclude 'Tag2'.
+message GetItemsByTagsRequest {
+  repeated TagQueryParam queryParams = 1;
+}
+
+// Defines single segment of a tag search query.
+message TagQueryParam {
+  // The segment's state.
+  QuerySegmentState state = 1;
+
+  string tagId = 2;
+
+  enum QuerySegmentState {
+    // The option indicating that results of search should not contain the tag.
+    Exclude = 0;
+    // The option indicating that searched item can contain given tag.
+    Include = 1;
+    // The option indicating that all returned items must contain given tag.
+    MustBePresent = 2;
+  }
+}
+
+// The reply containing tagged items than met query conditions.
+message GetItemsByTagsReply {
+  repeated TaggedItem taggedItems = 1;
+}
+
+// The request to check if given Tag exists.
+message DoesTagExistsRequest {
+  // The tag.
+  string text = 1;
+}
+
+// The reply indicating if given tag exists.
+message DoesTagExistsReply {
+  oneof result {
+    // The tag.
+    Tag tag = 1;
+  }
+}
+
+// The request to find tags, which match or partially match 'searchText'.
+// The most relevant matches are at the beginning of the reply.
+message SearchTagsRequest {
+  // The name or partial name of the searched Tag
+  string searchText = 1;
+  // The limit of returned tag names.
+  int32 resultsLimit = 2;
+  // The type of search to be used.
+  SearchType searchType = 3;
+  // Search types.
+  enum SearchType {
+    StartsWith = 0;
+    Fuzzy = 1;
+    Wildcard = 2;
+  }
+}
+
+// Stream of the replies containing Tag's names and information about matching type.
+message SearchTagsReply {
+  // The tag.
+  Tag tag = 1;
+  // The flag indicating if request name fully matched found Tag.
+  bool isExactMatch = 2;
+  // The information about partial match. Set only when 'isExactMatch' flag is false.
+  repeated MatchedPart matchedPart = 3;
+
+  // The component representing substring.
+  message MatchedPart {
+    // The start index.
+    int32 startIndex = 1;
+    // The length of a substring.
+    int32 length = 2;
+  }
+}
+
+// The request to undo last action.
+message UndoRequest {}
+
+// The reply indicating if undo operation was successful.
+message UndoReply {
+  oneof result {
+    // The command's response message.
+    google.protobuf.StringValue undoCommand = 1;
+    // The error message, when undo operation failed.
+    google.protobuf.StringValue errorMessage = 2;
+  }
+}
+
+// The request to redo last action.
+message RedoRequest {}
+
+// The reply indicating if redo operation was successful.
+message RedoReply {
+  oneof result {
+    // The command's response message.
+    google.protobuf.StringValue redoCommand = 1;
+    // The error message, when redo operation failed.
+    google.protobuf.StringValue errorMessage = 2;
+  }
+}
+
+// The common naming conventions for sentences without spaces.
+enum NamingConvention {
+  None = 0;
+  CamelCase = 1;
+  PascalCase = 2;
+  KebabCase = 3;
+  SnakeCase = 4;
+}
+
+// Sets naming convention of tags in application.
+message SetTagNamingConventionRequest {
+  // New naming convention to apply.
+  NamingConvention convention = 1;
+  // When true, then change will be applied to existing tags.
+  bool applyToExisting = 2;
+}
+
+// The reply indicating whether change was successful.
+message SetTagNamingConventionReply {
+  // The result indicating opening was successful.
+  // None if operation was successful.
+  oneof result {
+    Error error = 1;
+  }
+}
