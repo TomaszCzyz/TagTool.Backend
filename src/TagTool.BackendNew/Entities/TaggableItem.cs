@@ -1,6 +1,6 @@
 namespace TagTool.BackendNew.Entities;
 
-internal interface ITaggableItem
+public interface ITaggableItem
 {
     // ? complex ID with column 'TaggableItemType' (e.g. file) and 'CustomIdentifier' (e.g. path)
 

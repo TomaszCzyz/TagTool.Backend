@@ -11,11 +11,13 @@ public class TagService : BackendNew.TagService.TagServiceBase
 {
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
+    private readonly IOperationManger _operationManger;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator)
+    public TagService(ILogger<TagService> logger, IMediator mediator, IOperationManger operationManger)
     {
         _logger = logger;
         _mediator = mediator;
+        _operationManger = operationManger;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -97,6 +99,18 @@ public class TagService : BackendNew.TagService.TagServiceBase
         return response.Match(
             item => new UntagItemReply { TaggedItem = item.ToDto() },
             error => new UntagItemReply { ErrorMessage = error.Value });
+    }
+
+    public override async Task<InvokeOperationReply> InvokeOperation(InvokeOperationRequest request, ServerCallContext context)
+    {
+        var result = await _operationManger.InvokeOperation(request.ItemId, request.OperationName, request.OperationArgs);
+
+        _logger.LogInformation(
+            "Invoking operation {OperationName} returned result {OperationResult}",
+            request.OperationName,
+            result.Value.ToString());
+
+        return new InvokeOperationReply();
     }
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)

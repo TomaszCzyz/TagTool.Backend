@@ -23,6 +23,8 @@ service TagService {
   // Untags an item if one exists.
   rpc UntagItem(UntagItemRequest) returns (UntagItemReply);
 
+  rpc InvokeOperation(InvokeOperationRequest) returns (InvokeOperationReply);
+
   // Gets an info about an item if one exists.
   rpc GetItem(GetItemRequest) returns (GetItemReply);
   // Gets items which tags are meet the request conditions.
@@ -298,4 +300,13 @@ message SetTagNamingConventionReply {
   oneof result {
     Error error = 1;
   }
+}
+
+message InvokeOperationRequest {
+  string itemId = 1;
+  string operationName = 2;
+  string operationArgs = 3;
+}
+
+message InvokeOperationReply {
 }
