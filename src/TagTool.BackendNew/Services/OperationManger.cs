@@ -37,8 +37,7 @@ public sealed class OperationManger : IOperationManger
             var operationType = type.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ITaggableItemOperation<,>));
             var taggableItemType = operationType.GenericTypeArguments[0];
 
-            var nameProperty = type.GetProperty(nameof(ITaggableItemOperationBase.Name),
-                BindingFlags.Static | BindingFlags.Public);
+            var nameProperty = type.GetProperty(nameof(ITaggableItemOperationBase.Name), BindingFlags.Static | BindingFlags.Public);
 
             if (nameProperty?.GetValue(null) is string name)
             {

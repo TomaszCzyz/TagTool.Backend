@@ -2,9 +2,7 @@ using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.TaggableFile;
 
-public class TaggableFile : ITaggableItem
+public class TaggableFile : TaggableItem
 {
-    public ICollection<TagBase> Tags { get; } = [];
-
-    // attributes?
+    public required string Path { get; set; }
 }

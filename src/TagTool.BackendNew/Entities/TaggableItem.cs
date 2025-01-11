@@ -1,8 +1,9 @@
 namespace TagTool.BackendNew.Entities;
 
+// ? complex ID with column 'TaggableItemType' (e.g. file) and 'CustomIdentifier' (e.g. path) to ensure uniqueness?
 public interface ITaggableItem
 {
-    // ? complex ID with column 'TaggableItemType' (e.g. file) and 'CustomIdentifier' (e.g. path)
+    Guid Id { get; set; }
 
     ICollection<TagBase> Tags { get; }
 }
