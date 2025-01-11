@@ -1,4 +1,4 @@
-﻿using TagTool.BackendNew.Interfaces;
+﻿using TagTool.BackendNew.Contracts;
 
 namespace TagTool.BackendNew.Services;
 

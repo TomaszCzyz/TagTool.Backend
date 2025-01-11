@@ -2,7 +2,7 @@ using MediatR;
 using OneOf;
 using TagTool.BackendNew.Entities;
 
-namespace TagTool.BackendNew.Interfaces;
+namespace TagTool.BackendNew.Contracts;
 
 public interface ITaggableItemOperationBase
 {

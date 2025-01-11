@@ -2,7 +2,7 @@
 using MediatR.Pipeline;
 using OneOf;
 using OneOf.Types;
-using TagTool.BackendNew.Interfaces;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Services;
 
 namespace TagTool.BackendNew.Commands.PreProcessors;

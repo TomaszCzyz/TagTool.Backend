@@ -1,4 +1,4 @@
-namespace TagTool.BackendNew.Interfaces;
+namespace TagTool.BackendNew.Contracts;
 
 public interface IReversible
 {

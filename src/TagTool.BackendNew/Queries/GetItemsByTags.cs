@@ -1,8 +1,8 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
-using TagTool.BackendNew.Interfaces;
 using TagTool.BackendNew.Models;
 
 namespace TagTool.BackendNew.Queries;

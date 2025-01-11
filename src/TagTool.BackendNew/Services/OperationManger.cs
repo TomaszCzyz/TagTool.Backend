@@ -4,7 +4,7 @@ using System.Text.Json;
 using JetBrains.Annotations;
 using MediatR;
 using OneOf;
-using TagTool.BackendNew.Interfaces;
+using TagTool.BackendNew.Contracts;
 
 namespace TagTool.BackendNew.Services;
 

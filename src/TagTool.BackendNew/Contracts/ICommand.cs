@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OneOf;
 
-namespace TagTool.BackendNew.Interfaces;
+namespace TagTool.BackendNew.Contracts;
 
 public interface ICommand<out TResponse> : IRequest<TResponse> where TResponse : IOneOf;
 
