@@ -73,6 +73,7 @@ builder.Services.AddSingleton<UserConfiguration>(
         return new UserConfiguration();
     });
 builder.Services.AddSingleton<UserConfigurationWatcher>();
+builder.Services.AddSingleton<IOperationManger, OperationManger>();
 // builder.Services.AddSingleton<ITagMapper, TagMapper>();
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();

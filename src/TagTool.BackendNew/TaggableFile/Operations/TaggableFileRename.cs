@@ -14,7 +14,9 @@ public class TaggableFileRename : ITaggableFileOperation<Response>
 
     public Guid ItemId { get; set; }
 
-    public required string NewName { get; init; }
+    public string? FullPath { get; set; }
+
+    public required string NewName { get; set; }
 }
 
 public class TaggableFileRenameOperationHandler : IRequestHandler<TaggableFileRename, Response>
@@ -30,6 +32,11 @@ public class TaggableFileRenameOperationHandler : IRequestHandler<TaggableFileRe
 
     public async Task<Response> Handle(TaggableFileRename request, CancellationToken cancellationToken)
     {
+        if (request.ItemId == Guid.Empty && request.FullPath is not null)
+        {
+            return RenameUntrackedFile(request.FullPath, request.NewName);
+        }
+
         var taggedItem = await _dbContext
             .Set<TaggableFile>()
             .FirstOrDefaultAsync(file => file.Id == request.ItemId, cancellationToken);
@@ -66,6 +73,24 @@ public class TaggableFileRenameOperationHandler : IRequestHandler<TaggableFileRe
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        return new Success();
+    }
+
+    private Response RenameUntrackedFile(string oldFullPath, string newName)
+    {
+        var parentDir = Path.GetDirectoryName(oldFullPath)!;
+        var newFullPath = Path.Combine(parentDir, newName);
+
+        try
+        {
+            File.Move(oldFullPath, newFullPath);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Unable to rename untracked file {OldPath} to {NewPath}", oldFullPath, newFullPath);
+            return new Error<string>($"Unable to rename \"{Path.GetFileNameWithoutExtension(oldFullPath)}\".");
+        }
+
         return new Success();
     }
 }

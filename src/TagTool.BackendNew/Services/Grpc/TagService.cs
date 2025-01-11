@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using MediatR;
+using OneOf.Types;
 using TagTool.BackendNew.Commands;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Models;
@@ -105,10 +106,21 @@ public class TagService : BackendNew.TagService.TagServiceBase
     {
         var result = await _operationManger.InvokeOperation(request.ItemId, request.OperationName, request.OperationArgs);
 
-        _logger.LogInformation(
-            "Invoking operation {OperationName} returned result {OperationResult}",
-            request.OperationName,
-            result.Value.ToString());
+        if (result.Value is Error<string> error)
+        {
+            _logger.LogInformation(
+                "Invoking operation {OperationName} returned result {OperationResult}",
+                request.OperationName,
+                error.Value);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Invoking operation {OperationName} returned result {OperationResult}",
+                request.OperationName,
+                result.Value.ToString());
+        }
+
 
         return new InvokeOperationReply();
     }

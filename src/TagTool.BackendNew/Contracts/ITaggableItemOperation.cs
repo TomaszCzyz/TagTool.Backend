@@ -11,8 +11,7 @@ public interface ITaggableItemOperationBase
     public Guid ItemId { get; set; }
 }
 
-public interface ITaggableItemOperation<in T, TResponse> : IRequest<TResponse>, ITaggableItemOperationBase
+// ReSharper disable once UnusedTypeParameter REASON: Type T is used with Reflcation in OperationManager
+public interface ITaggableItemOperation<in T, out TResponse> : IRequest<TResponse>, ITaggableItemOperationBase
     where T : ITaggableItem
-    where TResponse : IOneOf
-{
-}
+    where TResponse : IOneOf;

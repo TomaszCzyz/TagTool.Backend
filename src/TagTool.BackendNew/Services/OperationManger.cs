@@ -18,13 +18,14 @@ public interface IOperationManger
 [UsedImplicitly]
 public sealed class OperationManger : IOperationManger
 {
-    private readonly IMediator _mediator;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<string, Type> _operations = new();
     private readonly Dictionary<Type, List<string>> _taggableItemOperationNames = new();
 
-    public OperationManger(IMediator mediator, params Type[] markers)
+    public OperationManger(IMediator mediator, IServiceProvider serviceProvider)
     {
-        _mediator = mediator;
+        Type[] markers = [typeof(Program)];
+        _serviceProvider = serviceProvider;
 
         var types = markers
             .SelectMany(marker => marker.Assembly.ExportedTypes
@@ -42,7 +43,10 @@ public sealed class OperationManger : IOperationManger
             if (nameProperty?.GetValue(null) is string name)
             {
                 _operations[name] = type;
-                _taggableItemOperationNames[taggableItemType].Add(name);
+                if (!_taggableItemOperationNames.TryAdd(taggableItemType, [name]))
+                {
+                    _taggableItemOperationNames[taggableItemType].Add(name);
+                }
             }
             else
             {
@@ -55,7 +59,7 @@ public sealed class OperationManger : IOperationManger
     {
         var payloadType = GetPayloadType(operationName);
 
-        var obj = JsonSerializer.Deserialize(operationPayload, payloadType);
+        var obj = JsonSerializer.Deserialize(operationPayload, payloadType, JsonSerializerOptions.Web);
 
         if (obj is not ITaggableItemOperationBase payload)
         {
@@ -63,7 +67,11 @@ public sealed class OperationManger : IOperationManger
         }
 
         payload.ItemId = Guid.Parse(itemId);
-        return (await _mediator.Send(payload) as IOneOf)!;
+
+        using var scope = _serviceProvider.CreateScope();
+
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        return (await mediator.Send(payload) as IOneOf)!;
     }
 
     public string[] GetOperationNames(Type taggableItemType)

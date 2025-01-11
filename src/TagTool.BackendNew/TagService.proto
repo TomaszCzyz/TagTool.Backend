@@ -13,7 +13,7 @@ service TagService {
   // Checks if tag with given name can be created.
   rpc CanCreateTag(stream CanCreateTagRequest) returns (stream CanCreateTagReply);
   // Deletes a Tag if tag exists and is unused, otherwise return error message.
-  // Used tags can be deleted be setting 'deleteUsedToo' flag .
+  // Used tags can be deleted be setting 'deleteUsedToo' flag.
   rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
   // Updates a tag
   //  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagReply);
