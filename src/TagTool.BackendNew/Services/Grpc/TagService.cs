@@ -75,9 +75,8 @@ public class TagService : BackendNew.TagService.TagServiceBase
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request.ItemId);
-        ArgumentNullException.ThrowIfNull(request.TagId);
 
-        var command = new TagItem { ItemId = new Guid(request.ItemId), TagId = new Guid(request.TagId) };
+        var command = new TagItem { ItemId = new Guid(request.ItemId), TagId = request.TagId };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
@@ -89,9 +88,8 @@ public class TagService : BackendNew.TagService.TagServiceBase
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request.ItemId);
-        ArgumentNullException.ThrowIfNull(request.TagId);
 
-        var command = new UntagItem { ItemId = new Guid(request.ItemId), TagId = new Guid(request.TagId) };
+        var command = new UntagItem { ItemId = new Guid(request.ItemId), TagId = request.TagId };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 

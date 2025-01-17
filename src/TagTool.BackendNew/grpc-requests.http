@@ -38,5 +38,5 @@ GRPC localhost:5280/TagToolBackendNew.TagService/CreateTag
 Content-Type: application/json
 
 {
-  "text": "TestTag"
+  "text": "TestTag3"
 }

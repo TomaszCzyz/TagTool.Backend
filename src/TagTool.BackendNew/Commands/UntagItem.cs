@@ -11,7 +11,7 @@ using Response = OneOf<TaggableItem, Error<string>>;
 
 public class UntagItem : ICommand<Response>
 {
-    public required Guid TagId { get; init; }
+    public required int TagId { get; init; }
 
     public required Guid ItemId { get; init; }
 }
