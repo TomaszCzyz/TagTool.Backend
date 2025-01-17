@@ -38,13 +38,9 @@ public class CreateTagCommandHandler : ICommandHandler<CreateTag, Response>
 
         _logger.LogInformation("Creating new tag {@Tag}", request.Text);
 
-        var newTag = new TagBase
-        {
-            Id = Guid.CreateVersion7(),
-            Text = request.Text,
-        };
+        var newTag = new TagBase { Text = request.Text };
 
-        await _dbContext.Tags.AddAsync(newTag, cancellationToken);
+        _dbContext.Tags.Add(newTag);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return newTag;

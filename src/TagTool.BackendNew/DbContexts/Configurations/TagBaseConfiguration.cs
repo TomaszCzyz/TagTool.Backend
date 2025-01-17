@@ -8,8 +8,6 @@ public class TagBaseConfiguration : IEntityTypeConfiguration<TagBase>
 {
     public void Configure(EntityTypeBuilder<TagBase> builder)
     {
-        builder.UseTphMappingStrategy();
-
         builder
             .HasMany(e => e.TaggedItems)
             .WithMany(e => e.Tags)

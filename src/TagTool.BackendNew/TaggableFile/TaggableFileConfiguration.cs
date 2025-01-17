@@ -9,6 +9,7 @@ public class TaggableFileConfiguration : IEntityTypeConfiguration<TaggableFile>
 {
     public void Configure(EntityTypeBuilder<TaggableFile> builder)
     {
-        builder.HasBaseType<TaggableItem>();
+        builder
+            .HasBaseType<TaggableItem>();
     }
 }

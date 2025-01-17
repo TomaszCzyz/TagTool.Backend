@@ -11,5 +11,9 @@ public class TaggableItemConfiguration : IEntityTypeConfiguration<TaggableItem>
         builder
             .UseTpcMappingStrategy()
             .HasKey(e => e.Id);
+
+        builder
+            .Property(e => e.Id)
+            .ValueGeneratedNever();
     }
 }

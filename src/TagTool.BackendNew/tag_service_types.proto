@@ -43,7 +43,7 @@ message CanCreateTagReply {
 // The request to delete a tag.
 message DeleteTagRequest {
   // The ID of the tag to be deleted.
-  string tagId = 1;
+  int32 tagId = 1;
   // The flag that allows to delete tag that is associated with an item(s).
   // All items will be untagged from the given tag.
   bool deleteUsedToo = 2;
@@ -116,8 +116,8 @@ message GetItemsByTagsRequest {
 message TagQueryParam {
   // The segment's state.
   QuerySegmentState state = 1;
-
-  string tagId = 2;
+  // The tag.
+  Tag tag = 2;
 
   enum QuerySegmentState {
     // The option indicating that results of search should not contain the tag.
@@ -154,7 +154,7 @@ message SearchTagsRequest {
   // The name or partial name of the searched Tag
   string searchText = 1;
   // The limit of returned tag names.
-  int32 resultsLimit = 2;
+  google.protobuf.Int32Value resultsLimit = 2;
   // The type of search to be used.
   SearchType searchType = 3;
   // Search types.

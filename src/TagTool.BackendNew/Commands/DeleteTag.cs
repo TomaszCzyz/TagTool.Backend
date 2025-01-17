@@ -12,7 +12,7 @@ using Response = OneOf<TagBase, Error<string>>;
 
 public class DeleteTagRequest : ICommand<Response>
 {
-    public required Guid Id { get; init; }
+    public required int Id { get; init; }
 
     public bool DeleteUsedToo { get; init; }
 }

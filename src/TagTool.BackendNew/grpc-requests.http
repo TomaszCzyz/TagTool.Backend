@@ -1,0 +1,42 @@
+###
+GRPC localhost:5280/TagToolBackendNew.TagService/InvokeOperation
+Content-Type: application/json
+
+{
+  "itemId": "00000000-0000-0000-0000-000000000000",
+  "operationArgs": "{\"newName\":\"test\"}",
+  "operationName": "file:rename"
+}
+
+<> 2025-01-11T235236.OK.json
+<> 2025-01-11T235147.OK.json
+<> 2025-01-11T235106.OK.json
+<> 2025-01-11T234846.OK.json
+
+###
+GRPC localhost:5280/TagToolBackendNew.TagService/TagItem
+Content-Type: application/json
+
+{
+  "itemId": "2C5F37E4-986F-4AEE-9434-01E60C7CE997",
+  "tagId": "2C5F37E4-986F-4AEE-9434-01E60C7CE996"
+}
+
+<> 2025-01-11T233858.OK.json
+
+###
+GRPC localhost:5280/TagToolBackendNew.TagService/SearchTags
+Content-Type: application/json
+
+{
+  "searchType": "Fuzzy",
+  "searchText": "t"
+}
+
+###
+GRPC localhost:5280/TagToolBackendNew.TagService/CreateTag
+Content-Type: application/json
+
+{
+  "text": "TestTag"
+}

@@ -3,7 +3,7 @@ using OneOf.Types;
 
 namespace TagTool.BackendNew.TaggableFile.Operations;
 
-internal class TaggableFileMove : ITaggableFileOperation<OneOf<Success, Error<string>>>
+public sealed class TaggableFileMove : ITaggableFileOperation<OneOf<Success, Error<string>>>
 {
     public static string Name { get; } = "file:move";
 

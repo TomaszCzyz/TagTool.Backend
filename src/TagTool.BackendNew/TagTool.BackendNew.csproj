@@ -35,24 +35,8 @@
 
   <ItemGroup>
     <Protobuf Include="tag_service.proto" GrpcService="Server" />
-    <Protobuf Include="tag_service_types.proto">
-      <GrpcServices>Both</GrpcServices>
-      <Access>Public</Access>
-      <ProtoCompile>True</ProtoCompile>
-      <CompileOutputs>True</CompileOutputs>
-      <OutputDir>obj\Debug/net9.0/</OutputDir>
-      <Generator>MSBuild:Compile</Generator>
-      <GrpcService>Server</GrpcService>
-    </Protobuf>
-    <Protobuf Include="tag_service_types_common.proto">
-      <GrpcServices>Both</GrpcServices>
-      <Access>Public</Access>
-      <ProtoCompile>True</ProtoCompile>
-      <CompileOutputs>True</CompileOutputs>
-      <OutputDir>obj\Debug/net9.0/</OutputDir>
-      <Generator>MSBuild:Compile</Generator>
-      <GrpcService>Server</GrpcService>
-    </Protobuf>
+    <Protobuf Include="tag_service_types.proto" GrpcServices="None" />
+    <Protobuf Include="tag_service_types_common.proto" GrpcServices="None" />
   </ItemGroup>
 
 </Project>

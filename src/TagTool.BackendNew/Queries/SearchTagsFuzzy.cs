@@ -13,7 +13,7 @@ public class SearchTagsFuzzyRequest : IStreamRequest<(TagBase, IEnumerable<TextS
 {
     public required string Value { get; init; }
 
-    public int ResultsLimit { get; init; } = 20;
+    public int? ResultsLimit { get; init; }
 }
 
 [UsedImplicitly]
@@ -30,10 +30,12 @@ public class SearchTagsFuzzy : IStreamRequestHandler<SearchTagsFuzzyRequest, (Ta
         SearchTagsFuzzyRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var resultsLimit = request.ResultsLimit ?? 20;
+
         // todo: extract 'empty' search functionality
         if (string.IsNullOrEmpty(request.Value))
         {
-            await foreach (var tag in _dbContext.Tags.Take(request.ResultsLimit).AsAsyncEnumerable().WithCancellation(cancellationToken))
+            await foreach (var tag in _dbContext.Tags.Take(resultsLimit).AsAsyncEnumerable().WithCancellation(cancellationToken))
             {
                 yield return (tag, [new TextSlice(0, tag.Text.Length - tag.Text.IndexOf(':'))]);
             }

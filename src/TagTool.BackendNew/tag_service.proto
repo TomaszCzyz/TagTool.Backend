@@ -11,21 +11,26 @@ package TagToolBackendNew;
 service TagService {
   // Creates a new Tag. If tag cannot be created returns error message.
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
+
   // Checks if tag with given name can be created.
   rpc CanCreateTag(stream CanCreateTagRequest) returns (stream CanCreateTagReply);
+
   // Deletes a Tag if tag exists and is unused, otherwise return error message.
   // Used tags can be deleted be setting 'deleteUsedToo' flag.
   rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
 
   // Tags an item.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
+
   // Untags an item if one exists.
   rpc UntagItem(UntagItemRequest) returns (UntagItemReply);
 
+  // Invokes operation specific to the taggable item.
   rpc InvokeOperation(InvokeOperationRequest) returns (InvokeOperationReply);
 
   // Gets an info about an item if one exists.
   rpc GetItem(GetItemRequest) returns (GetItemReply);
+
   // Gets items which tags are meet the request conditions.
   rpc GetItemsByTags(GetItemsByTagsRequest) returns (GetItemsByTagsReply);
 
@@ -36,7 +41,9 @@ service TagService {
   rpc SearchTags(SearchTagsRequest) returns (stream SearchTagsReply);
 
   // Reverts effects of the last command, such as CreateTag, TagItem, e.t.c.
+
   rpc Undo(UndoRequest) returns (UndoReply);
+
   // Repeats command reverted by Undo endpoint.
   rpc Redo(RedoRequest) returns (RedoReply);
 

@@ -11,7 +11,7 @@ public class SearchTagsWildcardRequest : IStreamRequest<(TagBase, IEnumerable<Te
 {
     public required string Value { get; init; }
 
-    public int ResultsLimit { get; init; } = 20;
+    public int? ResultsLimit { get; init; } = 20;
 }
 
 [UsedImplicitly]

@@ -5,17 +5,10 @@ using Serilog.Events;
 
 namespace TagTool.BackendNew.Entities;
 
-public interface ITag
-{
-    string Text { get; }
-
-    ICollection<TaggableItem> TaggedItems { get; set; }
-}
-
 [DebuggerDisplay("{Text}")]
 public class TagBase : ITag
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
 
     public required string Text { get; init; }
 

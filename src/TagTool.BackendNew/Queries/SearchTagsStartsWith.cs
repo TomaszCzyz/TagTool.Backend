@@ -12,7 +12,7 @@ public class SearchTagsStartsWithRequest : IStreamRequest<(TagBase, IEnumerable<
 {
     public required string Value { get; init; }
 
-    public int ResultsLimit { get; init; } = 20;
+    public int? ResultsLimit { get; init; }
 }
 
 [UsedImplicitly]
@@ -29,10 +29,12 @@ public class SearchTagsStartsWith : IStreamRequestHandler<SearchTagsStartsWithRe
         SearchTagsStartsWithRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        var resultsLimit = request.ResultsLimit ?? 20;
+
         // todo: fix this search; I can add SearchName column to Tag table that will contain FormattedName trimmed form tag Type
         var queryable = _dbContext.Tags
             .Where(tag => tag.Text.StartsWith(request.Value))
-            .Take(request.ResultsLimit);
+            .Take(resultsLimit);
 
         var counter = 0;
         await foreach (var tag in queryable.AsAsyncEnumerable().WithCancellation(cancellationToken))

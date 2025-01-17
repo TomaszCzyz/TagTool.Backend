@@ -30,7 +30,7 @@ public class TagService : BackendNew.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            tagBase => new CreateTagReply { Tag = new Tag { Id = tagBase.Id.ToString(), Text = tagBase.Text } },
+            tagBase => new CreateTagReply { Tag = new Tag { Id = tagBase.Id, Text = tagBase.Text } },
             error => new CreateTagReply { ErrorMessage = error.Value });
     }
 
@@ -63,9 +63,7 @@ public class TagService : BackendNew.TagService.TagServiceBase
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        ArgumentNullException.ThrowIfNull(request.TagId);
-
-        var command = new Commands.DeleteTagRequest { Id = new Guid(request.TagId), DeleteUsedToo = request.DeleteUsedToo };
+        var command = new Commands.DeleteTagRequest { Id = request.TagId, DeleteUsedToo = request.DeleteUsedToo };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
@@ -244,16 +242,10 @@ public class TagService : BackendNew.TagService.TagServiceBase
 
 public static class TagBaseExtensions
 {
-    public static Tag ToDto(this TagBase tag) => new() { Id = tag.Id.ToString(), Text = tag.Text };
+    public static Tag ToDto(this TagBase tag) => new() { Id = tag.Id, Text = tag.Text };
 }
 
 public static class TaggableItemExtensions
 {
-    public static TaggedItem ToDto(this TaggableItem item)
-        => new()
-        {
-            Id = item.Id.ToString(),
-            Tags = { item.Tags.Select(t => t.ToDto()) },
-            DisplayName = item.Id.ToString()
-        };
+    public static TaggedItem ToDto(this TaggableItem item) => new() { Id = item.Id.ToString(), Tags = { item.Tags.Select(t => t.ToDto()) } };
 }
