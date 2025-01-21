@@ -2,9 +2,11 @@
 using MediatR;
 using OneOf.Types;
 using TagTool.BackendNew.Commands;
+using TagTool.BackendNew.Common;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Queries;
+using Error = TagTool.BackendNew.Common.Error;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
@@ -70,6 +72,16 @@ public class TagService : BackendNew.TagService.TagServiceBase
         return response.Match(
             tagBase => new DeleteTagReply { Tag = tagBase.ToDto() },
             error => new DeleteTagReply { ErrorMessage = error.Value });
+    }
+
+    public override async Task<AddItemReply> AddItem(AddItemRequest request, ServerCallContext context)
+    {
+        var addItem = new AddItem { ItemType = request.ItemType, ItemArgs = request.ItemArgs };
+
+        var response = await _mediator.Send(addItem, context.CancellationToken);
+        return response.Match(
+            item => new AddItemReply { Item = item.ToDto() },
+            error => new AddItemReply { ErrorMessage = error.Value });
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)

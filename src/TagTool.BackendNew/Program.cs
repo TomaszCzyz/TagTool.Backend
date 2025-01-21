@@ -11,10 +11,12 @@ using Serilog.Exceptions;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Compact;
 using TagTool.BackendNew;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
+using TagTool.BackendNew.TaggableFile;
 using TagService = TagTool.BackendNew.Services.Grpc.TagService;
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
@@ -74,6 +76,11 @@ builder.Services.AddSingleton<UserConfiguration>(
     });
 builder.Services.AddSingleton<UserConfigurationWatcher>();
 builder.Services.AddSingleton<IOperationManger, OperationManger>();
+builder.Services.AddSingleton<ITaggableItemManager<TaggableItem>, TaggableItemManagerDispatcher>();
+builder.Services.AddSingleton<TaggableItemMapper>();
+
+builder.Services.AddScoped<TaggableFileManager>();
+
 // builder.Services.AddSingleton<ITagMapper, TagMapper>();
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();

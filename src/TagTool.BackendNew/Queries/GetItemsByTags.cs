@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Models;
@@ -31,7 +32,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
 
         var splittedTags = SplitTagsBySegmentState(request.QuerySegments);
 
-        var taggedItems = _dbContext.TaggedItems
+        var taggedItems = _dbContext.TaggableItems
             .Include(taggedItemBase => taggedItemBase.Tags)
             .AsQueryable();
 
@@ -65,7 +66,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
     }
 
     private Task<TaggableItem[]> GetMostPopularItems(CancellationToken cancellationToken)
-        => _dbContext.TaggedItems
+        => _dbContext.TaggableItems
             .Include(taggedItemBase => taggedItemBase.Tags)
             // .OrderByDescending(item => item.Popularity)
             .Take(30)

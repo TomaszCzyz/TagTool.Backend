@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 
@@ -27,7 +28,7 @@ public class GetItemByIdQueryHandler : IQueryHandler<GetItemById, Response>
 
     public async Task<Response> Handle(GetItemById request, CancellationToken cancellationToken)
     {
-        var item = await _dbContext.TaggedItems
+        var item = await _dbContext.TaggableItems
             .AsNoTracking()
             .Include(file => file.Tags)
             .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken);

@@ -2,6 +2,7 @@
 using OneOf;
 using OneOf.Types;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 
@@ -37,7 +38,7 @@ public class TagItemRequestHandler : ICommandHandler<TagItem, Response>
             return new Error<string>("Tag not found");
         }
 
-        var item = await _dbContext.TaggedItems.FindAsync([request.ItemId], cancellationToken);
+        var item = await _dbContext.TaggableItems.FindAsync([request.ItemId], cancellationToken);
 
         if (item is null)
         {
@@ -46,7 +47,7 @@ public class TagItemRequestHandler : ICommandHandler<TagItem, Response>
 
         if (item.Tags.Contains(tag))
         {
-            return new Error<string>($"Item already contains tag");
+            return new Error<string>("Item already contains tag");
         }
 
         _logger.LogInformation("Tagging item {@TaggedItem} with tag {@Tags}", item, tag);

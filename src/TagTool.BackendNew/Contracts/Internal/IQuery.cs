@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace TagTool.BackendNew.Contracts;
+namespace TagTool.BackendNew.Contracts.Internal;
 
 public interface IQuery<out TResponse> : IRequest<TResponse>;
 

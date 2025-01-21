@@ -17,7 +17,7 @@ public sealed class TagToolDbContext : DbContext, ITagToolDbContext
 {
     public DbSet<TagBase> Tags => Set<TagBase>();
 
-    public DbSet<TaggableItem> TaggedItems => Set<TaggableItem>();
+    public DbSet<TaggableItem> TaggableItems => Set<TaggableItem>();
 
     public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
     {

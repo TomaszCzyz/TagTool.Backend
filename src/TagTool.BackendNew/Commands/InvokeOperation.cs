@@ -1,6 +1,7 @@
 using OneOf;
 using OneOf.Types;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 
 namespace TagTool.BackendNew.Commands;
@@ -25,7 +26,7 @@ public class InvokeOperationCommandHandler : ICommandHandler<InvokeOperation, Re
 
     public async Task<Response> Handle(InvokeOperation request, CancellationToken cancellationToken)
     {
-        var taggableItem = await _dbContext.TaggedItems.FindAsync([request.ItemId], cancellationToken);
+        var taggableItem = await _dbContext.TaggableItems.FindAsync([request.ItemId], cancellationToken);
 
         if (taggableItem is null)
         {

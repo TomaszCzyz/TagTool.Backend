@@ -18,8 +18,8 @@ GRPC localhost:5280/TagToolBackendNew.TagService/TagItem
 Content-Type: application/json
 
 {
-  "itemId": "2C5F37E4-986F-4AEE-9434-01E60C7CE997",
-  "tagId": "2C5F37E4-986F-4AEE-9434-01E60C7CE996"
+  "itemId": "01948873-06d3-7925-86b2-8794595e407d",
+  "tagId": 1
 }
 
 <> 2025-01-11T233858.OK.json
@@ -39,4 +39,13 @@ Content-Type: application/json
 
 {
   "text": "TestTag3"
+}
+
+###
+GRPC localhost:5280/TagToolBackendNew.TagService/AddItem
+Content-Type: application/json
+
+{
+  "itemType": "file",
+  "itemArgs": "{\"path\":\"/home/tczyz/Documents/TagTool/TagToolPlayground/dokument - 2024-08-26T133742.994.pdf\"}"
 }

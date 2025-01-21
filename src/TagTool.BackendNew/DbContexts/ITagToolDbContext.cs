@@ -8,7 +8,7 @@ namespace TagTool.BackendNew.DbContexts;
 public interface ITagToolDbContext : IDisposable, IAsyncDisposable
 {
     DbSet<TagBase> Tags { get; }
-    DbSet<TaggableItem> TaggedItems { get; }
+    DbSet<TaggableItem> TaggableItems { get; }
 
     ChangeTracker ChangeTracker { get; }
     DatabaseFacade Database { get; }

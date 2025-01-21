@@ -19,8 +19,11 @@ service TagService {
   // Used tags can be deleted be setting 'deleteUsedToo' flag.
   rpc DeleteTag (DeleteTagRequest) returns (DeleteTagReply);
 
-  // Tags an item.
+  // Adds an item of given type, if type is supported.
   rpc TagItem(TagItemRequest) returns (TagItemReply);
+
+  // Tags an item.
+  rpc AddItem(AddItemRequest) returns (AddItemReply);
 
   // Untags an item if one exists.
   rpc UntagItem(UntagItemRequest) returns (UntagItemReply);

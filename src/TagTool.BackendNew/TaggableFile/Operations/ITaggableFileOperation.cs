@@ -8,4 +8,4 @@ namespace TagTool.BackendNew.TaggableFile.Operations;
     ImplicitUseKindFlags.Assign,
     ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors,
     Reason = "Created by IOperationManger when during request dispatch.")]
-internal interface ITaggableFileOperation<TResponse> : ITaggableItemOperation<TaggableFile, TResponse> where TResponse : IOneOf;
+internal interface ITaggableFileOperation<out TResponse> : ITaggableItemOperation<TaggableFile, TResponse> where TResponse : IOneOf;

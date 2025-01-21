@@ -3,6 +3,7 @@ using MediatR.Pipeline;
 using OneOf;
 using OneOf.Types;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.Services;
 
 namespace TagTool.BackendNew.Commands.PreProcessors;
