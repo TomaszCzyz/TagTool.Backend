@@ -7,6 +7,7 @@ using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Queries;
 using Error = TagTool.BackendNew.Common.Error;
+using TaggableItem = TagTool.BackendNew.Common.TaggableItem;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
@@ -15,12 +16,14 @@ public class TagService : BackendNew.TagService.TagServiceBase
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;
     private readonly IOperationManger _operationManger;
+    private readonly TaggableItemMapper _taggableItemMapper;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, IOperationManger operationManger)
+    public TagService(ILogger<TagService> logger, IMediator mediator, IOperationManger operationManger, TaggableItemMapper taggableItemMapper)
     {
         _logger = logger;
         _mediator = mediator;
         _operationManger = operationManger;
+        _taggableItemMapper = taggableItemMapper;
     }
 
     public override async Task<CreateTagReply> CreateTag(CreateTagRequest request, ServerCallContext context)
@@ -76,11 +79,11 @@ public class TagService : BackendNew.TagService.TagServiceBase
 
     public override async Task<AddItemReply> AddItem(AddItemRequest request, ServerCallContext context)
     {
-        var addItem = new AddItem { ItemType = request.ItemType, ItemArgs = request.ItemArgs };
+        var addItem = new AddItem { ItemType = request.Item.Type, ItemArgs = request.Item.Payload };
 
         var response = await _mediator.Send(addItem, context.CancellationToken);
         return response.Match(
-            item => new AddItemReply { Item = item.ToDto() },
+            item => new AddItemReply { TaggableItem = new TaggableItem { Item = Map(item), Tags = { item.Tags.ToDtos() } } },
             error => new AddItemReply { ErrorMessage = error.Value });
     }
 
@@ -93,7 +96,7 @@ public class TagService : BackendNew.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new TagItemReply { Item = item.ToDto() },
+            item => new TagItemReply { TaggableItem = MapTaggableItem(item) },
             error => new TagItemReply { ErrorMessage = error.Value });
     }
 
@@ -106,7 +109,7 @@ public class TagService : BackendNew.TagService.TagServiceBase
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new UntagItemReply { TaggedItem = item.ToDto() },
+            item => new UntagItemReply { TaggableItem = MapTaggableItem(item) },
             error => new UntagItemReply { ErrorMessage = error.Value });
     }
 
@@ -139,7 +142,7 @@ public class TagService : BackendNew.TagService.TagServiceBase
         var response = await _mediator.Send(query, context.CancellationToken);
 
         return response.Match(
-            item => new GetItemReply { TaggedItem = item.ToDto() },
+            item => new GetItemReply { TaggableItem = MapTaggableItem(item) },
             _ => new GetItemReply { ErrorMessage = $"Could not find taggable item with id {request.ItemId}." });
     }
 
@@ -209,53 +212,18 @@ public class TagService : BackendNew.TagService.TagServiceBase
         }
     }
 
-// public override async Task<UndoReply> Undo(UndoRequest request, ServerCallContext context)
-// {
-//     var undoCommand = _commandsHistory.GetUndoCommand();
-//
-//     var result = await InvokeCommand(nameof(Undo), undoCommand, context.CancellationToken);
-//
-//     return result.Match(
-//         s => new UndoReply { UndoCommand = s },
-//         errorResponse => new UndoReply { ErrorMessage = errorResponse.Message });
-// }
-//
-// public override async Task<RedoReply> Redo(RedoRequest request, ServerCallContext context)
-// {
-//     var redoCommand = _commandsHistory.GetRedoCommand();
-//
-//     var result = await InvokeCommand(nameof(Redo), redoCommand, context.CancellationToken);
-//
-//     return result.Match(
-//         s => new RedoReply { RedoCommand = s },
-//         errorResponse => new RedoReply { ErrorMessage = errorResponse.Message });
-// }
+    private Item Map(Entities.TaggableItem item)
+    {
+        var (type, payload) = _taggableItemMapper.MapFromObj(item);
+        return new Item { Type = type, Payload = payload };
+    }
 
-// private static QuerySegmentState MapQuerySegmentStateFromDto(TagQueryParam.Types.QuerySegmentState state)
-//     => state switch
-//     {
-//         TagQueryParam.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
-//         TagQueryParam.Types.QuerySegmentState.Include => QuerySegmentState.Include,
-//         TagQueryParam.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
-//         _ => throw new UnreachableException()
-//     };
-//
-// private static TagQueryParam.Types.QuerySegmentState MapQuerySegmentStateToDto(QuerySegmentState querySegment)
-//     => querySegment switch
-//     {
-//         QuerySegmentState.Exclude => TagQueryParam.Types.QuerySegmentState.Exclude,
-//         QuerySegmentState.Include => TagQueryParam.Types.QuerySegmentState.Include,
-//         QuerySegmentState.MustBePresent => TagQueryParam.Types.QuerySegmentState.MustBePresent,
-//         _ => throw new UnreachableException()
-//     };
+    private TaggableItem MapTaggableItem(Entities.TaggableItem item) => new() { Item = Map(item), Tags = { item.Tags.ToDtos() } };
 }
 
 public static class TagBaseExtensions
 {
     public static Tag ToDto(this TagBase tag) => new() { Id = tag.Id, Text = tag.Text };
-}
 
-public static class TaggableItemExtensions
-{
-    public static TaggedItem ToDto(this TaggableItem item) => new() { Id = item.Id.ToString(), Tags = { item.Tags.Select(t => t.ToDto()) } };
+    public static IEnumerable<Tag> ToDtos(this IEnumerable<TagBase> tags) => tags.Select(t => t.ToDto());
 }

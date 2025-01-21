@@ -12,6 +12,18 @@ message Tag {
   string text = 2;
 }
 
+message Item {
+  string type = 3;
+  string payload = 4;
+}
+
+// The message that unambiguously represents taggable item with associated tags.
+// It should be used in replies (does not make sense for requests).
+message TaggableItem {
+  Item item = 1;
+  repeated Tag tags = 2;
+}
+
 // The unified error type.
 message Error {
   // The error's id.

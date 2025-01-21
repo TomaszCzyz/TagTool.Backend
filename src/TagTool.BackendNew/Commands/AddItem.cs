@@ -36,7 +36,7 @@ public class AddItemCommandHandler : ICommandHandler<AddItem, Response>
 
     public async Task<Response> Handle(AddItem request, CancellationToken cancellationToken)
     {
-        var taggableItem = _taggableItemMapper.Map(request.ItemType, request.ItemArgs);
+        var taggableItem = _taggableItemMapper.MapToObj(request.ItemType, request.ItemArgs);
         var existingItem = await _taggableItemManager.GetItem(taggableItem, cancellationToken);
 
         if (existingItem is not null)
