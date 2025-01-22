@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using System.Diagnostics;
+using Grpc.Core;
 using MediatR;
 using OneOf.Types;
 using TagTool.BackendNew.Commands;
@@ -147,26 +148,27 @@ public class TagService : BackendNew.TagService.TagServiceBase
     }
 
 
-// public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
-// {
-//     ArgumentNullException.ThrowIfNull(request.QueryParams);
-//
-//     if (request.QueryParams.Any(param => param.Tag is null))
-//     {
-//         throw new ArgumentNullException(nameof(request), "No tag in a tag query can be null");
-//     }
-//
-//     // todo: add validation - tag cannot be null
-//     var querySegments = request.QueryParams
-//         .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param.State), Tag = _tagMapper.MapFromDto(param.Tag) })
-//         .ToArray();
-//
-//     var query = new GetItemsByTagsQuery { QuerySegments = querySegments };
-//
-//     var response = await _mediator.Send(query, context.CancellationToken);
-//
-//     return new GetItemsByTagsReply { TaggedItems = { response.Select(MapItem) } };
-// }
+    public override async Task<GetItemsByTagsReply> GetItemsByTags(GetItemsByTagsRequest request, ServerCallContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request.QueryParams);
+
+        if (request.QueryParams.Any(param => param.Tag is null))
+        {
+            throw new ArgumentNullException(nameof(request), "No tag in a tag query can be null");
+        }
+
+        // todo: add validation - tag cannot be null
+        var querySegments = request.QueryParams
+            .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param.State), Tag = param.Tag.MapFromDto() })
+            .ToArray();
+
+        var query = new GetItemsByTagsQuery { QuerySegments = querySegments };
+
+        var response = await _mediator.Send(query, context.CancellationToken);
+
+        return new GetItemsByTagsReply { TaggedItems = { response.Select(MapTaggableItem) } };
+    }
+
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request.Text);
@@ -212,6 +214,25 @@ public class TagService : BackendNew.TagService.TagServiceBase
         }
     }
 
+
+    private static QuerySegmentState MapQuerySegmentStateFromDto(TagQueryParam.Types.QuerySegmentState state)
+        => state switch
+        {
+            TagQueryParam.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
+            TagQueryParam.Types.QuerySegmentState.Include => QuerySegmentState.Include,
+            TagQueryParam.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
+            _ => throw new UnreachableException()
+        };
+
+    private static TagQueryParam.Types.QuerySegmentState MapQuerySegmentStateToDto(QuerySegmentState querySegment)
+        => querySegment switch
+        {
+            QuerySegmentState.Exclude => TagQueryParam.Types.QuerySegmentState.Exclude,
+            QuerySegmentState.Include => TagQueryParam.Types.QuerySegmentState.Include,
+            QuerySegmentState.MustBePresent => TagQueryParam.Types.QuerySegmentState.MustBePresent,
+            _ => throw new UnreachableException()
+        };
+
     private Item Map(Entities.TaggableItem item)
     {
         var (type, payload) = _taggableItemMapper.MapFromObj(item);
@@ -221,9 +242,9 @@ public class TagService : BackendNew.TagService.TagServiceBase
     private TaggableItem MapTaggableItem(Entities.TaggableItem item) => new() { Item = Map(item), Tags = { item.Tags.ToDtos() } };
 }
 
-public static class TagBaseExtensions
+public static class TagExtensions
 {
-    public static Tag ToDto(this TagBase tag) => new() { Id = tag.Id, Text = tag.Text };
+    public static TagBase MapFromDto(this Tag tag) => new() { Id = tag.Id, Text = tag.Text };
 
-    public static IEnumerable<Tag> ToDtos(this IEnumerable<TagBase> tags) => tags.Select(t => t.ToDto());
+    public static IEnumerable<TagBase> MapFromDtos(this IEnumerable<Tag> tags) => tags.Select(t => t.MapFromDto());
 }

@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using Serilog.Core;
 using Serilog.Events;
+using TagTool.BackendNew.Common;
 
 namespace TagTool.BackendNew.Entities;
 
@@ -12,6 +14,7 @@ public class TagBase : ITag
 
     public required string Text { get; init; }
 
+    [JsonIgnore]
     public ICollection<TaggableItem> TaggedItems { set; get; } = new List<TaggableItem>();
 
     public override string ToString() => Text;
@@ -52,4 +55,11 @@ public sealed class TagBaseDeconstructPolicy : IDestructuringPolicy
         result = propertyValueFactory.CreatePropertyValue(projected, true);
         return true;
     }
+}
+
+public static class TagBaseExtensions
+{
+    public static Tag ToDto(this TagBase tag) => new() { Id = tag.Id, Text = tag.Text };
+
+    public static IEnumerable<Tag> ToDtos(this IEnumerable<TagBase> tags) => tags.Select(t => t.ToDto());
 }

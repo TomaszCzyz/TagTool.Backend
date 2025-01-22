@@ -18,7 +18,7 @@ public class TaggableItemMapper
     {
         return item switch
         {
-            TaggableFile.TaggableFile => (Type: "file", Payload: JsonSerializer.Serialize(item, JsonSerializerOptions.Web)),
+            TaggableFile.TaggableFile file => (Type: "file", Payload: JsonSerializer.Serialize(file, JsonSerializerOptions.Web)),
             _ => throw new ArgumentOutOfRangeException(nameof(item), item, null)
         };
     }
