@@ -114,6 +114,16 @@ public class TagService : BackendNew.TagService.TagServiceBase
             error => new UntagItemReply { ErrorMessage = error.Value });
     }
 
+    public override Task<GetOperationsReply> GetOperations(GetOperationsRequest request, ServerCallContext context)
+    {
+        var result = _operationManger.GetOperationNames();
+
+        var operations = result.Select(tuple => new GetOperationsReply.Types.ItemTypeOperations { TypeName = tuple.TypeName, Name = { tuple.OperationNames } });
+        var reply = new GetOperationsReply { Operations = { operations } };
+
+        return Task.FromResult(reply);
+    }
+
     public override async Task<InvokeOperationReply> InvokeOperation(InvokeOperationRequest request, ServerCallContext context)
     {
         var result = await _operationManger.InvokeOperation(request.ItemId, request.OperationName, request.OperationArgs);

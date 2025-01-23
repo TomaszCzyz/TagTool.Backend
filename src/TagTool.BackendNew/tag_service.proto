@@ -29,6 +29,9 @@ service TagService {
   rpc UntagItem(UntagItemRequest) returns (UntagItemReply);
 
   // Invokes operation specific to the taggable item.
+  rpc GetOperations(GetOperationsRequest) returns (GetOperationsReply);
+
+  // Invokes operation specific to the taggable item.
   rpc InvokeOperation(InvokeOperationRequest) returns (InvokeOperationReply);
 
   // Gets an info about an item if one exists.

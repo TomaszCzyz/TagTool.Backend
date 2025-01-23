@@ -5,14 +5,19 @@ using JetBrains.Annotations;
 using MediatR;
 using OneOf;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.Services;
+
+public record struct OperationsInfo(string TypeName, string[] OperationNames);
 
 public interface IOperationManger
 {
     Task<IOneOf> InvokeOperation(string itemId, string operationName, string operationPayload);
 
-    string[] GetOperationNames(Type taggableItemType);
+    string[] GetOperationNames<T>() where T : TaggableItem;
+
+    OperationsInfo[] GetOperationNames();
 }
 
 [UsedImplicitly]
@@ -31,7 +36,6 @@ public sealed class OperationManger : IOperationManger
             .SelectMany(marker => marker.Assembly.ExportedTypes
                 .Where(x => typeof(ITaggableItemOperationBase).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))
             .ToArray();
-
 
         foreach (var type in types)
         {
@@ -74,10 +78,30 @@ public sealed class OperationManger : IOperationManger
         return (await mediator.Send(payload) as IOneOf)!;
     }
 
-    public string[] GetOperationNames(Type taggableItemType)
+    public string[] GetOperationNames<T>() where T : TaggableItem
     {
-        return _taggableItemOperationNames[taggableItemType].ToArray();
+        return _taggableItemOperationNames[typeof(T)].ToArray();
     }
+
+    public OperationsInfo[] GetOperationNames()
+        => _taggableItemOperationNames
+            .Select((pair =>
+            {
+                var (type, operationNames) = pair;
+                if (!type.IsAssignableTo(typeof(ITaggableItemType)))
+                {
+                    throw new InvalidOperationException($"Type {type.Name} does not implement {nameof(ITaggableItemType)}");
+                }
+
+                var typeNameProperty = type.GetProperty(nameof(ITaggableItemType.TypeName), BindingFlags.Static | BindingFlags.Public);
+                if (typeNameProperty?.GetValue(null) is string typeName)
+                {
+                    return new OperationsInfo(typeName, operationNames.ToArray());
+                }
+
+                throw new InvalidOperationException($"Type {type.Name} does not have a valid static {nameof(ITaggableItemType.TypeName)} property.");
+            }))
+            .ToArray();
 
     private Type GetPayloadType(string operationName)
     {
@@ -86,6 +110,6 @@ public sealed class OperationManger : IOperationManger
             return type;
         }
 
-        throw new InvalidOperationException($"Operation '{operationName}' was not regirtered");
+        throw new InvalidOperationException($"Operation '{operationName}' was not registered");
     }
 }

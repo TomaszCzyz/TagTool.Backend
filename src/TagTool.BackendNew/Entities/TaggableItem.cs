@@ -10,6 +10,11 @@ namespace TagTool.BackendNew.Entities;
 //     ICollection<TagBase> Tags { get; }
 // }
 
+public interface ITaggableItemType
+{
+    static abstract string TypeName { get; }
+}
+
 public abstract class TaggableItem // : ITaggableItem
 {
     public Guid Id { get; set; }

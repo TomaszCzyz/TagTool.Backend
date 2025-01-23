@@ -11,5 +11,9 @@ public class TaggableFileConfiguration : IEntityTypeConfiguration<TaggableFile>
     {
         builder
             .HasBaseType<TaggableItem>();
+
+        builder
+            .Property(o => o.Path)
+            .HasMaxLength(1000);
     }
 }
