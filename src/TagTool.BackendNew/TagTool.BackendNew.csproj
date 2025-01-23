@@ -34,9 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="tag_service.proto" GrpcService="Server" />
-    <Protobuf Include="tag_service_types.proto" GrpcServices="None" />
-    <Protobuf Include="tag_service_types_common.proto" GrpcServices="None" />
+    <Protobuf Include="Protos/tag_service.proto" GrpcService="Server" />
+    <Protobuf Include="Protos/tag_service_types.proto" GrpcServices="None" />
+    <Protobuf Include="Protos/job_service.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos/job_service_types.proto" GrpcServices="None" />
+    <Protobuf Include="Protos/common_types.proto" GrpcServices="None" />
   </ItemGroup>
 
 </Project>
