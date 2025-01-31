@@ -7,6 +7,7 @@ using TagTool.BackendNew.Common;
 
 namespace TagTool.BackendNew.Entities;
 
+// TODO: add _AddedBy_ property
 [DebuggerDisplay("{Text}")]
 public class TagBase : ITag
 {

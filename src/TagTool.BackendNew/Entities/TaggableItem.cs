@@ -20,5 +20,5 @@ public abstract class TaggableItem // : ITaggableItem
     public Guid Id { get; set; }
 
     [JsonIgnore]
-    public ICollection<TagBase> Tags { get; set; } = new List<TagBase>();
+    public ISet<TagBase> Tags { get; set; } = new HashSet<TagBase>();
 }
