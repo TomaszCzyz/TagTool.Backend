@@ -1,6 +1,7 @@
 #pragma warning disable CA1848
 using System.Globalization;
 using System.Text.Json;
+using Coravel;
 using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -86,6 +87,8 @@ builder.Services.AddScoped<TaggableFileManager>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 // builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
 // builder.Services.AddSingleton<IActionFactory, ActionFactory>();
+builder.Services.AddScheduler();
+builder.Services.AddEvents();
 builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
 builder.Services.AddMediatR(
     cfg =>

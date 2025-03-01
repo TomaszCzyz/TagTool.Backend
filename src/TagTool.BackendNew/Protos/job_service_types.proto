@@ -7,6 +7,20 @@ option csharp_namespace = "TagTool.BackendNew";
 
 package TagToolBackendNew;
 
+message GetJobsDescriptionsRequest {
+}
+
+message GetJobsDescriptionsReply {
+  // triggers
+  // fields
+}
+
+message GetJobsRequest {
+}
+
+message GetJobsReply {
+}
+
 message CreateJobRequest {
 }
 

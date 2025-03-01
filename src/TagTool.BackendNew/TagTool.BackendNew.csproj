@@ -5,9 +5,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>CA1848;CA1000</NoWarn>
+    <UserSecretsId>9f1d2481-5f2a-47f4-bfab-f7bf59bbdfe3</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Coravel" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Include="AhoCorasick" />
     <PackageReference Include="Grpc.AspNetCore" />

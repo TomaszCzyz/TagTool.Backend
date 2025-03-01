@@ -9,6 +9,12 @@ option csharp_namespace = "TagTool.BackendNew";
 package TagToolBackendNew;
 
 service JobService {
+  // Get a descriptions of all available jobs
+  rpc GetJobsDescriptions (GetJobsDescriptionsRequest) returns (GetJobsDescriptionsReply);
+
+  // Get all created jobs
+  rpc GetJobs (GetJobsRequest) returns (GetJobsReply);
+
   // Creates a new job.
   rpc CreateJob (CreateJobRequest) returns (CreateJobReply);
 }

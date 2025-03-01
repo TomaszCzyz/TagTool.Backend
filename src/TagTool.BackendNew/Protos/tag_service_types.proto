@@ -9,7 +9,8 @@ option csharp_namespace = "TagTool.BackendNew";
 package TagToolBackendNew;
 
 // The request to create a new tag.
-message CreateTagRequest {
+message
+  CreateTagRequest {
   // The tag.
   string text = 2;
 }
