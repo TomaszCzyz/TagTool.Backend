@@ -47,9 +47,26 @@ Content-Type: application/json
 
 {
   "itemType": "file",
-  "itemArgs": "{\"path\":\"/home/tczyz/Documents/TagTool/TagToolPlayground//home/tczyz/Documents/TagTool/TagToolPlayground//home/tczyz/Documents/TagTool/TagToolPlayground/polisa-wypowiedzenie.jpeg\"}"
+  "itemArgs": "{\"path\":\"/home/tczyz/Documents/TagTool/TagToolPlayground/polisa-wypowiedzenie.jpeg\"}"
 }
 
 ###
 GRPC localhost:5280/TagToolBackendNew.TagService/GetOperations
 Content-Type: application/json
+
+###
+GRPC localhost:5280/TagToolBackendNew.JobService/CreateJob
+Content-Type: application/json
+
+{
+  "type": "MoveToCommonStorage",
+  "trigger": {},
+  "Args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\"}"
+}
+
+###
+GRPC localhost:5280/TagToolBackendNew.JobService/BroadcastEvent
+Content-Type: application/json
+
+{
+}

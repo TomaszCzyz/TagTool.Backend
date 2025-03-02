@@ -7,11 +7,11 @@ public interface IQueuingHandlerBase
     void Queue(object payload);
 }
 
-// TODO: can I simplify class definition?
-public abstract class QueuingHandler<TInvocable, TPayload> : IQueuingHandlerBase
+// TODO: can I simplify definition?
+public interface IQueuingHandler<TInvocable, in TPayload> : IQueuingHandlerBase
     where TInvocable : IInvocableWithPayload<TPayload>
 {
-    public void Queue(object payload) => Queue((TPayload)payload);
+    void IQueuingHandlerBase.Queue(object payload) => Queue((TPayload)payload);
 
-    protected abstract void Queue(TPayload payload);
+    void Queue(TPayload payload);
 }

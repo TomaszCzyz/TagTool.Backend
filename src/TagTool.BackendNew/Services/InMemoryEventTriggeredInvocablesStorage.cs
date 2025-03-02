@@ -22,12 +22,21 @@ public class InMemoryEventTriggeredInvocablesStorage : IEventTriggeredInvocables
 
         var invocableType = invocableDescriptor.InvocableType;
 
-        if (!invocableType.IsAssignableTo(typeof(IEventTriggeredInvocable<PayloadWithChangedItems>)))
+        var @interface = invocableType
+            .GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventTriggeredInvocable<>));
+
+        if (@interface is null)
         {
-            throw new ArgumentException("Incorrect invocable type");
+            throw new ArgumentException($"Event triggered by event must implement {typeof(IEventTriggeredInvocable<>).Name}");
         }
 
-        var payloadType = invocableType.GetGenericArguments()[0];
+        var payloadType = @interface.GetGenericArguments()[0];
+
+        if (!payloadType.IsAssignableTo(typeof(PayloadWithChangedItems)))
+        {
+            throw new ArgumentException($"Payload of event triggered by event must be {nameof(PayloadWithChangedItems)}");
+        }
 
         if (JsonSerializer.Deserialize(invocableDescriptor.Args, payloadType) is not PayloadWithChangedItems payload)
         {

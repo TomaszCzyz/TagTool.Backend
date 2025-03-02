@@ -12,12 +12,16 @@ using Serilog.Exceptions;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Compact;
 using TagTool.BackendNew;
+using TagTool.BackendNew.Broadcasting;
+using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.TaggableFile;
+using JobService = TagTool.BackendNew.Services.Grpc.JobService;
 using TagService = TagTool.BackendNew.Services.Grpc.TagService;
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
@@ -81,13 +85,18 @@ builder.Services.AddSingleton<ITaggableItemManager<TaggableItem>, TaggableItemMa
 builder.Services.AddSingleton<TaggableItemMapper>();
 
 builder.Services.AddScoped<TaggableFileManager>();
+builder.Services.AddScoped<InvocablesManager>();
+builder.Services.AddSingleton<IEventTriggeredInvocablesStorage, InMemoryEventTriggeredInvocablesStorage>();
+builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
-// builder.Services.AddSingleton<ITagMapper, TagMapper>();
+builder.Services.AddScoped<MoveToCommonStorage>();
+builder.Services.AddSingleton<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
+
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
 // builder.Services.AddSingleton<ITagNameProvider, TagNameProvider>();
-// builder.Services.AddSingleton<IActionFactory, ActionFactory>();
 builder.Services.AddScheduler();
+builder.Services.AddQueue();
 builder.Services.AddEvents();
 builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
 builder.Services.AddMediatR(
@@ -112,6 +121,12 @@ var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
 app.MapGrpcService<TagService>();
+app.MapGrpcService<JobService>();
+
+var eventRegistration = app.Services.ConfigureEvents();
+eventRegistration
+    .Register<ItemTagsChangedEvent>()
+    .Subscribe<ItemTagsChangedEventListener>();
 
 if (app.Environment.IsDevelopment())
 {

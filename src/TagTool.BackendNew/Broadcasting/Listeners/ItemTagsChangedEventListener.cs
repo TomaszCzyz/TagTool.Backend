@@ -1,23 +1,20 @@
 using Coravel.Events.Interfaces;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.DbContexts;
 
 namespace TagTool.BackendNew.Broadcasting.Listeners;
 
 public class ItemTagsChangedEventListener : IListener<ItemTagsChangedEvent>
 {
     private readonly ILogger<ItemTagsChangedEventListener> _logger;
-    private readonly TagToolDbContext _dbContext;
     private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage;
     private readonly IServiceProvider _serviceProvider;
 
     public ItemTagsChangedEventListener(
         ILogger<ItemTagsChangedEventListener> logger,
-        TagToolDbContext dbContext,
-        IEventTriggeredInvocablesStorage eventTriggeredInvocablesStorage, IServiceProvider serviceProvider)
+        IEventTriggeredInvocablesStorage eventTriggeredInvocablesStorage,
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _dbContext = dbContext;
         _eventTriggeredInvocablesStorage = eventTriggeredInvocablesStorage;
         _serviceProvider = serviceProvider;
     }
@@ -31,8 +28,7 @@ public class ItemTagsChangedEventListener : IListener<ItemTagsChangedEvent>
 
         foreach (var (invocableType, payloadType, payload) in payloads)
         {
-            // payload.
-            var queuingHandlerType = Type.MakeGenericSignatureType(typeof(QueuingHandler<,>), invocableType, payloadType);
+            var queuingHandlerType = typeof(IQueuingHandler<,>).MakeGenericType(invocableType, payloadType);
             var queuingHandler = _serviceProvider.GetRequiredService(queuingHandlerType);
 
             if (queuingHandler is not IQueuingHandlerBase handler)

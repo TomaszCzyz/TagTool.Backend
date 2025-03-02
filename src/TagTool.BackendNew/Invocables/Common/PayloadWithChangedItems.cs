@@ -4,5 +4,5 @@ namespace TagTool.BackendNew.Invocables.Common;
 
 public abstract class PayloadWithChangedItems
 {
-    public IEnumerable<ItemTagsChangedEvent> TaggableItems { get; set; }
+    public IEnumerable<ItemTagsChangedEvent> TaggableItems { get; set; } = [];
 }
