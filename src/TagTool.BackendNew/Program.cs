@@ -49,7 +49,7 @@ builder.Host.UseSerilog((_, configuration) =>
             $"{Constants.BasePath}/Logs/logs.json",
             rollingInterval: RollingInterval.Day)
         .WriteTo.Console(
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}]{NewLine} {Message:lj}{NewLine}{Exception}",
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Properties:j} <{SourceContext}>{NewLine}{Exception}",
             formatProvider: CultureInfo.CurrentCulture));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
@@ -87,8 +87,13 @@ builder.Services.AddSingleton<TaggableItemMapper>();
 builder.Services.AddScoped<TaggableFileManager>();
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddSingleton<IEventTriggeredInvocablesStorage, InMemoryEventTriggeredInvocablesStorage>();
+builder.Services.AddSingleton<ICronTriggeredInvocablesStorage, InMemoryCronTriggeredInvocablesStorage>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
+// cron triggered jobs
+builder.Services.AddScoped<CronMoveToCommonStorage>();
+
+// event triggered jobs
 builder.Services.AddScoped<MoveToCommonStorage>();
 builder.Services.AddSingleton<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
 
@@ -127,6 +132,10 @@ var eventRegistration = app.Services.ConfigureEvents();
 eventRegistration
     .Register<ItemTagsChangedEvent>()
     .Subscribe<ItemTagsChangedEventListener>();
+
+app.Services
+    .UseScheduler(_ => { })
+    .OnError(exception => Log.Error(exception, "Error in scheduler"));
 
 if (app.Environment.IsDevelopment())
 {

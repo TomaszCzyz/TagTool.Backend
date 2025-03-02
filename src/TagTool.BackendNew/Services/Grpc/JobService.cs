@@ -1,4 +1,5 @@
-﻿using Coravel.Queuing.Interfaces;
+﻿using System.Diagnostics;
+using Coravel.Queuing.Interfaces;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using TagTool.BackendNew.Broadcasting;
@@ -21,14 +22,25 @@ public class JobService : BackendNew.JobService.JobServiceBase
 
     public override async Task<CreateJobReply> CreateJob(CreateJobRequest request, ServerCallContext context)
     {
+        var invocableType = request.Type switch
+        {
+            "MoveToCommonStorage" => typeof(MoveToCommonStorage),
+            "CronMoveToCommonStorage" => typeof(CronMoveToCommonStorage),
+            _ => throw new ArgumentOutOfRangeException(nameof(request), request.Type, null)
+        };
+
+        ITrigger trigger = request.TriggerCase switch
+        {
+            CreateJobRequest.TriggerOneofCase.None => throw new ArgumentException("Trigger is required"),
+            CreateJobRequest.TriggerOneofCase.EventTrigger => ItemTaggedTrigger.Instance,
+            CreateJobRequest.TriggerOneofCase.CronTrigger => new CronTrigger { CronExpression = request.CronTrigger.CronExpression },
+            _ => throw new UnreachableException()
+        };
+
         var invocableDescriptor = new InvocableDescriptor
         {
-            InvocableType = request.Type switch
-            {
-                "MoveToCommonStorage" => typeof(MoveToCommonStorage),
-                _ => throw new ArgumentOutOfRangeException(nameof(request), request.Type, null)
-            },
-            Trigger = ItemTaggedTrigger.Instance,
+            InvocableType = invocableType,
+            Trigger = trigger,
             Args = request.Args
         };
 

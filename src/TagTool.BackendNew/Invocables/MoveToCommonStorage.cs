@@ -1,10 +1,12 @@
-using Coravel.Invocable;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Invocables.Common;
 
 namespace TagTool.BackendNew.Invocables;
 
-public interface IEventTriggeredInvocable<TPayload> : IInvocable, IInvocableWithPayload<TPayload>
-    where TPayload : PayloadWithChangedItems;
+public class MoveToCommonStoragePayload : PayloadWithChangedItems
+{
+    public required string CommonStoragePath { get; set; }
+}
 
 public class MoveToCommonStorage : IEventTriggeredInvocable<MoveToCommonStoragePayload>
 {

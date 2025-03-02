@@ -24,9 +24,16 @@ message GetJobsReply {
 message CreateJobRequest {
   string type = 1;
   string Args = 2;
-  ItemTaggedTrigger trigger = 3;
+  oneof trigger {
+    EventTrigger event_trigger = 3;
+    CronTrigger cron_trigger = 4;
+  }
 
-  message ItemTaggedTrigger {
+  message EventTrigger {
+  }
+
+  message CronTrigger {
+    string cron_expression = 1;
   }
 }
 

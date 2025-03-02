@@ -24,7 +24,7 @@ public class ItemTagsChangedEventListener : IListener<ItemTagsChangedEvent>
         _logger.LogInformation("Tags of Item {ItemId} has changed... executing Jobs", broadcasted.ItemId);
         _logger.LogDebug("Tags changed: {@Notification}", broadcasted.TagChanges);
 
-        var payloads = await _eventTriggeredInvocablesStorage.GetPayloads(ItemTaggedTrigger.Instance);
+        var payloads = await _eventTriggeredInvocablesStorage.GetPayloads();
 
         foreach (var (invocableType, payloadType, payload) in payloads)
         {
