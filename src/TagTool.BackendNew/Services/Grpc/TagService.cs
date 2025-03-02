@@ -3,16 +3,17 @@ using Grpc.Core;
 using MediatR;
 using OneOf.Types;
 using TagTool.BackendNew.Commands;
-using TagTool.BackendNew.Common;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Queries;
-using Error = TagTool.BackendNew.Common.Error;
-using TaggableItem = TagTool.BackendNew.Common.TaggableItem;
+using TagTool.BackendNew.Services.Grpc.Dtos;
+using DeleteTagRequest = TagTool.BackendNew.Services.Grpc.Dtos.DeleteTagRequest;
+using Error = TagTool.BackendNew.Services.Grpc.Dtos.Error;
+using TaggableItem = TagTool.BackendNew.Services.Grpc.Dtos.TaggableItem;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
-public class TagService : BackendNew.TagService.TagServiceBase
+public class TagService : TagsService.TagsServiceBase
 {
     private readonly ILogger<TagService> _logger;
     private readonly IMediator _mediator;

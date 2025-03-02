@@ -3,27 +3,27 @@ syntax = "proto3";
 import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
 
-option csharp_namespace = "TagTool.BackendNew";
+option csharp_namespace = "TagTool.BackendNew.Services.Grpc.Dtos";
 
 package TagToolBackendNew;
 
-message GetJobsDescriptionsRequest {
+message GetInvocablesDescriptionsRequest {
 }
 
-message GetJobsDescriptionsReply {
+message GetInvocablesDescriptionsReply {
   // triggers
   // fields
 }
 
-message GetJobsRequest {
+message GetInvocablesRequest {
 }
 
-message GetJobsReply {
+message GetInvocablesReply {
 }
 
-message CreateJobRequest {
+message CreateInvocableRequest {
   string type = 1;
-  string Args = 2;
+  string args = 2;
   oneof trigger {
     EventTrigger event_trigger = 3;
     CronTrigger cron_trigger = 4;
@@ -37,6 +37,6 @@ message CreateJobRequest {
   }
 }
 
-message CreateJobReply{
+message CreateInvocableReply{
 }
 

@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
 
-option csharp_namespace = "TagTool.BackendNew.Common";
+option csharp_namespace = "TagTool.BackendNew.Services.Grpc.Dtos";
 
 package TagToolBackendNew;
 

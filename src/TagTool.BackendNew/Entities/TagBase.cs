@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Serilog.Core;
 using Serilog.Events;
-using TagTool.BackendNew.Common;
+using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew.Entities;
 

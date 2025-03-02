@@ -2,13 +2,13 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
-import "Protos/tag_service_types.proto";
+import "Protos/tags_service_types.proto";
 
-option csharp_namespace = "TagTool.BackendNew";
+option csharp_namespace = "TagTool.BackendNew.Services.Grpc";
 
 package TagToolBackendNew;
 
-service TagService {
+service TagsService {
   // Creates a new Tag. If tag cannot be created returns error message.
   rpc CreateTag (CreateTagRequest) returns (CreateTagReply);
 

@@ -6,10 +6,11 @@ using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Notifications;
+using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
-public class JobService : BackendNew.JobService.JobServiceBase
+public class JobService : InvocablesService.InvocablesServiceBase
 {
     private readonly InvocablesManager _invocablesManager;
     private readonly IQueue _queue;
@@ -20,7 +21,7 @@ public class JobService : BackendNew.JobService.JobServiceBase
         _queue = queue;
     }
 
-    public override async Task<CreateJobReply> CreateJob(CreateJobRequest request, ServerCallContext context)
+    public override async Task<CreateInvocableReply> CreateInvocable(CreateInvocableRequest request, ServerCallContext context)
     {
         var invocableType = request.Type switch
         {
@@ -31,9 +32,9 @@ public class JobService : BackendNew.JobService.JobServiceBase
 
         ITrigger trigger = request.TriggerCase switch
         {
-            CreateJobRequest.TriggerOneofCase.None => throw new ArgumentException("Trigger is required"),
-            CreateJobRequest.TriggerOneofCase.EventTrigger => ItemTaggedTrigger.Instance,
-            CreateJobRequest.TriggerOneofCase.CronTrigger => new CronTrigger { CronExpression = request.CronTrigger.CronExpression },
+            CreateInvocableRequest.TriggerOneofCase.None => throw new ArgumentException("Trigger is required"),
+            CreateInvocableRequest.TriggerOneofCase.EventTrigger => ItemTaggedTrigger.Instance,
+            CreateInvocableRequest.TriggerOneofCase.CronTrigger => new CronTrigger { CronExpression = request.CronTrigger.CronExpression },
             _ => throw new UnreachableException()
         };
 
@@ -47,7 +48,7 @@ public class JobService : BackendNew.JobService.JobServiceBase
 
         await _invocablesManager.AddAndActivateJob(invocableDescriptor);
 
-        return new CreateJobReply();
+        return new CreateInvocableReply();
     }
 
     public override Task<Empty> BroadcastEvent(Empty request, ServerCallContext context)

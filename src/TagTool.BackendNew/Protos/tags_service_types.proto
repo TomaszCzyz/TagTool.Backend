@@ -4,7 +4,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
 import "Protos/common_types.proto";
 
-option csharp_namespace = "TagTool.BackendNew";
+option csharp_namespace = "TagTool.BackendNew.Services.Grpc.Dtos";
 
 package TagToolBackendNew;
 
