@@ -2,21 +2,21 @@
 
 namespace TagTool.BackendNew.Models;
 
-public enum QuerySegmentState
+public enum QueryPartState
 {
     Exclude = 0,
     Include = 1,
     MustBePresent = 2
 }
 
-public class TagQuerySegment
+public class TagQueryPart
 {
-    public QuerySegmentState State { get; init; } = QuerySegmentState.Include;
+    public QueryPartState State { get; init; } = QueryPartState.Include;
 
     public required TagBase Tag { get; init; }
 }
 
 public class TagQuery
 {
-    public required TagQuerySegment[] QuerySegments { get; init; }
+    public required TagQueryPart[] QuerySegments { get; init; }
 }

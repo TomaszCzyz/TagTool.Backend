@@ -20,9 +20,8 @@ using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
+using TagTool.BackendNew.Services.Grpc;
 using TagTool.BackendNew.TaggableFile;
-using JobService = TagTool.BackendNew.Services.Grpc.JobService;
-using TagService = TagTool.BackendNew.Services.Grpc.TagService;
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
 var builder = WebApplication.CreateBuilder(args);
@@ -49,7 +48,7 @@ builder.Host.UseSerilog((_, configuration) =>
             $"{Constants.BasePath}/Logs/logs.json",
             rollingInterval: RollingInterval.Day)
         .WriteTo.Console(
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Properties:j} <{SourceContext}>{NewLine}{Exception}",
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} <{SourceContext}>{NewLine}{Exception}",
             formatProvider: CultureInfo.CurrentCulture));
 
 builder.WebHost.ConfigureKestrel(ConfigureOptions);
@@ -125,8 +124,8 @@ if (builder.Environment.IsDevelopment())
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
-app.MapGrpcService<TagService>();
-app.MapGrpcService<JobService>();
+app.MapGrpcService<TagsGrpcService>();
+app.MapGrpcService<InvocablesGrpcService>();
 
 var eventRegistration = app.Services.ConfigureEvents();
 eventRegistration

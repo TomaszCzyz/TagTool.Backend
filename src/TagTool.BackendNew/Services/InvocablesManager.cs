@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Schema;
 using Coravel.Scheduling.Schedule.Cron;
 using Coravel.Scheduling.Schedule.Interfaces;
 using TagTool.BackendNew.Contracts;
@@ -6,11 +7,27 @@ using TagTool.BackendNew.Invocables.Common;
 
 namespace TagTool.BackendNew.Services;
 
+public enum TriggerType
+{
+    Event,
+    Cron,
+}
+
+public record InvocableDefinition(
+    string Id,
+    string GroupId,
+    string DisplayName,
+    string Description,
+    string PayloadSchema,
+    TriggerType TriggerType);
+
 public class InvocablesManager
 {
     private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage;
     private readonly ICronTriggeredInvocablesStorage _cronTriggeredInvocablesStorage;
     private readonly IScheduler _scheduler;
+
+    private readonly InvocableDefinition[] _invocableDefinitions;
 
     public InvocablesManager(
         IEventTriggeredInvocablesStorage eventTriggeredInvocablesStorage,
@@ -20,7 +37,62 @@ public class InvocablesManager
         _eventTriggeredInvocablesStorage = eventTriggeredInvocablesStorage;
         _cronTriggeredInvocablesStorage = cronTriggeredInvocablesStorage;
         _scheduler = scheduler;
+
+        _invocableDefinitions = GetEventTriggeredInvocables();
     }
+
+    private static bool ImplementsOpenGenericInterface(Type type, Type openGenericInterface)
+        => type
+            .GetInterfaces()
+            .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGenericInterface);
+
+    private static InvocableDefinition[] GetEventTriggeredInvocables()
+    {
+        var invocableDescriptions = typeof(Program).Assembly.ExportedTypes
+            .Where(x => typeof(IInvocableDescriptionBase).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false })
+            .Select(type => (
+                Type: type
+                    .GetInterfaces()
+                    .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IInvocableDescription<>))
+                    .GetGenericArguments()
+                    .First(),
+                Instance: (IInvocableDescriptionBase)Activator.CreateInstance(type)!))
+            .ToDictionary(tuple => tuple.Type, tuple => tuple.Instance);
+
+        var invocables = typeof(Program).Assembly.ExportedTypes
+            .Where(t => IsInvocable(t) && t is { IsInterface: false, IsAbstract: false })
+            .ToList();
+
+        var options = new JsonSerializerOptions(JsonSerializerOptions.Default) { RespectNullableAnnotations = true };
+        JsonSchemaExporterOptions exporterOptions = new() { TreatNullObliviousAsNonNullable = true, };
+
+        List<InvocableDefinition> invocableDefinitions = [];
+        foreach (var type in invocables)
+        {
+            var schema = options.GetJsonSchemaAsNode(type, exporterOptions);
+
+            if (!invocableDescriptions.TryGetValue(type, out var description))
+            {
+                throw new InvalidOperationException($"No {typeof(IInvocableDescription<>).Name} implemented for Invocable {type.Name}.");
+            }
+
+            var triggerType = ImplementsOpenGenericInterface(type, typeof(IEventTriggeredInvocable<>)) ? TriggerType.Event : TriggerType.Cron;
+
+            var invocableDescriptorDto = new InvocableDefinition(
+                description.Id,
+                description.GroupId,
+                description.DisplayName,
+                description.Description,
+                schema.ToJsonString(),
+                triggerType);
+
+            invocableDefinitions.Add(invocableDescriptorDto);
+        }
+
+        return invocableDefinitions.ToArray();
+    }
+
+    public InvocableDefinition[] GetInvocableDefinitions() => _invocableDefinitions;
 
     /// <summary>
     /// Add invocable to storage and active it based on trigger type
@@ -51,6 +123,10 @@ public class InvocablesManager
             }
         }
     }
+
+    private static bool IsInvocable(Type t)
+        => ImplementsOpenGenericInterface(t, typeof(IEventTriggeredInvocable<>))
+           || ImplementsOpenGenericInterface(t, typeof(ICronTriggeredInvocable<>));
 
     private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(InvocableDescriptor invocableDescriptor)
     {

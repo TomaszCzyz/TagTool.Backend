@@ -54,8 +54,12 @@ Content-Type: application/json
 GRPC localhost:5280/TagToolBackendNew.TagService/GetOperations
 Content-Type: application/json
 
+### Get Invocable definitions
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/GetInvocablesDescriptions
+Content-Type: application/json
+
 ### Create event-triggered job
-GRPC localhost:5280/TagToolBackendNew.JobService/CreateJob
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateJob
 Content-Type: application/json
 
 {
@@ -65,7 +69,7 @@ Content-Type: application/json
 }
 
 ### Create cron-triggered job
-GRPC localhost:5280/TagToolBackendNew.JobService/CreateJob
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateJob
 Content-Type: application/json
 
 {
@@ -77,7 +81,7 @@ Content-Type: application/json
 }
 
 ###
-GRPC localhost:5280/TagToolBackendNew.JobService/BroadcastEvent
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/BroadcastEvent
 Content-Type: application/json
 
 {

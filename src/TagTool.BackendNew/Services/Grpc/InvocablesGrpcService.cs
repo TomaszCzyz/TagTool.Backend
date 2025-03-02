@@ -10,15 +10,33 @@ using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
-public class JobService : InvocablesService.InvocablesServiceBase
+public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
 {
     private readonly InvocablesManager _invocablesManager;
     private readonly IQueue _queue;
 
-    public JobService(InvocablesManager invocablesManager, IQueue queue)
+    public InvocablesGrpcService(InvocablesManager invocablesManager, IQueue queue)
     {
         _invocablesManager = invocablesManager;
         _queue = queue;
+    }
+
+    public override Task<GetInvocablesDescriptionsReply> GetInvocablesDescriptions(GetInvocablesDescriptionsRequest request,
+        ServerCallContext context)
+    {
+        var replies = _invocablesManager
+            .GetInvocableDefinitions()
+            .Select(d => new GetInvocablesDescriptionsReply.Types.InvocableDefinition
+            {
+                Id = d.Id,
+                GroupId = d.GroupId,
+                DisplayName = d.DisplayName,
+                Description = d.Description,
+                PayloadSchema = d.PayloadSchema,
+                TriggerType = d.TriggerType.ToString(),
+            });
+
+        return Task.FromResult(new GetInvocablesDescriptionsReply { InvocableDefinitions = { replies } });
     }
 
     public override async Task<CreateInvocableReply> CreateInvocable(CreateInvocableRequest request, ServerCallContext context)

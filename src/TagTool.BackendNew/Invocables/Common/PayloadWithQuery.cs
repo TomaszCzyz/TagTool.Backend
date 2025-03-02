@@ -1,6 +1,10 @@
+using System.Text.Json.Serialization;
+using TagTool.BackendNew.Models;
+
 namespace TagTool.BackendNew.Invocables.Common;
 
 public abstract class PayloadWithQuery
 {
-    public required string Query { get; set; }
+    [JsonIgnore]
+    public TagQuery TagQuery { get; set; } = null!;
 }

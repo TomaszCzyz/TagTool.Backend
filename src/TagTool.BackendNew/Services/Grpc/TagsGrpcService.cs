@@ -13,14 +13,18 @@ using TaggableItem = TagTool.BackendNew.Services.Grpc.Dtos.TaggableItem;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
-public class TagService : TagsService.TagsServiceBase
+public class TagsGrpcService : TagsService.TagsServiceBase
 {
-    private readonly ILogger<TagService> _logger;
+    private readonly ILogger<TagsGrpcService> _logger;
     private readonly IMediator _mediator;
     private readonly IOperationManger _operationManger;
     private readonly TaggableItemMapper _taggableItemMapper;
 
-    public TagService(ILogger<TagService> logger, IMediator mediator, IOperationManger operationManger, TaggableItemMapper taggableItemMapper)
+    public TagsGrpcService(
+        ILogger<TagsGrpcService> logger,
+        IMediator mediator,
+        IOperationManger operationManger,
+        TaggableItemMapper taggableItemMapper)
     {
         _logger = logger;
         _mediator = mediator;
@@ -119,7 +123,8 @@ public class TagService : TagsService.TagsServiceBase
     {
         var result = _operationManger.GetOperationNames();
 
-        var operations = result.Select(tuple => new GetOperationsReply.Types.ItemTypeOperations { TypeName = tuple.TypeName, Name = { tuple.OperationNames } });
+        var operations = result.Select(tuple
+            => new GetOperationsReply.Types.ItemTypeOperations { TypeName = tuple.TypeName, Name = { tuple.OperationNames } });
         var reply = new GetOperationsReply { Operations = { operations } };
 
         return Task.FromResult(reply);
@@ -170,7 +175,7 @@ public class TagService : TagsService.TagsServiceBase
 
         // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
-            .Select(param => new TagQuerySegment { State = MapQuerySegmentStateFromDto(param.State), Tag = param.Tag.MapFromDto() })
+            .Select(param => new TagQueryPart { State = MapQuerySegmentStateFromDto(param.State), Tag = param.Tag.MapFromDto() })
             .ToArray();
 
         var query = new GetItemsByTagsQuery { QuerySegments = querySegments };
@@ -226,21 +231,21 @@ public class TagService : TagsService.TagsServiceBase
     }
 
 
-    private static QuerySegmentState MapQuerySegmentStateFromDto(TagQueryParam.Types.QuerySegmentState state)
+    private static QueryPartState MapQuerySegmentStateFromDto(TagQueryParam.Types.QuerySegmentState state)
         => state switch
         {
-            TagQueryParam.Types.QuerySegmentState.Exclude => QuerySegmentState.Exclude,
-            TagQueryParam.Types.QuerySegmentState.Include => QuerySegmentState.Include,
-            TagQueryParam.Types.QuerySegmentState.MustBePresent => QuerySegmentState.MustBePresent,
+            TagQueryParam.Types.QuerySegmentState.Exclude => QueryPartState.Exclude,
+            TagQueryParam.Types.QuerySegmentState.Include => QueryPartState.Include,
+            TagQueryParam.Types.QuerySegmentState.MustBePresent => QueryPartState.MustBePresent,
             _ => throw new UnreachableException()
         };
 
-    private static TagQueryParam.Types.QuerySegmentState MapQuerySegmentStateToDto(QuerySegmentState querySegment)
-        => querySegment switch
+    private static TagQueryParam.Types.QuerySegmentState MapQuerySegmentStateToDto(QueryPartState queryPart)
+        => queryPart switch
         {
-            QuerySegmentState.Exclude => TagQueryParam.Types.QuerySegmentState.Exclude,
-            QuerySegmentState.Include => TagQueryParam.Types.QuerySegmentState.Include,
-            QuerySegmentState.MustBePresent => TagQueryParam.Types.QuerySegmentState.MustBePresent,
+            QueryPartState.Exclude => TagQueryParam.Types.QuerySegmentState.Exclude,
+            QueryPartState.Include => TagQueryParam.Types.QuerySegmentState.Include,
+            QueryPartState.MustBePresent => TagQueryParam.Types.QuerySegmentState.MustBePresent,
             _ => throw new UnreachableException()
         };
 

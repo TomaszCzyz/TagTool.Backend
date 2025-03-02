@@ -11,8 +11,16 @@ message GetInvocablesDescriptionsRequest {
 }
 
 message GetInvocablesDescriptionsReply {
-  // triggers
-  // fields
+  repeated InvocableDefinition invocable_definitions = 1;
+
+  message InvocableDefinition {
+    string id = 1;
+    string group_id = 2;
+    string display_name = 3;
+    string description = 4;
+    string payload_schema = 5;
+    string trigger_type = 6;
+  }
 }
 
 message GetInvocablesRequest {
