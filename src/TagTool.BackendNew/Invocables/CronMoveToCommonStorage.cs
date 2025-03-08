@@ -1,11 +1,14 @@
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Invocables.Common;
+using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew.Invocables;
 
 public class CronMoveToCommonStoragePayload : PayloadWithQuery
 {
     public required string CommonStoragePath { get; set; }
+
+    public required Tag CommonStorageTag { get; set; }
 }
 
 public class CronMoveToCommonStorage : ICronTriggeredInvocable<CronMoveToCommonStoragePayload>

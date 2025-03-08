@@ -1,9 +1,14 @@
+using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using Coravel.Scheduling.Schedule.Cron;
 using Coravel.Scheduling.Schedule.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Invocables.Common;
+using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew.Services;
 
@@ -23,6 +28,7 @@ public record InvocableDefinition(
 
 public class InvocablesManager
 {
+    private readonly IServiceProvider _serviceProvider;
     private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage;
     private readonly ICronTriggeredInvocablesStorage _cronTriggeredInvocablesStorage;
     private readonly IScheduler _scheduler;
@@ -30,10 +36,12 @@ public class InvocablesManager
     private readonly InvocableDefinition[] _invocableDefinitions;
 
     public InvocablesManager(
+        IServiceProvider serviceProvider,
         IEventTriggeredInvocablesStorage eventTriggeredInvocablesStorage,
         ICronTriggeredInvocablesStorage cronTriggeredInvocablesStorage,
         IScheduler scheduler)
     {
+        _serviceProvider = serviceProvider;
         _eventTriggeredInvocablesStorage = eventTriggeredInvocablesStorage;
         _cronTriggeredInvocablesStorage = cronTriggeredInvocablesStorage;
         _scheduler = scheduler;
@@ -64,7 +72,25 @@ public class InvocablesManager
             .ToList();
 
         var options = new JsonSerializerOptions(JsonSerializerOptions.Default) { RespectNullableAnnotations = true };
-        JsonSchemaExporterOptions exporterOptions = new() { TreatNullObliviousAsNonNullable = true, };
+        JsonSchemaExporterOptions exporterOptions = new()
+        {
+            TreatNullObliviousAsNonNullable = true,
+            TransformSchemaNode = (context, node) =>
+            {
+                if (context.PropertyInfo?.PropertyType != typeof(Tag))
+                {
+                    return node;
+                }
+
+                var jObj = node as JsonObject;
+                Debug.Assert(jObj != null, nameof(jObj) + " != null");
+
+                jObj.Remove("properties");
+                jObj.SetAt(jObj.IndexOf("type"), "tag");
+
+                return node;
+            }
+        };
 
         List<InvocableDefinition> invocableDefinitions = [];
         foreach (var type in invocables)
@@ -158,6 +184,8 @@ public class InvocablesManager
             throw new ArgumentException("Incorrect Payload");
         }
 
+        ValidatePayload(payload, payloadType);
+
         return new EventTriggeredInvocableInfo
         {
             InvocableType = invocableType,
@@ -194,6 +222,8 @@ public class InvocablesManager
             throw new ArgumentException("Incorrect Payload");
         }
 
+        ValidatePayload(payload, payloadType);
+
         return new CronTriggeredInvocableInfo
         {
             InvocableType = invocableType,
@@ -201,5 +231,27 @@ public class InvocablesManager
             CronExpression = cronExpression,
             Args = payload
         };
+    }
+
+    private void ValidatePayload(object payload, Type payloadType)
+    {
+        var service = _serviceProvider.GetService(typeof(IValidator<>).MakeGenericType(payloadType));
+
+        if (service is not IValidator validator || !validator.CanValidateInstancesOfType(payload.GetType()))
+        {
+            return;
+        }
+
+        var validateMethod = typeof(IValidator<>)
+            .MakeGenericType(payloadType)
+            .GetMethod(nameof(IValidator.Validate), [payloadType]);
+
+        Debug.Assert(validateMethod != null, nameof(validateMethod) + " != null");
+
+        var result = (ValidationResult)validateMethod.Invoke(validator, [payload])!;
+        if (!result.IsValid)
+        {
+            throw new ArgumentException($"Validation of Payload failed, errors: {string.Join("\n", result.Errors)}.");
+        }
     }
 }

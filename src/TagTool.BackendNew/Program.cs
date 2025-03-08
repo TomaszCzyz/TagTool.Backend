@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Coravel;
+using FluentValidation;
 using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
@@ -103,6 +104,7 @@ builder.Services.AddScheduler();
 builder.Services.AddQueue();
 builder.Services.AddEvents();
 builder.Services.AddGrpc(options => options.EnableDetailedErrors = true);
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddMediatR(
     cfg =>
     {

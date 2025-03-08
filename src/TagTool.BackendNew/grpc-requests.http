@@ -59,7 +59,7 @@ GRPC localhost:5280/TagToolBackendNew.InvocablesService/GetInvocablesDescription
 Content-Type: application/json
 
 ### Create event-triggered job
-GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateJob
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateInvocable
 Content-Type: application/json
 
 {

@@ -63,7 +63,6 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
             Args = request.Args
         };
 
-
         await _invocablesManager.AddAndActivateJob(invocableDescriptor);
 
         return new CreateInvocableReply();
