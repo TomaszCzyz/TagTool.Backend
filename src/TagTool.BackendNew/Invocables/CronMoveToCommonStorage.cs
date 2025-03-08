@@ -6,7 +6,9 @@ namespace TagTool.BackendNew.Invocables;
 
 public class CronMoveToCommonStoragePayload : PayloadWithQuery
 {
-    public required string CommonStoragePath { get; set; }
+    public required string CommonStoragePathString { get; set; }
+
+    public required DirectoryInfo CommonStoragePath { get; set; }
 
     public required Tag CommonStorageTag { get; set; }
 }

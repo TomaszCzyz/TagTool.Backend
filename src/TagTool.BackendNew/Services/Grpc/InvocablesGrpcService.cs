@@ -4,7 +4,6 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Notifications;
 using TagTool.BackendNew.Services.Grpc.Dtos;
 
@@ -41,13 +40,6 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
 
     public override async Task<CreateInvocableReply> CreateInvocable(CreateInvocableRequest request, ServerCallContext context)
     {
-        var invocableType = request.Type switch
-        {
-            "MoveToCommonStorage" => typeof(MoveToCommonStorage),
-            "CronMoveToCommonStorage" => typeof(CronMoveToCommonStorage),
-            _ => throw new ArgumentOutOfRangeException(nameof(request), request.Type, null)
-        };
-
         ITrigger trigger = request.TriggerCase switch
         {
             CreateInvocableRequest.TriggerOneofCase.None => throw new ArgumentException("Trigger is required"),
@@ -58,7 +50,7 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
 
         var invocableDescriptor = new InvocableDescriptor
         {
-            InvocableType = invocableType,
+            InvocableId = request.InvocableId,
             Trigger = trigger,
             Args = request.Args
         };

@@ -63,9 +63,9 @@ GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateInvocable
 Content-Type: application/json
 
 {
-  "type": "MoveToCommonStorage",
+  "invocable_id": "418B5746",
   "event_trigger": {},
-  "Args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\"}"
+  "args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\"}"
 }
 
 ### Create cron-triggered job

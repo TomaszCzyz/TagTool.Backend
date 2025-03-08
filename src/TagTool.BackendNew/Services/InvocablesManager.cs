@@ -24,7 +24,8 @@ public record InvocableDefinition(
     string DisplayName,
     string Description,
     string PayloadSchema,
-    TriggerType TriggerType);
+    TriggerType TriggerType,
+    Type InvocableType);
 
 public class InvocablesManager
 {
@@ -46,7 +47,7 @@ public class InvocablesManager
         _cronTriggeredInvocablesStorage = cronTriggeredInvocablesStorage;
         _scheduler = scheduler;
 
-        _invocableDefinitions = GetEventTriggeredInvocables();
+        _invocableDefinitions = GenerateInvocableDefinitions();
     }
 
     private static bool ImplementsOpenGenericInterface(Type type, Type openGenericInterface)
@@ -54,7 +55,8 @@ public class InvocablesManager
             .GetInterfaces()
             .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGenericInterface);
 
-    private static InvocableDefinition[] GetEventTriggeredInvocables()
+    // TODO: cache this (this service is scoped)
+    private static InvocableDefinition[] GenerateInvocableDefinitions()
     {
         var invocableDescriptions = typeof(Program).Assembly.ExportedTypes
             .Where(x => typeof(IInvocableDescriptionBase).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false })
@@ -71,26 +73,8 @@ public class InvocablesManager
             .Where(t => IsInvocable(t) && t is { IsInterface: false, IsAbstract: false })
             .ToList();
 
-        var options = new JsonSerializerOptions(JsonSerializerOptions.Default) { RespectNullableAnnotations = true };
-        JsonSchemaExporterOptions exporterOptions = new()
-        {
-            TreatNullObliviousAsNonNullable = true,
-            TransformSchemaNode = (context, node) =>
-            {
-                if (context.PropertyInfo?.PropertyType != typeof(Tag))
-                {
-                    return node;
-                }
-
-                var jObj = node as JsonObject;
-                Debug.Assert(jObj != null, nameof(jObj) + " != null");
-
-                jObj.Remove("properties");
-                jObj.SetAt(jObj.IndexOf("type"), "tag");
-
-                return node;
-            }
-        };
+        var options = new JsonSerializerOptions(JsonSerializerOptions.Default) { RespectNullableAnnotations = true, };
+        JsonSchemaExporterOptions exporterOptions = new() { TreatNullObliviousAsNonNullable = true, TransformSchemaNode = TransformSchemaNode };
 
         List<InvocableDefinition> invocableDefinitions = [];
         foreach (var type in invocables)
@@ -110,7 +94,8 @@ public class InvocablesManager
                 description.DisplayName,
                 description.Description,
                 schema.ToJsonString(),
-                triggerType);
+                triggerType,
+                type);
 
             invocableDefinitions.Add(invocableDescriptorDto);
         }
@@ -126,19 +111,20 @@ public class InvocablesManager
     /// <param name="invocableDescriptor"></param>
     public async Task AddAndActivateJob(InvocableDescriptor invocableDescriptor)
     {
+        var invocableDefinition = _invocableDefinitions.Single(d => d.Id == invocableDescriptor.InvocableId);
+
         switch (invocableDescriptor.Trigger)
         {
-            case ItemTaggedTrigger:
+            case ItemTaggedTrigger trigger:
             {
-                var info = ValidateEventTriggeredInvocable(invocableDescriptor);
+                var info = ValidateEventTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
                 // the invocable is fetched from db when event occurs, so no need for extra "run" setup
                 await _eventTriggeredInvocablesStorage.Add(info);
                 break;
             }
             case CronTrigger trigger:
             {
-                var info = ValidateCronTriggeredInvocable(invocableDescriptor, trigger.CronExpression);
-                // the invocable is fetched from db when event occurs, so no need for extra "run" setup
+                var info = ValidateCronTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
                 await _cronTriggeredInvocablesStorage.Add(info);
                 _scheduler
                     .ScheduleInvocableType(info.InvocableType)
@@ -154,15 +140,11 @@ public class InvocablesManager
         => ImplementsOpenGenericInterface(t, typeof(IEventTriggeredInvocable<>))
            || ImplementsOpenGenericInterface(t, typeof(ICronTriggeredInvocable<>));
 
-    private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(InvocableDescriptor invocableDescriptor)
+    private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(
+        ItemTaggedTrigger _,
+        Type invocableType,
+        string jsonPayload)
     {
-        if (invocableDescriptor.Trigger is not ItemTaggedTrigger)
-        {
-            throw new ArgumentException("Incorrect trigger type");
-        }
-
-        var invocableType = invocableDescriptor.InvocableType;
-
         var @interface = invocableType
             .GetInterfaces()
             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventTriggeredInvocable<>));
@@ -179,7 +161,7 @@ public class InvocablesManager
             throw new ArgumentException($"Payload of event triggered by event must be {nameof(PayloadWithChangedItems)}");
         }
 
-        if (JsonSerializer.Deserialize(invocableDescriptor.Args, payloadType) is not PayloadWithChangedItems payload)
+        if (JsonSerializer.Deserialize(jsonPayload, payloadType) is not PayloadWithChangedItems payload)
         {
             throw new ArgumentException("Incorrect Payload");
         }
@@ -194,12 +176,13 @@ public class InvocablesManager
         };
     }
 
-    private CronTriggeredInvocableInfo ValidateCronTriggeredInvocable(InvocableDescriptor invocableDescriptor, string cronExpression)
+    private CronTriggeredInvocableInfo ValidateCronTriggeredInvocable(
+        CronTrigger trigger,
+        Type invocableType,
+        string jsonPayload)
     {
         // throws MalformedCronExpressionException for incorrect value
-        _ = new CronExpression(cronExpression);
-
-        var invocableType = invocableDescriptor.InvocableType;
+        _ = new CronExpression(trigger.CronExpression);
 
         var @interface = invocableType
             .GetInterfaces()
@@ -217,7 +200,7 @@ public class InvocablesManager
             throw new ArgumentException($"Payload of event triggered by event must be {nameof(PayloadWithQuery)}");
         }
 
-        if (JsonSerializer.Deserialize(invocableDescriptor.Args, payloadType) is not PayloadWithQuery payload)
+        if (JsonSerializer.Deserialize(jsonPayload, payloadType) is not PayloadWithQuery payload)
         {
             throw new ArgumentException("Incorrect Payload");
         }
@@ -228,7 +211,7 @@ public class InvocablesManager
         {
             InvocableType = invocableType,
             PayloadType = payloadType,
-            CronExpression = cronExpression,
+            CronExpression = trigger.CronExpression,
             Args = payload
         };
     }
@@ -253,5 +236,39 @@ public class InvocablesManager
         {
             throw new ArgumentException($"Validation of Payload failed, errors: {string.Join("\n", result.Errors)}.");
         }
+    }
+
+    private static JsonNode TransformSchemaNode(JsonSchemaExporterContext context, JsonNode node)
+    {
+        // We are at Path properties.Payload.properties.<PayloadProperties>
+        // This is needed, because we want to describe only "root" properties.
+        if (context.Path.Length != 4)
+        {
+            return node;
+        }
+
+        if (context.PropertyInfo?.PropertyType == typeof(Tag))
+        {
+            var jObj = node as JsonObject;
+            Debug.Assert(jObj != null, nameof(jObj) + " != null");
+
+            jObj.Remove("properties");
+            jObj.SetAt(jObj.IndexOf("type"), "tag");
+
+            return node;
+        }
+
+        if (context.PropertyInfo?.PropertyType == typeof(DirectoryInfo))
+        {
+            var jObj = node as JsonObject;
+            Debug.Assert(jObj != null, nameof(jObj) + " != null");
+
+            jObj.Remove("properties");
+            jObj.SetAt(jObj.IndexOf("type"), "directoryPath");
+
+            return node;
+        }
+
+        return node;
     }
 }

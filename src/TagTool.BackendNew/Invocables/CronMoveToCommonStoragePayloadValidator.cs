@@ -9,7 +9,7 @@ public class CronMoveToCommonStoragePayloadValidator : AbstractValidator<CronMov
 {
     public CronMoveToCommonStoragePayloadValidator()
     {
-        RuleFor(x => x.CommonStoragePath)
+        RuleFor(x => x.CommonStoragePathString)
             .NotEmpty()
             .Custom(ValidationHelper.ValidatePath<CronMoveToCommonStoragePayload>());
     }

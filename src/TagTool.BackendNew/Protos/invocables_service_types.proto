@@ -30,7 +30,7 @@ message GetInvocablesReply {
 }
 
 message CreateInvocableRequest {
-  string type = 1;
+  string invocable_id = 1;
   string args = 2;
   oneof trigger {
     EventTrigger event_trigger = 3;
