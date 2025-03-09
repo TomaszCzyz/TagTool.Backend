@@ -8,7 +8,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Invocables.Common;
-using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew.Services;
 
@@ -247,26 +246,38 @@ public class InvocablesManager
             return node;
         }
 
-        if (context.PropertyInfo?.PropertyType == typeof(Tag))
+        var attributeProvider = context.PropertyInfo is not null
+            ? context.PropertyInfo.AttributeProvider
+            : context.TypeInfo.Type;
+
+        var specialTypeAttr = attributeProvider?
+            .GetCustomAttributes(inherit: true)
+            .Select(attr => attr as SpecialTypeAttribute)
+            .FirstOrDefault(attr => attr is not null);
+
+
+        if (specialTypeAttr == null)
         {
-            var jObj = node as JsonObject;
-            Debug.Assert(jObj != null, nameof(jObj) + " != null");
-
-            jObj.Remove("properties");
-            jObj.SetAt(jObj.IndexOf("type"), "tag");
-
             return node;
         }
 
-        if (context.PropertyInfo?.PropertyType == typeof(DirectoryInfo))
+        if (node is not JsonObject jObj)
         {
-            var jObj = node as JsonObject;
-            Debug.Assert(jObj != null, nameof(jObj) + " != null");
+            throw new NotImplementedException("Handle the case where the node is a boolean");
+        }
 
-            jObj.Remove("properties");
-            jObj.SetAt(jObj.IndexOf("type"), "directoryPath");
+        jObj.Remove("properties");
 
-            return node;
+        switch (specialTypeAttr.Type)
+        {
+            case SpecialTypeAttribute.Kind.DirectoryPath:
+                jObj.SetAt(jObj.IndexOf("type"), "directoryPath");
+                break;
+            case SpecialTypeAttribute.Kind.SingleTag:
+                jObj.SetAt(jObj.IndexOf("type"), "tag");
+                break;
+            default:
+                throw new NotSupportedException($"SpecialType {specialTypeAttr.Type} is not supported");
         }
 
         return node;
