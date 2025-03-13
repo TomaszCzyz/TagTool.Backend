@@ -27,16 +27,14 @@ public class CronInvocableQueuingHandler : IInvocable
 
     public Task Invoke()
     {
-        _logger.LogInformation("Queuing cron-triggered invocable");
-
-        var invocableInfo = _dbContext.CronTriggeredInvocableInfos.Find(_invocableId);
-        if (invocableInfo is null)
+        var info = _dbContext.CronTriggeredInvocableInfos.Find(_invocableId);
+        if (info is null)
         {
             _logger.LogError("Invocable not found");
             return Task.CompletedTask;
         }
 
-        var queuingHandlerType = typeof(IQueuingHandler<,>).MakeGenericType(invocableInfo.InvocableType, invocableInfo.InvocablePayloadType);
+        var queuingHandlerType = typeof(IQueuingHandler<,>).MakeGenericType(info.InvocableType, info.InvocablePayloadType);
         var queuingHandler = _serviceProvider.GetRequiredService(queuingHandlerType);
 
         if (queuingHandler is not IQueuingHandlerBase handler)
@@ -47,7 +45,7 @@ public class CronInvocableQueuingHandler : IInvocable
         // use invocableInfo.TagQuery to fetch items here
         // invocableInfo.Payload
 
-        var payload = JsonSerializer.Deserialize(invocableInfo.Payload, invocableInfo.InvocablePayloadType);
+        var payload = JsonSerializer.Deserialize(info.Payload, info.InvocablePayloadType);
 
         if (payload is null)
         {
@@ -55,6 +53,7 @@ public class CronInvocableQueuingHandler : IInvocable
             return Task.CompletedTask;
         }
 
+        _logger.LogInformation("Queuing cron-triggered invocable {@InvocableInfo}", info);
         handler.Queue(payload);
         return Task.CompletedTask;
     }

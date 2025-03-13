@@ -7,7 +7,6 @@ using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Extensions;
@@ -34,8 +33,6 @@ public record InvocableDefinition(
 public class InvocablesManager
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage;
-    private readonly ICronTriggeredInvocablesStorage _cronTriggeredInvocablesStorage;
     private readonly IScheduler _scheduler;
     private readonly ITagToolDbContext _dbContext;
 
@@ -43,14 +40,10 @@ public class InvocablesManager
 
     public InvocablesManager(
         IServiceProvider serviceProvider,
-        IEventTriggeredInvocablesStorage eventTriggeredInvocablesStorage,
-        ICronTriggeredInvocablesStorage cronTriggeredInvocablesStorage,
         IScheduler scheduler,
         ITagToolDbContext dbContext)
     {
         _serviceProvider = serviceProvider;
-        _eventTriggeredInvocablesStorage = eventTriggeredInvocablesStorage;
-        _cronTriggeredInvocablesStorage = cronTriggeredInvocablesStorage;
         _scheduler = scheduler;
         _dbContext = dbContext;
 
@@ -127,8 +120,12 @@ public class InvocablesManager
             case ItemTaggedTrigger trigger:
             {
                 var info = ValidateEventTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
+
+                info.Id = Guid.CreateVersion7();
+                _dbContext.EventTriggeredInvocableInfos.Add(info);
+                _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
                 // the invocable is fetched from db when event occurs, so no need for extra "run" setup
-                await _eventTriggeredInvocablesStorage.Add(info);
                 break;
             }
             case CronTrigger trigger:
@@ -183,9 +180,9 @@ public class InvocablesManager
 
         return new EventTriggeredInvocableInfo
         {
+            Payload = jsonPayload,
             InvocableType = invocableType,
-            PayloadType = payloadType,
-            Args = payload
+            InvocablePayloadType = payloadType,
         };
     }
 

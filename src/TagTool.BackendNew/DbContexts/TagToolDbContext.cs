@@ -11,6 +11,8 @@ public sealed class TagToolDbContext : DbContext, ITagToolDbContext
 
     public DbSet<CronTriggeredInvocableInfo> CronTriggeredInvocableInfos => Set<CronTriggeredInvocableInfo>();
 
+    public DbSet<EventTriggeredInvocableInfo> EventTriggeredInvocableInfos => Set<EventTriggeredInvocableInfo>();
+
     public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
     {
     }

@@ -45,6 +45,29 @@ namespace TagTool.BackendNew.Migrations
                     b.ToTable("CronTriggeredInvocableInfos");
                 });
 
+            modelBuilder.Entity("TagTool.BackendNew.Entities.EventTriggeredInvocableInfo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InvocablePayloadType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InvocableType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EventTriggeredInvocableInfos");
+                });
+
             modelBuilder.Entity("TagTool.BackendNew.Entities.TagBase", b =>
                 {
                     b.Property<int>("Id")

@@ -11,8 +11,6 @@ namespace TagTool.BackendNew.Tests.Unit.Services;
 public class InvocablesManagerTests
 {
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
-    private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage = Substitute.For<IEventTriggeredInvocablesStorage>();
-    private readonly ICronTriggeredInvocablesStorage _cronTriggeredInvocablesStorage = Substitute.For<ICronTriggeredInvocablesStorage>();
     private readonly IScheduler _scheduler = Substitute.For<IScheduler>();
     private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
 
@@ -20,7 +18,7 @@ public class InvocablesManagerTests
 
     public InvocablesManagerTests()
     {
-        _sut = new InvocablesManager(_serviceProvider, _eventTriggeredInvocablesStorage, _cronTriggeredInvocablesStorage, _scheduler, _dbContext);
+        _sut = new InvocablesManager(_serviceProvider, _scheduler, _dbContext);
     }
 
     [Fact]
@@ -28,8 +26,6 @@ public class InvocablesManagerTests
     {
         var invocablesManager = new InvocablesManager(
             _serviceProvider,
-            _eventTriggeredInvocablesStorage,
-            _cronTriggeredInvocablesStorage,
             _scheduler,
             _dbContext);
     }

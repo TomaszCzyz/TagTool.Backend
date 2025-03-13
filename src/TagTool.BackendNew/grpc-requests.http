@@ -65,7 +65,7 @@ Content-Type: application/json
 {
   "invocable_id": "418B5746",
   "event_trigger": {},
-  "args": "{\"CommonStoragePathString\":\"/home/tczyz/Documents/TagTool/CommonStorage\",\"Path\":\"/home/tczyz/Documents/TagTool/CommonStorage\",\"TagId\":1}"
+  "args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\"}"
 }
 
 ### Create cron-triggered job

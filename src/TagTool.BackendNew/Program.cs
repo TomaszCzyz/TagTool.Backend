@@ -91,9 +91,6 @@ builder.Services.AddSingleton<TaggableItemMapper>();
 
 builder.Services.AddScoped<TaggableFileManager>();
 builder.Services.AddScoped<InvocablesManager>();
-builder.Services.AddSingleton<IEventTriggeredInvocablesStorage, InMemoryEventTriggeredInvocablesStorage>();
-// builder.Services.AddSingleton<ICronTriggeredInvocablesStorage, InMemoryCronTriggeredInvocablesStorage>();
-builder.Services.AddScoped<ICronTriggeredInvocablesStorage, CronTriggeredInvocablesStorage>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
 // cron triggered jobs

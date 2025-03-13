@@ -10,6 +10,7 @@ public interface ITagToolDbContext : IDisposable, IAsyncDisposable
     DbSet<TagBase> Tags { get; }
     DbSet<TaggableItem> TaggableItems { get; }
     DbSet<CronTriggeredInvocableInfo> CronTriggeredInvocableInfos { get; }
+    DbSet<EventTriggeredInvocableInfo> EventTriggeredInvocableInfos { get; }
 
     ChangeTracker ChangeTracker { get; }
     DatabaseFacade Database { get; }
