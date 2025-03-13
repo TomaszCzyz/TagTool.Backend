@@ -1,5 +1,6 @@
 ﻿using System.Data.Common;
 using Grpc.Net.Client;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -12,7 +13,7 @@ namespace TagToolBackendNew.Tests.Integration;
 
 public delegate void LogMessage(LogLevel logLevel, string categoryName, EventId eventId, string message, Exception? exception);
 
-// [UsedImplicitly]
+[UsedImplicitly]
 public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>, IAsyncLifetime where TProgram : class
 {
     public event LogMessage? LoggedMessage;

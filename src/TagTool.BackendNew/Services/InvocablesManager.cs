@@ -10,6 +10,7 @@ using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Extensions;
 using TagTool.BackendNew.Invocables.Common;
 using TagTool.BackendNew.Models;
 
@@ -56,11 +57,6 @@ public class InvocablesManager
         _invocableDefinitions = GenerateInvocableDefinitions();
     }
 
-    private static bool ImplementsOpenGenericInterface(Type type, Type openGenericInterface)
-        => type
-            .GetInterfaces()
-            .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == openGenericInterface);
-
     // TODO: cache this (this service is scoped)
     private static InvocableDefinition[] GenerateInvocableDefinitions()
     {
@@ -98,7 +94,7 @@ public class InvocablesManager
                 throw new InvalidOperationException($"No {typeof(IInvocableDescription<>).Name} implemented for Invocable {type.Name}.");
             }
 
-            var triggerType = ImplementsOpenGenericInterface(type, typeof(IEventTriggeredInvocable<>)) ? TriggerType.Event : TriggerType.Cron;
+            var triggerType = type.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>)) ? TriggerType.Event : TriggerType.Cron;
 
             var invocableDescriptorDto = new InvocableDefinition(
                 description.Id,
@@ -138,7 +134,11 @@ public class InvocablesManager
             case CronTrigger trigger:
             {
                 var info = ValidateCronTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
-                await _cronTriggeredInvocablesStorage.Add(info, cancellationToken);
+
+                info.Id = Guid.CreateVersion7();
+                _dbContext.CronTriggeredInvocableInfos.Add(info);
+                _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
                 _scheduler
                     .ScheduleInvocableType(info.InvocableType)
                     .Cron(trigger.CronExpression)
@@ -150,8 +150,8 @@ public class InvocablesManager
     }
 
     private static bool IsInvocable(Type t)
-        => ImplementsOpenGenericInterface(t, typeof(IEventTriggeredInvocable<>))
-           || ImplementsOpenGenericInterface(t, typeof(ICronTriggeredInvocable<>));
+        => t.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>))
+           || t.ImplementsOpenGenericInterface(typeof(ICronTriggeredInvocable<>));
 
     private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(
         ItemTaggedTrigger _,
@@ -221,9 +221,9 @@ public class InvocablesManager
         ValidatePayload(payload, payloadType);
 
         var queryTagIds = trigger.Query.Select(param => param.TagId).ToArray();
-        var tagBases = _dbContext.Tags.Where(tag => queryTagIds.Contains(tag.Id)).ToList();
+        var tagIds = _dbContext.Tags.Where(tag => queryTagIds.Contains(tag.Id)).ToList();
 
-        if (tagBases.Count != queryTagIds.Length)
+        if (tagIds.Count != queryTagIds.Length)
         {
             throw new ArgumentException("Some tags in query do not exist.");
         }
@@ -235,11 +235,11 @@ public class InvocablesManager
             TagQuery = trigger.Query
                 .Select(param => new TagQueryPart
                 {
-                    State = trigger.Query.First(queryParam => queryParam.TagId == param.TagId).State,
-                    Tag = tagBases.First(tag => tag.Id == param.TagId)
+                    State = trigger.Query.First(queryParam => queryParam.TagId == param.TagId).State, Tag = tagIds.First(tag => tag.Id == param.TagId)
                 })
                 .ToList(),
-            Payload = payload,
+            Payload = jsonPayload,
+            InvocablePayloadType = payloadType,
         };
     }
 

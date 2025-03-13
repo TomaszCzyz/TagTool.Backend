@@ -1,8 +1,6 @@
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TagTool.BackendNew.Entities;
-using TagTool.BackendNew.Invocables.Common;
 
 namespace TagTool.BackendNew.DbContexts.Configurations;
 
@@ -17,13 +15,13 @@ public class CronTriggeredInvocableInfoConfiguration : IEntityTypeConfiguration<
         builder
             .Property(tag => tag.InvocableType)
             .HasConversion(
-                type => type.FullName,
+                type => type.AssemblyQualifiedName,
                 s => Type.GetType(s!)!);
 
         builder
-            .Property(p => p.Payload)
+            .Property(tag => tag.InvocablePayloadType)
             .HasConversion(
-                v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
-                v => JsonSerializer.Deserialize<PayloadWithQuery>(v, JsonSerializerOptions.Default)!);
+                type => type.AssemblyQualifiedName,
+                s => Type.GetType(s!)!);
     }
 }

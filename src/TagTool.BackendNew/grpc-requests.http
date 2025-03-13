@@ -78,9 +78,7 @@ Content-Type: application/json
     "cron_expression": "* * * * *",
     "queryParams": [
       {
-        "tag": {
-          "id": 1
-        },
+        "tagId": 1,
         "state": "Include"
       }
     ]

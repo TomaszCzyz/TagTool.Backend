@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Coravel;
+using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
 using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -31,7 +32,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((_, configuration) =>
     configuration
         .Destructure.With<TagBaseDeconstructPolicy>()
-        .Destructure.ByTransforming<TaggableItem>(item => new { ItemId = item.Id, Tags = item.Tags.Select(tag => tag.Text).ToArray() })
+        .Destructure.ByTransforming<TaggableItem>(item => new
+        {
+            ItemId = item.Id, Tags = item.Tags.Select(tag => tag.Text).ToArray()
+        })
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
@@ -94,10 +98,11 @@ builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
 // cron triggered jobs
 builder.Services.AddScoped<CronMoveToCommonStorage>();
+builder.Services.AddScoped<IQueuingHandler<CronMoveToCommonStorage, CronMoveToCommonStoragePayload>, CronMoveToCommonStorageQueuingHandler>();
 
 // event triggered jobs
 builder.Services.AddScoped<MoveToCommonStorage>();
-builder.Services.AddSingleton<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
+builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
 
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
@@ -154,8 +159,14 @@ using (var scope = app.Services.CreateScope())
         // await db.Database.MigrateAsync();
 
         app.Logger.LogInformation("Scheduling cron invocables...");
-
-
+        var scheduler = scope.ServiceProvider.GetRequiredService<IScheduler>();
+        await foreach (var invocableInfo in db.CronTriggeredInvocableInfos)
+        {
+            app.Logger.LogInformation("Scheduling cron invocable {@InvocableInfo}", invocableInfo);
+            scheduler
+                .ScheduleWithParams<CronInvocableQueuingHandler>(invocableInfo.Id)
+                .Cron(invocableInfo.CronExpression);
+        }
     }
 }
 
