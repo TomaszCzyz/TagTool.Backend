@@ -23,7 +23,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew", "src\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew.Tests.Unit", "tests\TagTool.BackendNew.Tests.Unit\TagTool.BackendNew.Tests.Unit.csproj", "{ED20651F-9B34-49BB-8C35-10A4751D475C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagToolBackendNew.Tests.Integration", "tests\TagToolBackendNew.Tests.Integration\TagToolBackendNew.Tests.Integration.csproj", "{7177444C-A1ED-4F3F-B758-617F697921A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew.Tests.Integration", "tests\TagTool.BackendNew.Tests.Integration\TagTool.BackendNew.Tests.Integration.csproj", "{7177444C-A1ED-4F3F-B758-617F697921A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

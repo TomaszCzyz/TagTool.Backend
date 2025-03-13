@@ -5,9 +5,10 @@ using Grpc.Core;
 using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Mappers;
+using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Notifications;
 using TagTool.BackendNew.Services.Grpc.Dtos;
-using CronTrigger = TagTool.BackendNew.Contracts.CronTrigger;
+using CronTrigger = TagTool.BackendNew.Models.CronTrigger;
 
 namespace TagTool.BackendNew.Services.Grpc;
 

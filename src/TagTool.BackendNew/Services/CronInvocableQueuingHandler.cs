@@ -45,7 +45,15 @@ public class CronInvocableQueuingHandler : IInvocable
         // use invocableInfo.TagQuery to fetch items here
         // invocableInfo.Payload
 
-        var payload = JsonSerializer.Deserialize(info.Payload, info.InvocablePayloadType);
+        object? payload = null;
+        try
+        {
+            payload = JsonSerializer.Deserialize(info.Payload, info.InvocablePayloadType);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unable to deserialize payload");
+        }
 
         if (payload is null)
         {
