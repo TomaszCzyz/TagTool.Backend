@@ -8,6 +8,7 @@ using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Invocables.Common;
 using TagTool.BackendNew.Services;
+using TagTool.BackendNew.Tests.Unit.Utilities;
 using Xunit;
 
 namespace TagTool.BackendNew.Tests.Unit.Services;
@@ -47,12 +48,7 @@ public class CronInvocableQueuingHandlerTests
         await _sut.Invoke();
 
         // Assert
-        _logger.Received(1).Log(
-            LogLevel.Error,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString() == "Invocable not found"),
-            null,
-            Arg.Any<Func<object, Exception?, string>>());
+        _logger.AssertLog(LogLevel.Error, "Invocable not found");
     }
 
     [Fact]
@@ -86,13 +82,7 @@ public class CronInvocableQueuingHandlerTests
         await _sut.Invoke();
 
         // Assert
-        _logger.Received(1).Log(
-            LogLevel.Error,
-            Arg.Any<EventId>(),
-            Arg.Is<object>(o => o.ToString() == "Unable to deserialize payload"),
-            null,
-            Arg.Any<Func<object, Exception?, string>>());
-
+        _logger.AssertLog(LogLevel.Error, "Unable to deserialize payload");
         queuingHandler.DidNotReceive().Queue(Arg.Any<object>());
     }
 
@@ -128,7 +118,7 @@ public class CronInvocableQueuingHandlerTests
         _logger.Received(1).Log(
             LogLevel.Information,
             Arg.Any<EventId>(),
-            Arg.Any<object>(),
+            Arg.Is<object>(o => o.ToString()!.Contains("Queuing cron-triggered invocable")),
             null,
             Arg.Any<Func<object, Exception?, string>>());
 
