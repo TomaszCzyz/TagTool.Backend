@@ -11,12 +11,17 @@ public enum QueryPartState
 
 public class TagQueryPart
 {
+    public int Id { get; init; }
+
     public QueryPartState State { get; init; } = QueryPartState.Include;
 
     public required TagBase Tag { get; init; }
 }
 
-public class TagQuery
+public class TagQueryParam
 {
-    public required TagQueryPart[] QuerySegments { get; init; }
+    public QueryPartState State { get; init; } = QueryPartState.Include;
+
+    public required int TagId { get; init; }
 }
+

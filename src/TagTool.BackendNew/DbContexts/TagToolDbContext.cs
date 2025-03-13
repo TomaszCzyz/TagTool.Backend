@@ -3,21 +3,13 @@ using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.DbContexts;
 
-// [UsedImplicitly]
-// public class TagToolDbContextFactory : IDesignTimeDbContextFactory<TagToolDbContext>
-// {
-//     public TagToolDbContext CreateDbContext(string[] args)
-//     {
-//         var optionsBuilder = new DbContextOptionsBuilder<TagToolDbContext>();
-//         return new TagToolDbContext(optionsBuilder.Options);
-//     }
-// }
-
 public sealed class TagToolDbContext : DbContext, ITagToolDbContext
 {
     public DbSet<TagBase> Tags => Set<TagBase>();
 
     public DbSet<TaggableItem> TaggableItems => Set<TaggableItem>();
+
+    public DbSet<CronTriggeredInvocableInfo> CronTriggeredInvocableInfos => Set<CronTriggeredInvocableInfo>();
 
     public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
     {
@@ -27,5 +19,8 @@ public sealed class TagToolDbContext : DbContext, ITagToolDbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TagToolDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+
+        // Ignore CustomAttributeData explicitly
+        // modelBuilder.Ignore<CustomAttributeData>();
     }
 }

@@ -6,5 +6,5 @@ namespace TagTool.BackendNew.Invocables.Common;
 public abstract class PayloadWithQuery
 {
     [JsonIgnore]
-    public TagQuery TagQuery { get; set; } = null!;
+    public List<TagQueryPart> TagQuery { get; set; } = null!;
 }

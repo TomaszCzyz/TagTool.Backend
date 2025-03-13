@@ -7,7 +7,11 @@ using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
+using TagTool.BackendNew.DbContexts;
+using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Invocables.Common;
+using TagTool.BackendNew.Models;
 
 namespace TagTool.BackendNew.Services;
 
@@ -32,6 +36,7 @@ public class InvocablesManager
     private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage;
     private readonly ICronTriggeredInvocablesStorage _cronTriggeredInvocablesStorage;
     private readonly IScheduler _scheduler;
+    private readonly ITagToolDbContext _dbContext;
 
     private readonly InvocableDefinition[] _invocableDefinitions;
 
@@ -39,12 +44,14 @@ public class InvocablesManager
         IServiceProvider serviceProvider,
         IEventTriggeredInvocablesStorage eventTriggeredInvocablesStorage,
         ICronTriggeredInvocablesStorage cronTriggeredInvocablesStorage,
-        IScheduler scheduler)
+        IScheduler scheduler,
+        ITagToolDbContext dbContext)
     {
         _serviceProvider = serviceProvider;
         _eventTriggeredInvocablesStorage = eventTriggeredInvocablesStorage;
         _cronTriggeredInvocablesStorage = cronTriggeredInvocablesStorage;
         _scheduler = scheduler;
+        _dbContext = dbContext;
 
         _invocableDefinitions = GenerateInvocableDefinitions();
     }
@@ -72,8 +79,14 @@ public class InvocablesManager
             .Where(t => IsInvocable(t) && t is { IsInterface: false, IsAbstract: false })
             .ToList();
 
-        var options = new JsonSerializerOptions(JsonSerializerOptions.Default) { RespectNullableAnnotations = true, };
-        JsonSchemaExporterOptions exporterOptions = new() { TreatNullObliviousAsNonNullable = true, TransformSchemaNode = TransformSchemaNode };
+        var options = new JsonSerializerOptions(JsonSerializerOptions.Default)
+        {
+            RespectNullableAnnotations = true,
+        };
+        JsonSchemaExporterOptions exporterOptions = new()
+        {
+            TreatNullObliviousAsNonNullable = true, TransformSchemaNode = TransformSchemaNode
+        };
 
         List<InvocableDefinition> invocableDefinitions = [];
         foreach (var type in invocables)
@@ -108,7 +121,8 @@ public class InvocablesManager
     /// Add invocable to storage and active it based on trigger type
     /// </summary>
     /// <param name="invocableDescriptor"></param>
-    public async Task AddAndActivateJob(InvocableDescriptor invocableDescriptor)
+    /// <param name="cancellationToken"></param>
+    public async Task AddAndActivateJob(InvocableDescriptor invocableDescriptor, CancellationToken cancellationToken)
     {
         var invocableDefinition = _invocableDefinitions.Single(d => d.Id == invocableDescriptor.InvocableId);
 
@@ -124,7 +138,7 @@ public class InvocablesManager
             case CronTrigger trigger:
             {
                 var info = ValidateCronTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
-                await _cronTriggeredInvocablesStorage.Add(info);
+                await _cronTriggeredInvocablesStorage.Add(info, cancellationToken);
                 _scheduler
                     .ScheduleInvocableType(info.InvocableType)
                     .Cron(trigger.CronExpression)
@@ -206,12 +220,26 @@ public class InvocablesManager
 
         ValidatePayload(payload, payloadType);
 
+        var queryTagIds = trigger.Query.Select(param => param.TagId).ToArray();
+        var tagBases = _dbContext.Tags.Where(tag => queryTagIds.Contains(tag.Id)).ToList();
+
+        if (tagBases.Count != queryTagIds.Length)
+        {
+            throw new ArgumentException("Some tags in query do not exist.");
+        }
+
         return new CronTriggeredInvocableInfo
         {
             InvocableType = invocableType,
-            PayloadType = payloadType,
             CronExpression = trigger.CronExpression,
-            Args = payload
+            TagQuery = trigger.Query
+                .Select(param => new TagQueryPart
+                {
+                    State = trigger.Query.First(queryParam => queryParam.TagId == param.TagId).State,
+                    Tag = tagBases.First(tag => tag.Id == param.TagId)
+                })
+                .ToList(),
+            Payload = payload,
         };
     }
 

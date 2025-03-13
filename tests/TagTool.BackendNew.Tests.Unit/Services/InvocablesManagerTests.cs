@@ -1,6 +1,8 @@
 using Coravel.Scheduling.Schedule.Interfaces;
 using NSubstitute;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
+using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Services;
 using Xunit;
 
@@ -12,12 +14,13 @@ public class InvocablesManagerTests
     private readonly IEventTriggeredInvocablesStorage _eventTriggeredInvocablesStorage = Substitute.For<IEventTriggeredInvocablesStorage>();
     private readonly ICronTriggeredInvocablesStorage _cronTriggeredInvocablesStorage = Substitute.For<ICronTriggeredInvocablesStorage>();
     private readonly IScheduler _scheduler = Substitute.For<IScheduler>();
+    private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
 
     private readonly InvocablesManager _sut;
 
     public InvocablesManagerTests()
     {
-        _sut = new InvocablesManager(_serviceProvider, _eventTriggeredInvocablesStorage, _cronTriggeredInvocablesStorage, _scheduler);
+        _sut = new InvocablesManager(_serviceProvider, _eventTriggeredInvocablesStorage, _cronTriggeredInvocablesStorage, _scheduler, _dbContext);
     }
 
     [Fact]
@@ -27,6 +30,7 @@ public class InvocablesManagerTests
             _serviceProvider,
             _eventTriggeredInvocablesStorage,
             _cronTriggeredInvocablesStorage,
-            _scheduler);
+            _scheduler,
+            _dbContext);
     }
 }

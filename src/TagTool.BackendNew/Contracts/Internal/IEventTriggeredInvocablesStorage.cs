@@ -1,6 +1,6 @@
 using TagTool.BackendNew.Invocables.Common;
 
-namespace TagTool.BackendNew.Contracts;
+namespace TagTool.BackendNew.Contracts.Internal;
 
 public class EventTriggeredInvocableInfo
 {

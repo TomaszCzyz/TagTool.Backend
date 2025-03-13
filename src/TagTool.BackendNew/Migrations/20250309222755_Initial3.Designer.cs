@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TagTool.BackendNew.DbContexts;
 
@@ -10,9 +11,11 @@ using TagTool.BackendNew.DbContexts;
 namespace TagTool.BackendNew.Migrations
 {
     [DbContext(typeof(TagToolDbContext))]
-    partial class TagToolDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250309222755_Initial3")]
+    partial class Initial3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -33,6 +36,10 @@ namespace TagTool.BackendNew.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TagQuery")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -88,30 +95,6 @@ namespace TagTool.BackendNew.Migrations
                     b.UseTpcMappingStrategy();
                 });
 
-            modelBuilder.Entity("TagTool.BackendNew.Models.TagQueryPart", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid?>("CronTriggeredInvocableInfoId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("State")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CronTriggeredInvocableInfoId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("TagQueryPart");
-                });
-
             modelBuilder.Entity("TagTool.BackendNew.TaggableFile.TaggableFile", b =>
                 {
                     b.HasBaseType("TagTool.BackendNew.Entities.TaggableItem");
@@ -137,26 +120,6 @@ namespace TagTool.BackendNew.Migrations
                         .HasForeignKey("TaggableItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("TagTool.BackendNew.Models.TagQueryPart", b =>
-                {
-                    b.HasOne("TagTool.BackendNew.Entities.CronTriggeredInvocableInfo", null)
-                        .WithMany("TagQuery")
-                        .HasForeignKey("CronTriggeredInvocableInfoId");
-
-                    b.HasOne("TagTool.BackendNew.Entities.TagBase", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("TagTool.BackendNew.Entities.CronTriggeredInvocableInfo", b =>
-                {
-                    b.Navigation("TagQuery");
                 });
 #pragma warning restore 612, 618
         }

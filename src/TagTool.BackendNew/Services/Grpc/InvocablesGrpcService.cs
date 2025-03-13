@@ -4,8 +4,10 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Notifications;
 using TagTool.BackendNew.Services.Grpc.Dtos;
+using CronTrigger = TagTool.BackendNew.Contracts.CronTrigger;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
@@ -35,7 +37,13 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
                 TriggerType = d.TriggerType.ToString(),
             });
 
-        return Task.FromResult(new GetInvocablesDescriptionsReply { InvocableDefinitions = { replies } });
+        return Task.FromResult(new GetInvocablesDescriptionsReply
+        {
+            InvocableDefinitions =
+            {
+                replies
+            }
+        });
     }
 
     public override async Task<CreateInvocableReply> CreateInvocable(CreateInvocableRequest request, ServerCallContext context)
@@ -44,7 +52,11 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
         {
             CreateInvocableRequest.TriggerOneofCase.None => throw new ArgumentException("Trigger is required"),
             CreateInvocableRequest.TriggerOneofCase.EventTrigger => ItemTaggedTrigger.Instance,
-            CreateInvocableRequest.TriggerOneofCase.CronTrigger => new CronTrigger { CronExpression = request.CronTrigger.CronExpression },
+            CreateInvocableRequest.TriggerOneofCase.CronTrigger => new CronTrigger
+            {
+                CronExpression = request.CronTrigger.CronExpression,
+                Query = request.CronTrigger.QueryParams.MapFromDto()
+            },
             _ => throw new UnreachableException()
         };
 
@@ -55,14 +67,22 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
             Args = request.Args
         };
 
-        await _invocablesManager.AddAndActivateJob(invocableDescriptor);
+        await _invocablesManager.AddAndActivateJob(invocableDescriptor, context.CancellationToken);
 
         return new CreateInvocableReply();
     }
 
     public override Task<Empty> BroadcastEvent(Empty request, ServerCallContext context)
     {
-        var changeTypes = new Dictionary<Guid, ChangeType> { { Guid.NewGuid(), ChangeType.Added }, { Guid.NewGuid(), ChangeType.Removed } };
+        var changeTypes = new Dictionary<Guid, ChangeType>
+        {
+            {
+                Guid.NewGuid(), ChangeType.Added
+            },
+            {
+                Guid.NewGuid(), ChangeType.Removed
+            }
+        };
         _queue.QueueBroadcast(new ItemTagsChangedEvent(Guid.NewGuid(), changeTypes));
 
         return Task.FromResult(new Empty());

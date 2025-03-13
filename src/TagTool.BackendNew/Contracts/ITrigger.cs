@@ -1,3 +1,5 @@
+using TagTool.BackendNew.Models;
+
 namespace TagTool.BackendNew.Contracts;
 
 public interface ITrigger;
@@ -16,4 +18,6 @@ public class ItemTaggedTrigger : ITrigger
 public class CronTrigger : ITrigger
 {
     public required string CronExpression { get; init; }
+
+    public required List<TagQueryParam> Query { get; init; }
 }

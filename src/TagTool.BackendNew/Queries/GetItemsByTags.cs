@@ -9,7 +9,7 @@ namespace TagTool.BackendNew.Queries;
 
 public class GetItemsByTagsQuery : IQuery<IEnumerable<TaggableItem>>
 {
-    public required TagQueryPart[] QuerySegments { get; init; }
+    public required TagQueryParam[] QuerySegments { get; init; }
 }
 
 [UsedImplicitly]
@@ -37,18 +37,12 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
 
         if (splittedTags.TryGetValue(QueryPartState.Include, out var included))
         {
-            taggedItems = taggedItems
-                .Where(item => item.Tags
-                    .Select(tagBase => tagBase.Text)
-                    .Any(tag => included.Contains(tag)));
+            taggedItems = taggedItems.Where(item => item.Tags.Any(tag => included.Contains(tag.Id)));
         }
 
         if (splittedTags.TryGetValue(QueryPartState.Exclude, out var excluded))
         {
-            taggedItems = taggedItems
-                .Where(item => !item.Tags
-                    .Select(tagBase => tagBase.Text)
-                    .Any(tag => excluded.Contains(tag)));
+            taggedItems = taggedItems.Where(item => !item.Tags.Any(tag => excluded.Contains(tag.Id)));
         }
 
         // Inner predicate cannot be translated by EF Core, so as a temporary workaround I will filter the results on a client side.
@@ -58,7 +52,7 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
 
             return taggedItemsFiltered
                 .Where(item => mustByPresentTags
-                    .All(mustTag => item.Tags.Select(tagBase => tagBase.Text).Contains(mustTag)));
+                    .All(mustTag => item.Tags.Select(tagBase => tagBase.Id).Contains(mustTag)));
         }
 
         return await taggedItems.ToArrayAsync(cancellationToken);
@@ -71,9 +65,9 @@ public class GetItemsByTags : IQueryHandler<GetItemsByTagsQuery, IEnumerable<Tag
             .Take(30)
             .ToArrayAsync(cancellationToken);
 
-    private static Dictionary<QueryPartState, IEnumerable<string>> SplitTagsBySegmentState(
-        IEnumerable<TagQueryPart> request)
+    private static Dictionary<QueryPartState, IEnumerable<int>> SplitTagsBySegmentState(
+        IEnumerable<TagQueryParam> request)
         => request
             .GroupBy(segment => segment.State)
-            .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.Tag.Text));
+            .ToDictionary(segments => segments.Key, segments => segments.Select(segment => segment.TagId));
 }

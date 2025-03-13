@@ -4,6 +4,7 @@ using MediatR;
 using OneOf.Types;
 using TagTool.BackendNew.Commands;
 using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Queries;
 using TagTool.BackendNew.Services.Grpc.Dtos;
@@ -36,13 +37,25 @@ public class TagsGrpcService : TagsService.TagsServiceBase
     {
         ArgumentNullException.ThrowIfNull(request.Text);
 
-        var command = new CreateTag { Text = request.Text };
+        var command = new CreateTag
+        {
+            Text = request.Text
+        };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            tagBase => new CreateTagReply { Tag = new Tag { Id = tagBase.Id, Text = tagBase.Text } },
-            error => new CreateTagReply { ErrorMessage = error.Value });
+            tagBase => new CreateTagReply
+            {
+                Tag = new Tag
+                {
+                    Id = tagBase.Id, Text = tagBase.Text
+                }
+            },
+            error => new CreateTagReply
+            {
+                ErrorMessage = error.Value
+            });
     }
 
     public override async Task CanCreateTag(
@@ -56,17 +69,32 @@ public class TagsGrpcService : TagsService.TagsServiceBase
 
             if (string.IsNullOrEmpty(request.TagName))
             {
-                await responseStream.WriteAsync(new CanCreateTagReply { Error = new Error { Message = "Tag name cannot be empty." } });
+                await responseStream.WriteAsync(new CanCreateTagReply
+                {
+                    Error = new Error
+                    {
+                        Message = "Tag name cannot be empty."
+                    }
+                });
                 continue;
             }
 
-            var query = new CanCreateTag { NewTagText = request.TagName };
+            var query = new CanCreateTag
+            {
+                NewTagText = request.TagName
+            };
 
             var response = await _mediator.Send(query, context.CancellationToken);
 
             var reply = response.Match(
                 _ => new CanCreateTagReply(),
-                error => new CanCreateTagReply { Error = new Error { Message = error.Value } });
+                error => new CanCreateTagReply
+                {
+                    Error = new Error
+                    {
+                        Message = error.Value
+                    }
+                });
 
             await responseStream.WriteAsync(reply);
         }
@@ -74,49 +102,92 @@ public class TagsGrpcService : TagsService.TagsServiceBase
 
     public override async Task<DeleteTagReply> DeleteTag(DeleteTagRequest request, ServerCallContext context)
     {
-        var command = new Commands.DeleteTagRequest { Id = request.TagId, DeleteUsedToo = request.DeleteUsedToo };
+        var command = new Commands.DeleteTagRequest
+        {
+            Id = request.TagId, DeleteUsedToo = request.DeleteUsedToo
+        };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            tagBase => new DeleteTagReply { Tag = tagBase.ToDto() },
-            error => new DeleteTagReply { ErrorMessage = error.Value });
+            tagBase => new DeleteTagReply
+            {
+                Tag = tagBase.ToDto()
+            },
+            error => new DeleteTagReply
+            {
+                ErrorMessage = error.Value
+            });
     }
 
     public override async Task<AddItemReply> AddItem(AddItemRequest request, ServerCallContext context)
     {
-        var addItem = new AddItem { ItemType = request.Item.Type, ItemArgs = request.Item.Payload };
+        var addItem = new AddItem
+        {
+            ItemType = request.Item.Type, ItemArgs = request.Item.Payload
+        };
 
         var response = await _mediator.Send(addItem, context.CancellationToken);
         return response.Match(
-            item => new AddItemReply { TaggableItem = new TaggableItem { Item = Map(item), Tags = { item.Tags.ToDtos() } } },
-            error => new AddItemReply { ErrorMessage = error.Value });
+            item => new AddItemReply
+            {
+                TaggableItem = new TaggableItem
+                {
+                    Item = Map(item),
+                    Tags =
+                    {
+                        item.Tags.ToDtos()
+                    }
+                }
+            },
+            error => new AddItemReply
+            {
+                ErrorMessage = error.Value
+            });
     }
 
     public override async Task<TagItemReply> TagItem(TagItemRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request.ItemId);
 
-        var command = new TagItem { ItemId = new Guid(request.ItemId), TagId = request.TagId };
+        var command = new TagItem
+        {
+            ItemId = new Guid(request.ItemId), TagId = request.TagId
+        };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new TagItemReply { TaggableItem = MapTaggableItem(item) },
-            error => new TagItemReply { ErrorMessage = error.Value });
+            item => new TagItemReply
+            {
+                TaggableItem = MapTaggableItem(item)
+            },
+            error => new TagItemReply
+            {
+                ErrorMessage = error.Value
+            });
     }
 
     public override async Task<UntagItemReply> UntagItem(UntagItemRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request.ItemId);
 
-        var command = new UntagItem { ItemId = new Guid(request.ItemId), TagId = request.TagId };
+        var command = new UntagItem
+        {
+            ItemId = new Guid(request.ItemId), TagId = request.TagId
+        };
 
         var response = await _mediator.Send(command, context.CancellationToken);
 
         return response.Match(
-            item => new UntagItemReply { TaggableItem = MapTaggableItem(item) },
-            error => new UntagItemReply { ErrorMessage = error.Value });
+            item => new UntagItemReply
+            {
+                TaggableItem = MapTaggableItem(item)
+            },
+            error => new UntagItemReply
+            {
+                ErrorMessage = error.Value
+            });
     }
 
     public override Task<GetOperationsReply> GetOperations(GetOperationsRequest request, ServerCallContext context)
@@ -124,8 +195,21 @@ public class TagsGrpcService : TagsService.TagsServiceBase
         var result = _operationManger.GetOperationNames();
 
         var operations = result.Select(tuple
-            => new GetOperationsReply.Types.ItemTypeOperations { TypeName = tuple.TypeName, Name = { tuple.OperationNames } });
-        var reply = new GetOperationsReply { Operations = { operations } };
+            => new GetOperationsReply.Types.ItemTypeOperations
+            {
+                TypeName = tuple.TypeName,
+                Name =
+                {
+                    tuple.OperationNames
+                }
+            });
+        var reply = new GetOperationsReply
+        {
+            Operations =
+            {
+                operations
+            }
+        };
 
         return Task.FromResult(reply);
     }
@@ -155,12 +239,21 @@ public class TagsGrpcService : TagsService.TagsServiceBase
 
     public override async Task<GetItemReply> GetItem(GetItemRequest request, ServerCallContext context)
     {
-        var query = new GetItemById { Id = new Guid(request.ItemId) };
+        var query = new GetItemById
+        {
+            Id = new Guid(request.ItemId)
+        };
         var response = await _mediator.Send(query, context.CancellationToken);
 
         return response.Match(
-            item => new GetItemReply { TaggableItem = MapTaggableItem(item) },
-            _ => new GetItemReply { ErrorMessage = $"Could not find taggable item with id {request.ItemId}." });
+            item => new GetItemReply
+            {
+                TaggableItem = MapTaggableItem(item)
+            },
+            _ => new GetItemReply
+            {
+                ErrorMessage = $"Could not find taggable item with id {request.ItemId}."
+            });
     }
 
 
@@ -168,33 +261,51 @@ public class TagsGrpcService : TagsService.TagsServiceBase
     {
         ArgumentNullException.ThrowIfNull(request.QueryParams);
 
-        if (request.QueryParams.Any(param => param.Tag is null))
-        {
-            throw new ArgumentNullException(nameof(request), "No tag in a tag query can be null");
-        }
+        // if (request.QueryParams.Any(param => param.Tag is null))
+        // {
+        //     throw new ArgumentNullException(nameof(request), "No tag in a tag query can be null");
+        // }
 
         // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
-            .Select(param => new TagQueryPart { State = MapQuerySegmentStateFromDto(param.State), Tag = param.Tag.MapFromDto() })
+            .Select(param => new Models.TagQueryParam
+            {
+                State = param.State.MapFromDto(), TagId = param.TagId
+            })
             .ToArray();
 
-        var query = new GetItemsByTagsQuery { QuerySegments = querySegments };
+        var query = new GetItemsByTagsQuery
+        {
+            QuerySegments = querySegments
+        };
 
         var response = await _mediator.Send(query, context.CancellationToken);
 
-        return new GetItemsByTagsReply { TaggedItems = { response.Select(MapTaggableItem) } };
+        return new GetItemsByTagsReply
+        {
+            TaggedItems =
+            {
+                response.Select(MapTaggableItem)
+            }
+        };
     }
 
     public override async Task<DoesTagExistsReply> DoesTagExists(DoesTagExistsRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request.Text);
 
-        var doesTagExistsQuery = new GetTagByText { Text = request.Text };
+        var doesTagExistsQuery = new GetTagByText
+        {
+            Text = request.Text
+        };
 
         var response = await _mediator.Send(doesTagExistsQuery, context.CancellationToken);
 
         return response.Match(
-            tag => new DoesTagExistsReply { Tag = tag.ToDto() },
+            tag => new DoesTagExistsReply
+            {
+                Tag = tag.ToDto()
+            },
             _ => new DoesTagExistsReply());
     }
 
@@ -207,22 +318,37 @@ public class TagsGrpcService : TagsService.TagsServiceBase
 
         IStreamRequest<(TagBase, IEnumerable<TextSlice>)> query = request.SearchType switch
         {
-            SearchTagsRequest.Types.SearchType.Wildcard => new SearchTagsWildcardRequest { Value = value, ResultsLimit = limit },
-            SearchTagsRequest.Types.SearchType.StartsWith => new SearchTagsStartsWithRequest { Value = value, ResultsLimit = limit },
-            SearchTagsRequest.Types.SearchType.Fuzzy => new SearchTagsFuzzyRequest { Value = value, ResultsLimit = limit },
+            SearchTagsRequest.Types.SearchType.Wildcard => new SearchTagsWildcardRequest
+            {
+                Value = value, ResultsLimit = limit
+            },
+            SearchTagsRequest.Types.SearchType.StartsWith => new SearchTagsStartsWithRequest
+            {
+                Value = value, ResultsLimit = limit
+            },
+            SearchTagsRequest.Types.SearchType.Fuzzy => new SearchTagsFuzzyRequest
+            {
+                Value = value, ResultsLimit = limit
+            },
             _ => throw new ArgumentOutOfRangeException(nameof(request))
         };
 
         await foreach (var (tag, parts) in _mediator.CreateStream(query, context.CancellationToken))
         {
             var matchedParts = parts
-                .Select(part => new SearchTagsReply.Types.MatchedPart { StartIndex = part.StartIndex, Length = part.Length })
+                .Select(part => new SearchTagsReply.Types.MatchedPart
+                {
+                    StartIndex = part.StartIndex, Length = part.Length
+                })
                 .ToArray();
 
             var matchTagsReply = new SearchTagsReply
             {
                 Tag = tag.ToDto(),
-                MatchedPart = { matchedParts },
+                MatchedPart =
+                {
+                    matchedParts
+                },
                 IsExactMatch = matchedParts[0].Length == tag.Text.Length
             };
 
@@ -230,37 +356,22 @@ public class TagsGrpcService : TagsService.TagsServiceBase
         }
     }
 
-
-    private static QueryPartState MapQuerySegmentStateFromDto(TagQueryParam.Types.QuerySegmentState state)
-        => state switch
-        {
-            TagQueryParam.Types.QuerySegmentState.Exclude => QueryPartState.Exclude,
-            TagQueryParam.Types.QuerySegmentState.Include => QueryPartState.Include,
-            TagQueryParam.Types.QuerySegmentState.MustBePresent => QueryPartState.MustBePresent,
-            _ => throw new UnreachableException()
-        };
-
-    private static TagQueryParam.Types.QuerySegmentState MapQuerySegmentStateToDto(QueryPartState queryPart)
-        => queryPart switch
-        {
-            QueryPartState.Exclude => TagQueryParam.Types.QuerySegmentState.Exclude,
-            QueryPartState.Include => TagQueryParam.Types.QuerySegmentState.Include,
-            QueryPartState.MustBePresent => TagQueryParam.Types.QuerySegmentState.MustBePresent,
-            _ => throw new UnreachableException()
-        };
-
     private Item Map(Entities.TaggableItem item)
     {
         var (type, payload) = _taggableItemMapper.MapFromObj(item);
-        return new Item { Type = type, Payload = payload };
+        return new Item
+        {
+            Type = type, Payload = payload
+        };
     }
 
-    private TaggableItem MapTaggableItem(Entities.TaggableItem item) => new() { Item = Map(item), Tags = { item.Tags.ToDtos() } };
-}
-
-public static class TagExtensions
-{
-    public static TagBase MapFromDto(this Tag tag) => new() { Id = tag.Id, Text = tag.Text };
-
-    public static IEnumerable<TagBase> MapFromDtos(this IEnumerable<Tag> tags) => tags.Select(t => t.MapFromDto());
+    private TaggableItem MapTaggableItem(Entities.TaggableItem item)
+        => new()
+        {
+            Item = Map(item),
+            Tags =
+            {
+                item.Tags.ToDtos()
+            }
+        };
 }

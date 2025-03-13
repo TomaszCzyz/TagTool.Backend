@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/wrappers.proto";
+import "Protos/common_types.proto";
 
 option csharp_namespace = "TagTool.BackendNew.Services.Grpc.Dtos";
 
@@ -36,15 +37,15 @@ message CreateInvocableRequest {
     EventTrigger event_trigger = 3;
     CronTrigger cron_trigger = 4;
   }
-
-  message EventTrigger {
-  }
-
-  message CronTrigger {
-    string cron_expression = 1;
-  }
 }
 
 message CreateInvocableReply{
 }
 
+message EventTrigger {
+}
+
+message CronTrigger {
+  string cron_expression = 1;
+  repeated TagQueryParam queryParams = 2;
+}

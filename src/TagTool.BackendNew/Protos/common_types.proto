@@ -38,3 +38,20 @@ message TaggedItem {
   string id = 1;
   repeated Tag tags = 2;
 }
+
+// Defines single segment of a tag search query.
+message TagQueryParam {
+  // The segment's state.
+  QuerySegmentState state = 1;
+  // The tag.
+  int32 tagId = 2;
+
+  enum QuerySegmentState {
+    // The option indicating that results of search should not contain the tag.
+    Exclude = 0;
+    // The option indicating that searched item can contain given tag.
+    Include = 1;
+    // The option indicating that all returned items must contain given tag.
+    MustBePresent = 2;
+  }
+}

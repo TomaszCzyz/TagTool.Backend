@@ -65,19 +65,27 @@ Content-Type: application/json
 {
   "invocable_id": "418B5746",
   "event_trigger": {},
-  "args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\"}"
+  "args": "{\"CommonStoragePathString\":\"/home/tczyz/Documents/TagTool/CommonStorage\",\"Path\":\"/home/tczyz/Documents/TagTool/CommonStorage\",\"TagId\":1}"
 }
 
 ### Create cron-triggered job
-GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateJob
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateInvocable
 Content-Type: application/json
 
 {
-  "type": "CronMoveToCommonStorage",
+  "invocable_id": "FF0969B2",
   "cron_trigger": {
-    "cron_expression": "* * * * *"
+    "cron_expression": "* * * * *",
+    "queryParams": [
+      {
+        "tag": {
+          "id": 1
+        },
+        "state": "Include"
+      }
+    ]
   },
-  "Args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\",\"Query\":\"testQuery\"}"
+  "args": "{\"CommonStoragePathString\":\"null\",\"Path\":\"null\",\"TagId\":0}"
 }
 
 ###

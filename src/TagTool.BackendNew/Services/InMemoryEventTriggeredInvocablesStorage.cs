@@ -1,4 +1,5 @@
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 
 namespace TagTool.BackendNew.Services;
 

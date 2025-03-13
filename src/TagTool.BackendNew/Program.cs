@@ -16,6 +16,7 @@ using TagTool.BackendNew;
 using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Invocables;
@@ -87,7 +88,8 @@ builder.Services.AddSingleton<TaggableItemMapper>();
 builder.Services.AddScoped<TaggableFileManager>();
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddSingleton<IEventTriggeredInvocablesStorage, InMemoryEventTriggeredInvocablesStorage>();
-builder.Services.AddSingleton<ICronTriggeredInvocablesStorage, InMemoryCronTriggeredInvocablesStorage>();
+// builder.Services.AddSingleton<ICronTriggeredInvocablesStorage, InMemoryCronTriggeredInvocablesStorage>();
+builder.Services.AddScoped<ICronTriggeredInvocablesStorage, CronTriggeredInvocablesStorage>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
 // cron triggered jobs
@@ -126,6 +128,11 @@ if (builder.Environment.IsDevelopment())
 var app = builder.Build();
 app.Logger.LogInformation("Application created");
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService();
+}
+
 app.MapGrpcService<TagsGrpcService>();
 app.MapGrpcService<InvocablesGrpcService>();
 
@@ -138,17 +145,18 @@ app.Services
     .UseScheduler(_ => { })
     .OnError(exception => Log.Error(exception, "Error in scheduler"));
 
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.MapGrpcReflectionService();
-}
+    await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
+    {
+        app.Logger.LogInformation("Executing migrations...");
+        // it freezes with .NET 9 nuget versions, use cli for now
+        // await db.Database.MigrateAsync();
 
-using var scope = app.Services.CreateScope();
-await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
-{
-    app.Logger.LogInformation("Executing migrations...");
-    // it freezes with .NET 9 nuget versions, use cli for now
-    // await db.Database.MigrateAsync();
+        app.Logger.LogInformation("Scheduling cron invocables...");
+
+
+    }
 }
 
 app.Logger.LogInformation("Launching application...");
@@ -156,6 +164,7 @@ await app.RunAsync();
 
 Log.CloseAndFlush();
 return;
+
 
 void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
 {

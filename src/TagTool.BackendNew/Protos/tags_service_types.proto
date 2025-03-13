@@ -9,8 +9,7 @@ option csharp_namespace = "TagTool.BackendNew.Services.Grpc.Dtos";
 package TagToolBackendNew;
 
 // The request to create a new tag.
-message
-  CreateTagRequest {
+message CreateTagRequest {
   // The tag.
   string text = 2;
 }
@@ -122,23 +121,6 @@ message GetItemReply {
 // e.g. include tag 'Tag1' and exclude 'Tag2'.
 message GetItemsByTagsRequest {
   repeated TagQueryParam queryParams = 1;
-}
-
-// Defines single segment of a tag search query.
-message TagQueryParam {
-  // The segment's state.
-  QuerySegmentState state = 1;
-  // The tag.
-  Tag tag = 2;
-
-  enum QuerySegmentState {
-    // The option indicating that results of search should not contain the tag.
-    Exclude = 0;
-    // The option indicating that searched item can contain given tag.
-    Include = 1;
-    // The option indicating that all returned items must contain given tag.
-    MustBePresent = 2;
-  }
 }
 
 // The reply containing tagged items than met query conditions.
