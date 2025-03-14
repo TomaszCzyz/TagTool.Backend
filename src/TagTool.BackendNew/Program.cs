@@ -17,13 +17,13 @@ using TagTool.BackendNew;
 using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Services.Grpc;
+using TagTool.BackendNew.Services.HostedServices;
 using TagTool.BackendNew.TaggableFile;
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
@@ -100,6 +100,8 @@ builder.Services.AddScoped<IQueuingHandler<CronMoveToCommonStorage, CronMoveToCo
 // event triggered jobs
 builder.Services.AddScoped<MoveToCommonStorage>();
 builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
+
+builder.Services.AddHostedService<NewFilesTagger>();
 
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();

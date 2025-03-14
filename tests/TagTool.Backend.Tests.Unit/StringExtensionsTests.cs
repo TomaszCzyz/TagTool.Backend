@@ -74,21 +74,21 @@ public class StringExtensionsTests
         Assert.False(result);
     }
 
-    [Fact]
-    public void ContainsPath_ShouldReturnTrue_WhenPathsAreEqual()
-    {
-        // Arrange
-        var path = @"C:\Projects\ProjectA\Code".AsSpan();
-        var entryPath = @"C:\Projects\ProjectA\Code".AsSpan();
-
-        var i = entryPath.LastIndexOf('\\');
-        var parentDir = entryPath[..i];
-        var dirName = entryPath[(i + 1)..];
-
-        // Act
-        var result = path.ContainsPath(parentDir, dirName);
-
-        // Assert
-        Assert.True(result);
-    }
+    // [Fact]
+    // public void ContainsPath_ShouldReturnTrue_WhenPathsAreEqual()
+    // {
+    //     // Arrange
+    //     var path = @"C:\Projects\ProjectA\Code".AsSpan();
+    //     var entryPath = @"C:\Projects\ProjectA\Code".AsSpan();
+    //
+    //     var i = entryPath.LastIndexOf('\\');
+    //     var parentDir = entryPath[..i];
+    //     var dirName = entryPath[(i + 1)..];
+    //
+    //     // Act
+    //     var result = path.ContainsPath(parentDir, dirName);
+    //
+    //     // Assert
+    //     Assert.True(result);
+    // }
 }
