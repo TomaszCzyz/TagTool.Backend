@@ -6,20 +6,11 @@ using Shouldly;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
-using TagTool.BackendNew.Invocables.Common;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Tests.Unit.Utilities;
 using Xunit;
 
 namespace TagTool.BackendNew.Tests.Unit.Services;
-
-public class TestInvocablePayload : PayloadWithQuery;
-
-public class TestInvocable : ICronTriggeredInvocable<TestInvocablePayload>
-{
-    public TestInvocablePayload Payload { get; set; } = null!;
-    public Task Invoke() => throw new NotImplementedException();
-}
 
 public class CronInvocableQueuingHandlerTests
 {
@@ -105,7 +96,7 @@ public class CronInvocableQueuingHandlerTests
             TagQuery = []
         };
 
-        _dbContext.CronTriggeredInvocableInfos.Find(_testInvocableId).Returns(testInfo);
+        _dbContext.CronTriggeredInvocableInfos.FindAsync(_testInvocableId).Returns(testInfo);
 
         var queuingHandlerType = typeof(IQueuingHandler<TestInvocable, TestInvocablePayload>);
         var queuingHandler = Substitute.For<IQueuingHandler<TestInvocable, TestInvocablePayload>>();
@@ -138,7 +129,7 @@ public class CronInvocableQueuingHandlerTests
             TagQuery = []
         };
 
-        _dbContext.CronTriggeredInvocableInfos.Find(_testInvocableId).Returns(testInfo);
+        _dbContext.CronTriggeredInvocableInfos.FindAsync(_testInvocableId).Returns(testInfo);
 
         var queuingHandlerType = typeof(IQueuingHandler<TestInvocable, TestInvocablePayload>);
         _serviceProvider.GetService(queuingHandlerType).Returns(Substitute.For<object>());

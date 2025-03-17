@@ -70,7 +70,7 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
             Args = request.Args
         };
 
-        await _invocablesManager.AddAndActivateJob(invocableDescriptor, context.CancellationToken);
+        await _invocablesManager.AddAndActivateInvocable(invocableDescriptor, context.CancellationToken);
 
         return new CreateInvocableReply();
     }

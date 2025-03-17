@@ -39,7 +39,7 @@ public class InvocablesManager
     /// </summary>
     /// <param name="invocableDescriptor"></param>
     /// <param name="cancellationToken"></param>
-    public async Task AddAndActivateJob(InvocableDescriptor invocableDescriptor, CancellationToken cancellationToken)
+    public async Task AddAndActivateInvocable(InvocableDescriptor invocableDescriptor, CancellationToken cancellationToken)
     {
         var invocableDefinition = _invocableDefinitions.Single(d => d.Id == invocableDescriptor.InvocableId);
 
@@ -96,34 +96,20 @@ public class InvocablesManager
         Type invocableType,
         string jsonPayload)
     {
-        var @interface = invocableType
-            .GetInterfaces()
-            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventTriggeredInvocable<>));
+        ValidateInterfaces(invocableType, typeof(IEventTriggeredInvocable<>), typeof(PayloadWithChangedItems), out var payloadExactType);
 
-        if (@interface is null)
-        {
-            throw new ArgumentException($"Event triggered by event must implement {typeof(IEventTriggeredInvocable<>).Name}");
-        }
-
-        var payloadType = @interface.GetGenericArguments()[0];
-
-        if (!payloadType.IsAssignableTo(typeof(PayloadWithChangedItems)))
-        {
-            throw new ArgumentException($"Payload of event triggered by event must be {nameof(PayloadWithChangedItems)}");
-        }
-
-        if (JsonSerializer.Deserialize(jsonPayload, payloadType) is not PayloadWithChangedItems payload)
+        if (JsonSerializer.Deserialize(jsonPayload, payloadExactType) is not PayloadWithChangedItems payload)
         {
             throw new ArgumentException("Incorrect Payload");
         }
 
-        ValidatePayload(payload, payloadType);
+        ValidatePayload(payload, payloadExactType);
 
         return new EventTriggeredInvocableInfo
         {
             Payload = jsonPayload,
             InvocableType = invocableType,
-            InvocablePayloadType = payloadType,
+            InvocablePayloadType = payloadExactType,
         };
     }
 
@@ -135,28 +121,14 @@ public class InvocablesManager
         // throws MalformedCronExpressionException for incorrect value
         _ = new CronExpression(trigger.CronExpression);
 
-        var @interface = invocableType
-            .GetInterfaces()
-            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICronTriggeredInvocable<>));
+        ValidateInterfaces(invocableType, typeof(ICronTriggeredInvocable<>), typeof(PayloadWithQuery), out var payloadExactType);
 
-        if (@interface is null)
-        {
-            throw new ArgumentException($"Event triggered by event must implement {typeof(ICronTriggeredInvocable<>).Name}");
-        }
-
-        var payloadType = @interface.GetGenericArguments()[0];
-
-        if (!payloadType.IsAssignableTo(typeof(PayloadWithQuery)))
-        {
-            throw new ArgumentException($"Payload of event triggered by event must be {nameof(PayloadWithQuery)}");
-        }
-
-        if (JsonSerializer.Deserialize(jsonPayload, payloadType) is not PayloadWithQuery payload)
+        if (JsonSerializer.Deserialize(jsonPayload, payloadExactType) is not PayloadWithQuery payload)
         {
             throw new ArgumentException("Incorrect Payload");
         }
 
-        ValidatePayload(payload, payloadType);
+        ValidatePayload(payload, payloadExactType);
 
         var queryTagIds = trigger.Query.Select(param => param.TagId).ToArray();
         var tagIds = _dbContext.Tags.Where(tag => queryTagIds.Contains(tag.Id)).ToList();
@@ -173,12 +145,36 @@ public class InvocablesManager
             TagQuery = trigger.Query
                 .Select(param => new TagQueryPart
                 {
-                    State = trigger.Query.First(queryParam => queryParam.TagId == param.TagId).State, Tag = tagIds.First(tag => tag.Id == param.TagId)
+                    State = trigger.Query.First(queryParam => queryParam.TagId == param.TagId).State,
+                    Tag = tagIds.First(tag => tag.Id == param.TagId)
                 })
                 .ToList(),
             Payload = jsonPayload,
-            InvocablePayloadType = payloadType
+            InvocablePayloadType = payloadExactType
         };
+    }
+
+    private static void ValidateInterfaces(
+        Type invocableType,
+        Type expectedInterfaceType,
+        Type expectedPayloadType,
+        out Type payloadType)
+    {
+        var @interface = invocableType
+            .GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == expectedInterfaceType);
+
+        if (@interface is null)
+        {
+            throw new ArgumentException($"Event triggered by event must implement {expectedInterfaceType.Name}");
+        }
+
+        payloadType = @interface.GetGenericArguments()[0];
+
+        if (!payloadType.IsAssignableTo(expectedPayloadType))
+        {
+            throw new ArgumentException($"Payload of event triggered by event must be {expectedPayloadType}");
+        }
     }
 
     private void ValidatePayload(object payload, Type payloadType)
