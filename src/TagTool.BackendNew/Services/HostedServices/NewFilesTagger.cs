@@ -21,8 +21,12 @@ public class NewFilesTagger : IHostedService, IDisposable
     private FileSystemWatcher? _watcher;
     private readonly NewFilesTaggerPayload _payload;
 
-    public NewFilesTagger(ILogger<NewFilesTagger> logger, IServiceScopeFactory scopeFactory)
+    public NewFilesTagger(ILogger<NewFilesTagger> logger, IServiceScopeFactory scopeFactory, IHostApplicationLifetime applicationLifetime)
     {
+        // CancellationToken token = _appLifetime.ApplicationStopping;
+        // return await DoSomethingAsync(token);
+        // applicationLifetime.ApplicationStopped.Register(() => StopAsync());
+
         _logger = logger;
         _scopeFactory = scopeFactory;
 
@@ -33,8 +37,6 @@ public class NewFilesTagger : IHostedService, IDisposable
         };
     }
 
-    // 1. single directory scan
-    // 2. launch file watcher
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting hosted service {HostedServiceName}", nameof(NewFilesTagger));

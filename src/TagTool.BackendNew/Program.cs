@@ -166,6 +166,9 @@ using (var scope = app.Services.CreateScope())
                 .ScheduleWithParams<CronInvocableQueuingHandler>(invocableInfo.Id)
                 .Cron(invocableInfo.CronExpression);
         }
+
+        var newFilesTagger = scope.ServiceProvider.GetRequiredService<NewFilesTagger>();
+        await newFilesTagger.StartAsync(CancellationToken.None);
     }
 }
 

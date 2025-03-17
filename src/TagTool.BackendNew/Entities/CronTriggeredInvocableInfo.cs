@@ -1,5 +1,3 @@
-using TagTool.BackendNew.Models;
-
 namespace TagTool.BackendNew.Entities;
 
 public class CronTriggeredInvocableInfo

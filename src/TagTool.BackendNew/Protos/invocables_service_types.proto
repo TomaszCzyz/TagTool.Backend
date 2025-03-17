@@ -36,6 +36,7 @@ message CreateInvocableRequest {
   oneof trigger {
     EventTrigger event_trigger = 3;
     CronTrigger cron_trigger = 4;
+    BackgroundTrigger background_trigger = 5;
   }
 }
 
@@ -48,4 +49,7 @@ message EventTrigger {
 message CronTrigger {
   string cron_expression = 1;
   repeated TagQueryParam queryParams = 2;
+}
+
+message BackgroundTrigger {
 }

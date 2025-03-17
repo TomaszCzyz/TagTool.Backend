@@ -143,7 +143,24 @@ public class InvocablesManager
 
                 break;
             }
+            case BackgroundTrigger trigger:
+            {
+                var info = ValidateBackgroundInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
+
+                info.Id = Guid.CreateVersion7();
+                _dbContext.HostedServiceInfos.Add(info);
+                _ = await _dbContext.SaveChangesAsync(cancellationToken);
+
+                // TODO: Start hosted service
+
+                break;
+            }
         }
+    }
+
+    private HostedServiceInfo ValidateBackgroundInvocable(BackgroundTrigger trigger, Type invocableType, string args)
+    {
+        throw new NotImplementedException();
     }
 
     private static bool IsInvocable(Type t)
@@ -236,7 +253,7 @@ public class InvocablesManager
                 })
                 .ToList(),
             Payload = jsonPayload,
-            InvocablePayloadType = payloadType,
+            InvocablePayloadType = payloadType
         };
     }
 

@@ -8,6 +8,7 @@ using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Notifications;
 using TagTool.BackendNew.Services.Grpc.Dtos;
+using BackgroundTrigger = TagTool.BackendNew.Models.BackgroundTrigger;
 using CronTrigger = TagTool.BackendNew.Models.CronTrigger;
 
 namespace TagTool.BackendNew.Services.Grpc;
@@ -58,6 +59,7 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
                 CronExpression = request.CronTrigger.CronExpression,
                 Query = request.CronTrigger.QueryParams.MapFromDto()
             },
+            CreateInvocableRequest.TriggerOneofCase.BackgroundTrigger => new BackgroundTrigger(),
             _ => throw new UnreachableException()
         };
 
