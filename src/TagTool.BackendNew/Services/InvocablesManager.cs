@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Schema;
 using Coravel.Scheduling.Schedule.Cron;
 using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
@@ -9,26 +7,10 @@ using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
-using TagTool.BackendNew.Extensions;
 using TagTool.BackendNew.Invocables.Common;
 using TagTool.BackendNew.Models;
 
 namespace TagTool.BackendNew.Services;
-
-public enum TriggerType
-{
-    Event,
-    Cron,
-}
-
-public record InvocableDefinition(
-    string Id,
-    string GroupId,
-    string DisplayName,
-    string Description,
-    string PayloadSchema,
-    TriggerType TriggerType,
-    Type InvocableType);
 
 public class InvocablesManager
 {
@@ -41,67 +23,13 @@ public class InvocablesManager
     public InvocablesManager(
         IServiceProvider serviceProvider,
         IScheduler scheduler,
-        ITagToolDbContext dbContext)
+        ITagToolDbContext dbContext,
+        InvocableDefinition[] invocableDefinitions)
     {
         _serviceProvider = serviceProvider;
         _scheduler = scheduler;
         _dbContext = dbContext;
-
-        _invocableDefinitions = GenerateInvocableDefinitions();
-    }
-
-    // TODO: cache this (this service is scoped)
-    private static InvocableDefinition[] GenerateInvocableDefinitions()
-    {
-        var invocableDescriptions = typeof(Program).Assembly.ExportedTypes
-            .Where(x => typeof(IInvocableDescriptionBase).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false })
-            .Select(type => (
-                Type: type
-                    .GetInterfaces()
-                    .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IInvocableDescription<>))
-                    .GetGenericArguments()
-                    .First(),
-                Instance: (IInvocableDescriptionBase)Activator.CreateInstance(type)!))
-            .ToDictionary(tuple => tuple.Type, tuple => tuple.Instance);
-
-        var invocables = typeof(Program).Assembly.ExportedTypes
-            .Where(t => IsInvocable(t) && t is { IsInterface: false, IsAbstract: false })
-            .ToList();
-
-        var options = new JsonSerializerOptions(JsonSerializerOptions.Default)
-        {
-            RespectNullableAnnotations = true,
-        };
-        JsonSchemaExporterOptions exporterOptions = new()
-        {
-            TreatNullObliviousAsNonNullable = true, TransformSchemaNode = TransformSchemaNode
-        };
-
-        List<InvocableDefinition> invocableDefinitions = [];
-        foreach (var type in invocables)
-        {
-            var schema = options.GetJsonSchemaAsNode(type, exporterOptions);
-
-            if (!invocableDescriptions.TryGetValue(type, out var description))
-            {
-                throw new InvalidOperationException($"No {typeof(IInvocableDescription<>).Name} implemented for Invocable {type.Name}.");
-            }
-
-            var triggerType = type.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>)) ? TriggerType.Event : TriggerType.Cron;
-
-            var invocableDescriptorDto = new InvocableDefinition(
-                description.Id,
-                description.GroupId,
-                description.DisplayName,
-                description.Description,
-                schema.ToJsonString(),
-                triggerType,
-                type);
-
-            invocableDefinitions.Add(invocableDescriptorDto);
-        }
-
-        return invocableDefinitions.ToArray();
+        _invocableDefinitions = invocableDefinitions;
     }
 
     public InvocableDefinition[] GetInvocableDefinitions() => _invocableDefinitions;
@@ -162,10 +90,6 @@ public class InvocablesManager
     {
         throw new NotImplementedException();
     }
-
-    private static bool IsInvocable(Type t)
-        => t.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>))
-           || t.ImplementsOpenGenericInterface(typeof(ICronTriggeredInvocable<>));
 
     private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(
         ItemTaggedTrigger _,
@@ -277,51 +201,5 @@ public class InvocablesManager
         {
             throw new ArgumentException($"Validation of Payload failed, errors: {string.Join("\n", result.Errors)}.");
         }
-    }
-
-    private static JsonNode TransformSchemaNode(JsonSchemaExporterContext context, JsonNode node)
-    {
-        // We are at Path properties.Payload.properties.<PayloadProperties>
-        // This is needed, because we want to describe only "root" properties.
-        if (context.Path.Length != 4)
-        {
-            return node;
-        }
-
-        var attributeProvider = context.PropertyInfo is not null
-            ? context.PropertyInfo.AttributeProvider
-            : context.TypeInfo.Type;
-
-        var specialTypeAttr = attributeProvider?
-            .GetCustomAttributes(inherit: true)
-            .Select(attr => attr as SpecialTypeAttribute)
-            .FirstOrDefault(attr => attr is not null);
-
-
-        if (specialTypeAttr == null)
-        {
-            return node;
-        }
-
-        if (node is not JsonObject jObj)
-        {
-            throw new NotImplementedException("Handle the case where the node is a boolean");
-        }
-
-        jObj.Remove("properties");
-
-        switch (specialTypeAttr.Type)
-        {
-            case SpecialTypeAttribute.Kind.DirectoryPath:
-                jObj.SetAt(jObj.IndexOf("type"), "directoryPath");
-                break;
-            case SpecialTypeAttribute.Kind.SingleTag:
-                jObj.SetAt(jObj.IndexOf("type"), "tag");
-                break;
-            default:
-                throw new NotSupportedException($"SpecialType {specialTypeAttr.Type} is not supported");
-        }
-
-        return node;
     }
 }

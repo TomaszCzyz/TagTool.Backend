@@ -1,6 +1,6 @@
 ﻿using Ganss.Text;
 
-namespace TagTool.BackendNew;
+namespace TagTool.BackendNew.Extensions;
 
 public static class WordMatchExtensions
 {

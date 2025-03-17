@@ -72,7 +72,7 @@ public class CronInvocableQueuingHandlerTests
         var cronTriggeredInvocableInfos = invocableInfos.AsQueryable().BuildMockDbSet();
 
         _dbContext.CronTriggeredInvocableInfos.Returns(cronTriggeredInvocableInfos);
-        _dbContext.CronTriggeredInvocableInfos.Find(_testInvocableId).Returns(testInfo);
+        _dbContext.CronTriggeredInvocableInfos.FindAsync(_testInvocableId).Returns(testInfo);
 
         var queuingHandlerType = typeof(IQueuingHandler<TestInvocable, TestInvocablePayload>);
         var queuingHandler = Substitute.For<IQueuingHandler<TestInvocable, TestInvocablePayload>>();

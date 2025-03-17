@@ -1,7 +1,5 @@
 using Coravel.Scheduling.Schedule.Interfaces;
 using NSubstitute;
-using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Services;
 using Xunit;
@@ -18,15 +16,11 @@ public class InvocablesManagerTests
 
     public InvocablesManagerTests()
     {
-        _sut = new InvocablesManager(_serviceProvider, _scheduler, _dbContext);
+        _sut = new InvocablesManager(_serviceProvider, _scheduler, _dbContext, []);
     }
 
     [Fact]
     public void Ctor()
     {
-        var invocablesManager = new InvocablesManager(
-            _serviceProvider,
-            _scheduler,
-            _dbContext);
     }
 }

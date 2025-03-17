@@ -25,13 +25,13 @@ public class CronInvocableQueuingHandler : IInvocable
         _serviceProvider = serviceProvider;
     }
 
-    public Task Invoke()
+    public async Task Invoke()
     {
-        var info = _dbContext.CronTriggeredInvocableInfos.Find(_invocableId);
+        var info = await _dbContext.CronTriggeredInvocableInfos.FindAsync(_invocableId);
         if (info is null)
         {
             _logger.LogError("Invocable not found");
-            return Task.CompletedTask;
+            return;
         }
 
         var queuingHandlerType = typeof(IQueuingHandler<,>).MakeGenericType(info.InvocableType, info.InvocablePayloadType);
@@ -58,11 +58,10 @@ public class CronInvocableQueuingHandler : IInvocable
         if (payload is null)
         {
             _logger.LogError("Unable to deserialize payload");
-            return Task.CompletedTask;
+            return;
         }
 
         _logger.LogInformation("Queuing cron-triggered invocable {@InvocableInfo}", info);
         handler.Queue(payload);
-        return Task.CompletedTask;
     }
 }

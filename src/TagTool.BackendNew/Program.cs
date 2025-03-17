@@ -19,6 +19,7 @@ using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Extensions;
 using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
@@ -90,6 +91,8 @@ builder.Services.AddSingleton<ITaggableItemManager<TaggableItem>, TaggableItemMa
 builder.Services.AddSingleton<TaggableItemMapper>();
 
 builder.Services.AddScoped<TaggableFileManager>();
+
+builder.Services.AddInvocableDefinitions();
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
@@ -100,6 +103,9 @@ builder.Services.AddScoped<IQueuingHandler<CronMoveToCommonStorage, CronMoveToCo
 // event triggered jobs
 builder.Services.AddScoped<MoveToCommonStorage>();
 builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
+
+// background jobs
+builder.Services.AddScoped<NewFilesTagger>();
 
 builder.Services.AddHostedService<NewFilesTagger>();
 

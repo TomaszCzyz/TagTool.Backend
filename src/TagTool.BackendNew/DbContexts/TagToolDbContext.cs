@@ -24,7 +24,6 @@ public sealed class TagToolDbContext : DbContext, ITagToolDbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TagToolDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
 
-        // Ignore CustomAttributeData explicitly
-        // modelBuilder.Ignore<CustomAttributeData>();
+        modelBuilder.Ignore<Type>();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace TagTool.BackendNew;
+﻿namespace TagTool.BackendNew.Extensions;
 
 public static class StringExtensions // todo: optimize with span<char>
 {
