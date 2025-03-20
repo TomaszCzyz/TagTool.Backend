@@ -1,8 +1,6 @@
 using Coravel.Scheduling.Schedule.Interfaces;
-using Newtonsoft.Json;
 using NSubstitute;
 using Shouldly;
-using TagTool.Backend.Models.Tags;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
@@ -17,7 +15,7 @@ namespace TagTool.BackendNew.Tests.Unit.Services;
 
 public class InvocablesManagerTests
 {
-    private InvocablesManager _sut;
+    private readonly InvocablesManager _sut;
 
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
     private readonly IScheduler _scheduler = Substitute.For<IScheduler>();
