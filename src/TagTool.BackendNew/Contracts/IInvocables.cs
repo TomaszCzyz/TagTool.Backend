@@ -8,3 +8,6 @@ public interface IEventTriggeredInvocable<TPayload> : IInvocable, IInvocableWith
 
 public interface ICronTriggeredInvocable<TPayload> : IInvocable, IInvocableWithPayload<TPayload>
     where TPayload : PayloadWithQuery;
+
+public interface IBackgroundInvocable<TPayload> : IInvocable, IInvocableWithPayload<TPayload>
+    where TPayload : PayloadWithQuery;

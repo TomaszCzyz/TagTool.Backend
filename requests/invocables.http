@@ -1,0 +1,48 @@
+### Get Invocable definitions
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/GetInvocablesDescriptions
+Content-Type: application/json
+
+### Create event-triggered invocable
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateInvocable
+Content-Type: application/json
+
+{
+  "invocable_id": "418B5746",
+  "event_trigger": {},
+  "args": "{\"CommonStoragePath\":\"/home/tczyz/Documents/TagTool/CommonStorage\"}"
+}
+
+### Create cron-triggered invocable
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateInvocable
+Content-Type: application/json
+
+{
+  "invocable_id": "FF0969B2",
+  "cron_trigger": {
+    "cron_expression": "* * * * *",
+    "queryParams": [
+      {
+        "tagId": 1,
+        "state": "Include"
+      }
+    ]
+  },
+  "args": "{\"CommonStoragePathString\":\"null\",\"Path\":\"null\",\"TagId\":0}"
+}
+
+### Create background invocable
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/CreateInvocable
+Content-Type: application/json
+
+{
+  "invocable_id": "772ECE0B",
+  "background_trigger": {},
+  "args": "{\"Path\":\"/home/tczyz/Documents/TagTool/TagToolPlayground\",\"TagIds\":[5]}"
+}
+
+###
+GRPC localhost:5280/TagToolBackendNew.InvocablesService/BroadcastEvent
+Content-Type: application/json
+
+{
+}

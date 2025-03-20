@@ -1,40 +1,43 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Invocables.Common;
 
-namespace TagTool.BackendNew.Services.HostedServices;
+namespace TagTool.BackendNew.Invocables;
 
-public class NewFilesTaggerPayload
+public class NewFilesTaggerPayload : PayloadWithQuery
 {
     public string Path { get; init; } = string.Empty;
     public List<int> TagIds { get; init; } = [];
 }
 
 // ensure ONLY one instance is running
-public class NewFilesTagger : IHostedService, IDisposable
+public class NewFilesTagger : IHostedService, IDisposable, IBackgroundInvocable<NewFilesTaggerPayload>
 {
     private readonly ILogger<NewFilesTagger> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
 
     private ITagToolDbContext? _dbContext;
     private FileSystemWatcher? _watcher;
-    private readonly NewFilesTaggerPayload _payload;
+
+    // private readonly NewFilesTaggerPayload _payload;
+    public NewFilesTaggerPayload Payload { get; set; }
 
     public NewFilesTagger(ILogger<NewFilesTagger> logger, IServiceScopeFactory scopeFactory, IHostApplicationLifetime applicationLifetime)
     {
-        // CancellationToken token = _appLifetime.ApplicationStopping;
-        // return await DoSomethingAsync(token);
-        // applicationLifetime.ApplicationStopped.Register(() => StopAsync());
-
         _logger = logger;
         _scopeFactory = scopeFactory;
 
-        _payload = new NewFilesTaggerPayload
+        Payload = new NewFilesTaggerPayload
         {
             Path = "/home/tczyz/Documents/TagTool/TagToolPlayground",
             TagIds = [5]
         };
+
+        // TODO: make sure that this is a valid approach
+        applicationLifetime.ApplicationStopped.Register(() => StopAsync(CancellationToken.None));
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -45,7 +48,7 @@ public class NewFilesTagger : IHostedService, IDisposable
         _dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContext>();
 
         var tags = await _dbContext.Tags
-            .Where(t => _payload.TagIds.Contains(t.Id))
+            .Where(t => Payload.TagIds.Contains(t.Id))
             .ToArrayAsync(cancellationToken);
 
         if (tags.Length == 0)
@@ -55,8 +58,8 @@ public class NewFilesTagger : IHostedService, IDisposable
             return;
         }
 
-        await OneTimeScan(_payload, tags, cancellationToken);
-        LaunchFileWatcher(_payload);
+        await OneTimeScan(Payload, tags, cancellationToken);
+        LaunchFileWatcher(Payload);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -107,7 +110,7 @@ public class NewFilesTagger : IHostedService, IDisposable
         var dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContext>();
 
         var tags = dbContext.Tags
-            .Where(t => _payload.TagIds.Contains(t.Id))
+            .Where(t => Payload.TagIds.Contains(t.Id))
             .ToList();
 
         if (tags.Count == 0)
@@ -251,4 +254,6 @@ public class NewFilesTagger : IHostedService, IDisposable
         GC.SuppressFinalize(this);
         _watcher?.Dispose();
     }
+
+    public Task Invoke() => throw new NotSupportedException("Hosted services are run via StartAsync method");
 }

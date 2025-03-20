@@ -4,6 +4,7 @@ public enum TriggerType
 {
     Event,
     Cron,
+    Background,
 }
 
 public record InvocableDefinition(

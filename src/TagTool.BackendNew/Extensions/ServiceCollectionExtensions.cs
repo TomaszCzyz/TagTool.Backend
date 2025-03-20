@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
                 throw new InvalidOperationException($"No {typeof(IInvocableDescription<>).Name} implemented for Invocable {type.Name}.");
             }
 
-            var triggerType = type.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>)) ? TriggerType.Event : TriggerType.Cron;
+            var triggerType = GetTriggerType(type);
 
             var invocableDescriptorDto = new InvocableDefinition(
                 description.Id,
@@ -63,9 +63,30 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    private static TriggerType GetTriggerType(Type type)
+    {
+        if (type.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>)))
+        {
+            return TriggerType.Event;
+        }
+
+        if (type.ImplementsOpenGenericInterface(typeof(ICronTriggeredInvocable<>)))
+        {
+            return TriggerType.Cron;
+        }
+
+        if (type.IsAssignableTo(typeof(IHostedService)))
+        {
+            return TriggerType.Background;
+        }
+
+        throw new NotSupportedException("Unknown Trigger type.");
+    }
+
     private static bool IsInvocable(Type t)
         => t.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>))
-           || t.ImplementsOpenGenericInterface(typeof(ICronTriggeredInvocable<>));
+           || t.ImplementsOpenGenericInterface(typeof(ICronTriggeredInvocable<>))
+           || t.IsAssignableTo(typeof(IBackgroundInvocable<>));
 
     private static JsonNode TransformSchemaNode(JsonSchemaExporterContext context, JsonNode node)
     {

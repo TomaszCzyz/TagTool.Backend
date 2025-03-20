@@ -1,4 +1,5 @@
 using Coravel.Scheduling.Schedule.Interfaces;
+using MockQueryable.NSubstitute;
 using NSubstitute;
 using Shouldly;
 using TagTool.BackendNew.Contracts;
@@ -80,6 +81,10 @@ public class InvocablesManagerTests
             },
             Args = _testJsonPayload
         };
+        var tags = new List<TagBase> { new() { Id = 5, Text = "testTagText" } };
+        var tagsMock = tags.AsQueryable().BuildMockDbSet();
+
+        _dbContext.Tags.Returns(tagsMock);
 
         // Act
         await _sut.AddAndActivateInvocable(invocableDescriptor, CancellationToken.None);

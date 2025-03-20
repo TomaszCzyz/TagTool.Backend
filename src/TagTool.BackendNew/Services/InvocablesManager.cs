@@ -79,16 +79,34 @@ public class InvocablesManager
                 _dbContext.HostedServiceInfos.Add(info);
                 _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
-                // TODO: Start hosted service
+                var service = (IHostedService)_serviceProvider.GetRequiredService(info.HostedServiceType);
+                await service.StartAsync(cancellationToken);
 
                 break;
             }
         }
     }
 
-    private HostedServiceInfo ValidateBackgroundInvocable(BackgroundTrigger trigger, Type invocableType, string args)
+    private HostedServiceInfo ValidateBackgroundInvocable(
+        BackgroundTrigger trigger,
+        Type invocableType,
+        string jsonPayload)
     {
-        throw new NotImplementedException();
+        ValidateInterfaces(invocableType, typeof(IBackgroundInvocable<>), typeof(PayloadWithQuery), out var payloadExactType);
+
+        if (JsonSerializer.Deserialize(jsonPayload, payloadExactType) is not PayloadWithQuery payload)
+        {
+            throw new ArgumentException("Incorrect Payload");
+        }
+
+        ValidatePayload(payload, payloadExactType);
+
+        return new HostedServiceInfo
+        {
+            HostedServiceType = invocableType,
+            HostedServicePayloadType = payloadExactType,
+            Payload = jsonPayload,
+        };
     }
 
     private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(
@@ -166,7 +184,7 @@ public class InvocablesManager
 
         if (@interface is null)
         {
-            throw new ArgumentException($"Event triggered by event must implement {expectedInterfaceType.Name}");
+            throw new ArgumentException($"Invocable {invocableType.Name} does not implement {expectedInterfaceType.Name}");
         }
 
         payloadType = @interface.GetGenericArguments()[0];

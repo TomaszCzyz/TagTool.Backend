@@ -24,7 +24,6 @@ using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Services.Grpc;
-using TagTool.BackendNew.Services.HostedServices;
 using TagTool.BackendNew.TaggableFile;
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
@@ -49,7 +48,7 @@ builder.Host.UseSerilog((_, configuration) =>
         .Enrich.WithProcessId()
         .Enrich.WithProcessName()
         .Enrich.WithExceptionDetails()
-        .WriteTo.Seq("http://localhost:5341")
+        .WriteTo.Seq("http://localhost:5341", formatProvider: CultureInfo.CurrentCulture)
         .WriteTo.File(
             new CompactJsonFormatter(),
             $"{Constants.BasePath}/Logs/logs.json",
@@ -106,8 +105,7 @@ builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStor
 
 // background jobs
 builder.Services.AddScoped<NewFilesTagger>();
-
-builder.Services.AddHostedService<NewFilesTagger>();
+// builder.Services.AddHostedService<NewFilesTagger>();
 
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
@@ -173,8 +171,13 @@ using (var scope = app.Services.CreateScope())
                 .Cron(invocableInfo.CronExpression);
         }
 
-        var newFilesTagger = scope.ServiceProvider.GetRequiredService<NewFilesTagger>();
-        await newFilesTagger.StartAsync(CancellationToken.None);
+        app.Logger.LogInformation("Starting hosted services...");
+        await foreach (var serviceInfo in db.HostedServiceInfos)
+        {
+            var service = (IHostedService)scope.ServiceProvider.GetRequiredService(serviceInfo.HostedServiceType);
+            var applicationLifetime = scope.ServiceProvider.GetRequiredService<IHostApplicationLifetime>();
+            await service.StartAsync(applicationLifetime.ApplicationStopping);
+        }
     }
 }
 
