@@ -75,7 +75,7 @@ public static class ServiceCollectionExtensions
             return TriggerType.Cron;
         }
 
-        if (type.IsAssignableTo(typeof(IHostedService)))
+        if (type.ImplementsOpenGenericInterface(typeof(IBackgroundInvocable<>)))
         {
             return TriggerType.Background;
         }
@@ -86,7 +86,7 @@ public static class ServiceCollectionExtensions
     private static bool IsInvocable(Type t)
         => t.ImplementsOpenGenericInterface(typeof(IEventTriggeredInvocable<>))
            || t.ImplementsOpenGenericInterface(typeof(ICronTriggeredInvocable<>))
-           || t.IsAssignableTo(typeof(IBackgroundInvocable<>));
+           || t.ImplementsOpenGenericInterface(typeof(IBackgroundInvocable<>));
 
     private static JsonNode TransformSchemaNode(JsonSchemaExporterContext context, JsonNode node)
     {

@@ -13,7 +13,7 @@ public sealed class TagToolDbContext : DbContext, ITagToolDbContext
 
     public DbSet<EventTriggeredInvocableInfo> EventTriggeredInvocableInfos => Set<EventTriggeredInvocableInfo>();
 
-    public DbSet<HostedServiceInfo> HostedServiceInfos => Set<HostedServiceInfo>();
+    public DbSet<BackgroundInvocableInfo> BackgroundInvocableInfos => Set<BackgroundInvocableInfo>();
 
     public TagToolDbContext(DbContextOptions<TagToolDbContext> options) : base(options)
     {

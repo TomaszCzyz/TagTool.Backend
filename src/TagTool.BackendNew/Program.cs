@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Coravel;
+using Coravel.Invocable;
 using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
 using MediatR.NotificationPublishers;
@@ -105,7 +106,6 @@ builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStor
 
 // background jobs
 builder.Services.AddScoped<NewFilesTagger>();
-// builder.Services.AddHostedService<NewFilesTagger>();
 
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
@@ -172,11 +172,10 @@ using (var scope = app.Services.CreateScope())
         }
 
         app.Logger.LogInformation("Starting hosted services...");
-        await foreach (var serviceInfo in db.HostedServiceInfos)
+        await foreach (var serviceInfo in db.BackgroundInvocableInfos)
         {
-            var service = (IHostedService)scope.ServiceProvider.GetRequiredService(serviceInfo.HostedServiceType);
-            var applicationLifetime = scope.ServiceProvider.GetRequiredService<IHostApplicationLifetime>();
-            await service.StartAsync(applicationLifetime.ApplicationStopping);
+            var service = (IInvocable)scope.ServiceProvider.GetRequiredService(serviceInfo.InvocableType);
+            await service.Invoke();
         }
     }
 }

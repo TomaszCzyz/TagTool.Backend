@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Coravel.Invocable;
 using Coravel.Scheduling.Schedule.Cron;
 using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
@@ -37,8 +38,6 @@ public class InvocablesManager
     /// <summary>
     /// Add invocable to storage and active it based on trigger type
     /// </summary>
-    /// <param name="invocableDescriptor"></param>
-    /// <param name="cancellationToken"></param>
     public async Task AddAndActivateInvocable(InvocableDescriptor invocableDescriptor, CancellationToken cancellationToken)
     {
         var invocableDefinition = _invocableDefinitions.Single(d => d.Id == invocableDescriptor.InvocableId);
@@ -76,18 +75,18 @@ public class InvocablesManager
                 var info = ValidateBackgroundInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
 
                 info.Id = Guid.CreateVersion7();
-                _dbContext.HostedServiceInfos.Add(info);
+                _dbContext.BackgroundInvocableInfos.Add(info);
                 _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
-                var service = (IHostedService)_serviceProvider.GetRequiredService(info.HostedServiceType);
-                await service.StartAsync(cancellationToken);
+                var service = (IInvocable)_serviceProvider.GetRequiredService(info.InvocableType);
+                await service.Invoke();
 
                 break;
             }
         }
     }
 
-    private HostedServiceInfo ValidateBackgroundInvocable(
+    private BackgroundInvocableInfo ValidateBackgroundInvocable(
         BackgroundTrigger trigger,
         Type invocableType,
         string jsonPayload)
@@ -101,10 +100,10 @@ public class InvocablesManager
 
         ValidatePayload(payload, payloadExactType);
 
-        return new HostedServiceInfo
+        return new BackgroundInvocableInfo
         {
-            HostedServiceType = invocableType,
-            HostedServicePayloadType = payloadExactType,
+            InvocableType = invocableType,
+            InvocablePayloadType = payloadExactType,
             Payload = jsonPayload,
         };
     }

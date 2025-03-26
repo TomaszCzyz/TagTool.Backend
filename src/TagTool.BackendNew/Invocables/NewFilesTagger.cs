@@ -13,22 +13,25 @@ public class NewFilesTaggerPayload : PayloadWithQuery
     public List<int> TagIds { get; init; } = [];
 }
 
-// ensure ONLY one instance is running
-public class NewFilesTagger : IHostedService, IDisposable, IBackgroundInvocable<NewFilesTaggerPayload>
+// TODO: ensure ONLY one instance is running
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
+// Fields is disposed manually when application is stopping.
+public class NewFilesTagger : IBackgroundInvocable<NewFilesTaggerPayload>
 {
     private readonly ILogger<NewFilesTagger> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IHostApplicationLifetime _applicationLifetime;
 
     private ITagToolDbContext? _dbContext;
     private FileSystemWatcher? _watcher;
 
-    // private readonly NewFilesTaggerPayload _payload;
     public NewFilesTaggerPayload Payload { get; set; }
 
     public NewFilesTagger(ILogger<NewFilesTagger> logger, IServiceScopeFactory scopeFactory, IHostApplicationLifetime applicationLifetime)
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _applicationLifetime = applicationLifetime;
 
         Payload = new NewFilesTaggerPayload
         {
@@ -37,19 +40,19 @@ public class NewFilesTagger : IHostedService, IDisposable, IBackgroundInvocable<
         };
 
         // TODO: make sure that this is a valid approach
-        applicationLifetime.ApplicationStopped.Register(() => StopAsync(CancellationToken.None));
+        applicationLifetime.ApplicationStopped.Register(() => _watcher?.Dispose());
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task Invoke()
     {
-        _logger.LogInformation("Starting hosted service {HostedServiceName}", nameof(NewFilesTagger));
+        _logger.LogInformation("Starting Background Invocable {BackgroundInvocableName}", nameof(NewFilesTagger));
 
         using var serviceScope = _scopeFactory.CreateScope();
         _dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContext>();
 
         var tags = await _dbContext.Tags
             .Where(t => Payload.TagIds.Contains(t.Id))
-            .ToArrayAsync(cancellationToken);
+            .ToArrayAsync(_applicationLifetime.ApplicationStopping);
 
         if (tags.Length == 0)
         {
@@ -58,14 +61,8 @@ public class NewFilesTagger : IHostedService, IDisposable, IBackgroundInvocable<
             return;
         }
 
-        await OneTimeScan(Payload, tags, cancellationToken);
+        await OneTimeScan(Payload, tags, _applicationLifetime.ApplicationStopping);
         LaunchFileWatcher(Payload);
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        Dispose();
-        return Task.CompletedTask;
     }
 
     private void LaunchFileWatcher(NewFilesTaggerPayload payload)
@@ -248,12 +245,4 @@ public class NewFilesTagger : IHostedService, IDisposable, IBackgroundInvocable<
             _dbContext.Set<TaggableFile.TaggableFile>().Add(taggableFile);
         }
     }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        _watcher?.Dispose();
-    }
-
-    public Task Invoke() => throw new NotSupportedException("Hosted services are run via StartAsync method");
 }
