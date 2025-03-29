@@ -3,8 +3,8 @@ using Ganss.Text;
 using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.DbContexts;
 using TagTool.BackendNew.Extensions;
 using TagTool.BackendNew.Models;
 

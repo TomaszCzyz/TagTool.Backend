@@ -1,4 +1,6 @@
-﻿namespace TagTool.BackendNew.Entities;
+﻿using TagTool.BackendNew.Contracts;
+
+namespace TagTool.BackendNew.Entities;
 
 /// <summary>
 ///     'Join class' between <see cref="TagBase"/> and <see cref="TaggableItem" />.

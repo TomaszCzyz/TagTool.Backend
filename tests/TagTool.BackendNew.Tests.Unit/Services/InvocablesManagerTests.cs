@@ -3,6 +3,7 @@ using MockQueryable.NSubstitute;
 using NSubstitute;
 using Shouldly;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Models;
@@ -10,7 +11,7 @@ using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Tests.Unit.Utilities;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
-using TagBase = TagTool.BackendNew.Entities.TagBase;
+using TagBase = TagTool.BackendNew.Contracts.TagBase;
 
 namespace TagTool.BackendNew.Tests.Unit.Services;
 
@@ -20,7 +21,7 @@ public class InvocablesManagerTests
 
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
     private readonly IScheduler _scheduler = Substitute.For<IScheduler>();
-    private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
+    private readonly ITagToolDbContextExtended _dbContext = Substitute.For<ITagToolDbContextExtended>();
 
     private readonly string _testJsonPayload;
     private readonly InvocableDefinition _testInvocableDefinition;

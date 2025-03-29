@@ -45,4 +45,8 @@
     <Protobuf Include="Protos/invocables_service_types.proto" GrpcServices="None" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TagTool.BackendNew.Contracts\TagTool.BackendNew.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -3,7 +3,7 @@ using OneOf;
 using OneOf.Types;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Internal;
-using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.Services;
 
 namespace TagTool.BackendNew.Commands;
@@ -36,7 +36,7 @@ public class AddItemCommandHandler : ICommandHandler<AddItem, Response>
 
     public async Task<Response> Handle(AddItem request, CancellationToken cancellationToken)
     {
-        var taggableItem = _taggableItemMapper.MapToObj(request.ItemType, request.ItemArgs);
+        var taggableItem = _taggableItemMapper.MapFromString(request.ItemType, request.ItemArgs);
         var existingItem = await _taggableItemManager.GetItem(taggableItem, cancellationToken);
 
         if (existingItem is not null)

@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.Commands;
 
@@ -19,9 +19,9 @@ public class CreateTag : ICommand<Response>
 public class CreateTagCommandHandler : ICommandHandler<CreateTag, Response>
 {
     private readonly ILogger<CreateTagCommandHandler> _logger;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
-    public CreateTagCommandHandler(ILogger<CreateTagCommandHandler> logger, ITagToolDbContext dbContext)
+    public CreateTagCommandHandler(ILogger<CreateTagCommandHandler> logger, ITagToolDbContextExtended dbContext)
     {
         _dbContext = dbContext;
         _logger = logger;

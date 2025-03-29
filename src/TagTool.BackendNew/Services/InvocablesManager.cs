@@ -6,9 +6,10 @@ using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Invocables;
+using TagTool.BackendNew.Contracts.Invocables.Common;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
-using TagTool.BackendNew.Invocables.Common;
 using TagTool.BackendNew.Models;
 
 namespace TagTool.BackendNew.Services;
@@ -17,14 +18,14 @@ public class InvocablesManager
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IScheduler _scheduler;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
     private readonly InvocableDefinition[] _invocableDefinitions;
 
     public InvocablesManager(
         IServiceProvider serviceProvider,
         IScheduler scheduler,
-        ITagToolDbContext dbContext,
+        ITagToolDbContextExtended dbContext,
         InvocableDefinition[] invocableDefinitions)
     {
         _serviceProvider = serviceProvider;

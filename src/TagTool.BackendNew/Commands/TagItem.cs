@@ -1,9 +1,9 @@
 ﻿using JetBrains.Annotations;
 using OneOf;
 using OneOf.Types;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.Commands;
 
@@ -20,9 +20,9 @@ public class TagItem : ICommand<Response>
 public class TagItemRequestHandler : ICommandHandler<TagItem, Response>
 {
     private readonly ILogger<TagItem> _logger;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
-    public TagItemRequestHandler(ILogger<TagItem> logger, ITagToolDbContext dbContext)
+    public TagItemRequestHandler(ILogger<TagItem> logger, ITagToolDbContextExtended dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

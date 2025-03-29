@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Contracts;
 
 namespace TagTool.BackendNew.DbContexts.Configurations;
 

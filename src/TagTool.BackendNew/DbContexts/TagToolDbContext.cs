@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.DbContexts;
 
-public sealed class TagToolDbContext : DbContext, ITagToolDbContext
+public sealed class TagToolDbContext : DbContext, ITagToolDbContextExtended
 {
     public DbSet<TagBase> Tags => Set<TagBase>();
 

@@ -15,17 +15,17 @@ using Serilog.Exceptions;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Compact;
 using TagTool.BackendNew;
-using TagTool.BackendNew.Broadcasting;
 using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Broadcasting;
+using TagTool.BackendNew.Contracts.DbContexts;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Extensions;
 using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Services.Grpc;
-using TagTool.BackendNew.TaggableFile;
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
 var builder = WebApplication.CreateBuilder(args);
@@ -90,9 +90,8 @@ builder.Services.AddSingleton<IOperationManger, OperationManger>();
 builder.Services.AddSingleton<ITaggableItemManager<TaggableItem>, TaggableItemManagerDispatcher>();
 builder.Services.AddSingleton<TaggableItemMapper>();
 
-builder.Services.AddScoped<TaggableFileManager>();
-
 builder.Services.AddInvocableDefinitions();
+builder.Services.AddTaggableMappers();
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
@@ -105,7 +104,7 @@ builder.Services.AddScoped<MoveToCommonStorage>();
 builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
 
 // background jobs
-builder.Services.AddScoped<NewFilesTagger>();
+// builder.Services.AddSingleton<NewFilesTagger>();
 
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();
@@ -155,7 +154,7 @@ app.Services
 
 using (var scope = app.Services.CreateScope())
 {
-    await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
+    await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContextExtended>())
     {
         app.Logger.LogInformation("Executing migrations...");
         // it freezes with .NET 9 nuget versions, use cli for now

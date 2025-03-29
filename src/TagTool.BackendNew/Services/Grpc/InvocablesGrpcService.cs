@@ -2,11 +2,10 @@
 using Coravel.Queuing.Interfaces;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using TagTool.BackendNew.Broadcasting;
-using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Broadcasting;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Models;
-using TagTool.BackendNew.Notifications;
 using TagTool.BackendNew.Services.Grpc.Dtos;
 using BackgroundTrigger = TagTool.BackendNew.Models.BackgroundTrigger;
 using CronTrigger = TagTool.BackendNew.Models.CronTrigger;

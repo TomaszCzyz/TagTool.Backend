@@ -1,25 +1,36 @@
-using System.Text.Json;
-using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Contracts;
 
 namespace TagTool.BackendNew.Services;
 
 public class TaggableItemMapper
 {
-    public TaggableItem MapToObj(string type, string taggableItem)
+    private readonly Dictionary<string, ITaggableItemMapper> _stringTypeToMapper;
+    private readonly Dictionary<Type, ITaggableItemMapper> _typeToMapper;
+
+    public TaggableItemMapper(IEnumerable<ITaggableItemMapper> mappers)
     {
-        return type switch
-        {
-            "file" => JsonSerializer.Deserialize<TaggableFile.TaggableFile>(taggableItem, JsonSerializerOptions.Web)!,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-        };
+        var taggableItemMappers = mappers as ITaggableItemMapper[] ?? mappers.ToArray();
+        _stringTypeToMapper = taggableItemMappers.ToDictionary(mapper => mapper.ItemType, StringComparer.OrdinalIgnoreCase);
+        _typeToMapper = taggableItemMappers.ToDictionary(mapper => mapper.SelfType);
     }
 
-    public (string Type, string Payload) MapFromObj(TaggableItem item)
+    public TaggableItem MapFromString(string type, string payload)
     {
-        return item switch
+        if (_stringTypeToMapper.TryGetValue(type, out var mapper))
         {
-            TaggableFile.TaggableFile file => (Type: "file", Payload: JsonSerializer.Serialize(file, JsonSerializerOptions.Web)),
-            _ => throw new ArgumentOutOfRangeException(nameof(item), item, null)
-        };
+            return mapper.MapFromString(payload);
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(type), type, null);
+    }
+
+    public (string Type, string Payload) MapToString(TaggableItem item)
+    {
+        if (_typeToMapper.TryGetValue(item.GetType(), out var mapper))
+        {
+            return mapper.MapToString(item);
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(item), item, null);
     }
 }

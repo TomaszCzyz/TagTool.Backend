@@ -1,3 +1,5 @@
+using TagTool.BackendNew.Contracts;
+
 namespace TagTool.BackendNew.Entities;
 
 public class CronTriggeredInvocableInfo

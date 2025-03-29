@@ -1,5 +1,5 @@
-using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Invocables.Common;
+using TagTool.BackendNew.Contracts.Invocables;
+using TagTool.BackendNew.Contracts.Invocables.Common;
 
 namespace TagTool.BackendNew.Tests.Unit.Utilities;
 

@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using OneOf;
 using OneOf.Types;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.Commands;
 
@@ -21,9 +21,9 @@ public class DeleteTagRequest : ICommand<Response>
 public class DeleteTag : ICommandHandler<DeleteTagRequest, Response>
 {
     private readonly ILogger<DeleteTag> _logger;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
-    public DeleteTag(ILogger<DeleteTag> logger, ITagToolDbContext dbContext)
+    public DeleteTag(ILogger<DeleteTag> logger, ITagToolDbContextExtended dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

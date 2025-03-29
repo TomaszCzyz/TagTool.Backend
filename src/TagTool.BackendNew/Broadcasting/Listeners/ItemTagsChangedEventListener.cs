@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Coravel.Events.Interfaces;
-using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Broadcasting;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 
 namespace TagTool.BackendNew.Broadcasting.Listeners;
@@ -9,12 +10,12 @@ public class ItemTagsChangedEventListener : IListener<ItemTagsChangedEvent>
 {
     private readonly ILogger<ItemTagsChangedEventListener> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
     public ItemTagsChangedEventListener(
         ILogger<ItemTagsChangedEventListener> logger,
         IServiceProvider serviceProvider,
-        ITagToolDbContext dbContext)
+        ITagToolDbContextExtended dbContext)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;

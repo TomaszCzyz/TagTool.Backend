@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using MockQueryable.NSubstitute;
 using NSubstitute;
 using Shouldly;
-using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
 using TagTool.BackendNew.Services;
@@ -17,7 +17,7 @@ public class CronInvocableQueuingHandlerTests
     private readonly CronInvocableQueuingHandler _sut;
 
     private readonly ILogger<CronInvocableQueuingHandler> _logger = Substitute.For<ILogger<CronInvocableQueuingHandler>>();
-    private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
+    private readonly ITagToolDbContextExtended _dbContext = Substitute.For<ITagToolDbContextExtended>();
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
 
     private readonly Guid _testInvocableId = Guid.NewGuid();

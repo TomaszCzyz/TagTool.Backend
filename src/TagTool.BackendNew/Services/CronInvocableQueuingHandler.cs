@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Coravel.Invocable;
-using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 
 namespace TagTool.BackendNew.Services;
@@ -9,13 +9,13 @@ public class CronInvocableQueuingHandler : IInvocable
 {
     private readonly ILogger<CronInvocableQueuingHandler> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
     private readonly Guid _invocableId;
 
     public CronInvocableQueuingHandler(
         ILogger<CronInvocableQueuingHandler> logger,
-        ITagToolDbContext dbContext,
+        ITagToolDbContextExtended dbContext,
         IServiceProvider serviceProvider,
         Guid invocableId)
     {

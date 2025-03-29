@@ -25,6 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew.Tests.Un
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew.Tests.Integration", "tests\TagTool.BackendNew.Tests.Integration\TagTool.BackendNew.Tests.Integration.csproj", "{7177444C-A1ED-4F3F-B758-617F697921A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew.TaggableItems.TaggableFile", "src\TagTool.BackendNew.TaggableItems.TaggableFile\TagTool.BackendNew.TaggableItems.TaggableFile.csproj", "{3D5C5B93-CF74-421E-A302-36E67D9E2259}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TagTool.BackendNew.Contracts", "src\TagTool.BackendNew.Contracts\TagTool.BackendNew.Contracts.csproj", "{FA19F429-58A8-4404-BF68-F6D715C004AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,5 +63,13 @@ Global
 		{7177444C-A1ED-4F3F-B758-617F697921A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7177444C-A1ED-4F3F-B758-617F697921A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7177444C-A1ED-4F3F-B758-617F697921A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D5C5B93-CF74-421E-A302-36E67D9E2259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D5C5B93-CF74-421E-A302-36E67D9E2259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D5C5B93-CF74-421E-A302-36E67D9E2259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D5C5B93-CF74-421E-A302-36E67D9E2259}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA19F429-58A8-4404-BF68-F6D715C004AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA19F429-58A8-4404-BF68-F6D715C004AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA19F429-58A8-4404-BF68-F6D715C004AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA19F429-58A8-4404-BF68-F6D715C004AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

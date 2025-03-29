@@ -1,9 +1,9 @@
 ﻿using JetBrains.Annotations;
 using OneOf;
 using OneOf.Types;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.Commands;
 
@@ -20,9 +20,9 @@ public class UntagItem : ICommand<Response>
 public class UntagItemCommandHandler : ICommandHandler<UntagItem, Response>
 {
     private readonly ILogger<UntagItem> _logger;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextExtended _dbContext;
 
-    public UntagItemCommandHandler(ILogger<UntagItem> logger, ITagToolDbContext dbContext)
+    public UntagItemCommandHandler(ILogger<UntagItem> logger, ITagToolDbContextExtended dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

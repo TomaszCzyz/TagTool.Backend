@@ -1,5 +1,5 @@
 using Coravel.Queuing.Interfaces;
-using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Invocables;
 
 namespace TagTool.BackendNew.Invocables;
 

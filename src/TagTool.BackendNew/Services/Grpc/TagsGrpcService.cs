@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using Grpc.Core;
+﻿using Grpc.Core;
 using MediatR;
 using OneOf.Types;
 using TagTool.BackendNew.Commands;
-using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Queries;
@@ -11,6 +10,7 @@ using TagTool.BackendNew.Services.Grpc.Dtos;
 using DeleteTagRequest = TagTool.BackendNew.Services.Grpc.Dtos.DeleteTagRequest;
 using Error = TagTool.BackendNew.Services.Grpc.Dtos.Error;
 using TaggableItem = TagTool.BackendNew.Services.Grpc.Dtos.TaggableItem;
+using TagQueryParam = TagTool.BackendNew.Models.TagQueryParam;
 
 namespace TagTool.BackendNew.Services.Grpc;
 
@@ -268,7 +268,7 @@ public class TagsGrpcService : TagsService.TagsServiceBase
 
         // todo: add validation - tag cannot be null
         var querySegments = request.QueryParams
-            .Select(param => new Models.TagQueryParam
+            .Select(param => new TagQueryParam
             {
                 State = param.State.MapFromDto(), TagId = param.TagId
             })
@@ -356,16 +356,16 @@ public class TagsGrpcService : TagsService.TagsServiceBase
         }
     }
 
-    private Item Map(Entities.TaggableItem item)
+    private Item Map(Contracts.TaggableItem item)
     {
-        var (type, payload) = _taggableItemMapper.MapFromObj(item);
+        var (type, payload) = _taggableItemMapper.MapToString(item);
         return new Item
         {
             Type = type, Payload = payload
         };
     }
 
-    private TaggableItem MapTaggableItem(Entities.TaggableItem item)
+    private TaggableItem MapTaggableItem(Contracts.TaggableItem item)
         => new()
         {
             Item = Map(item),

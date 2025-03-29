@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Google.Protobuf.Collections;
-using TagTool.BackendNew.Entities;
-using TagTool.BackendNew.Models;
+using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Services.Grpc.Dtos;
 using TagQueryParam = TagTool.BackendNew.Services.Grpc.Dtos.TagQueryParam;
 
