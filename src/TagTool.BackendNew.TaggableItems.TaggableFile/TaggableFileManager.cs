@@ -2,7 +2,6 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Contracts.DbContexts;
 using TagTool.BackendNew.Contracts.Invocables;
 
 namespace TagTool.BackendNew.TaggableItems.TaggableFile;
@@ -11,9 +10,9 @@ namespace TagTool.BackendNew.TaggableItems.TaggableFile;
 public class TaggableFileManager : ITaggableItemManager<TaggableFile>
 {
     private readonly ILogger<TaggableFileManager> _logger;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextProxy _dbContext;
 
-    public TaggableFileManager(ILogger<TaggableFileManager> logger, ITagToolDbContext dbContext)
+    public TaggableFileManager(ILogger<TaggableFileManager> logger, ITagToolDbContextProxy dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

@@ -1,13 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Entities;
 
-namespace TagTool.BackendNew.Contracts.DbContexts;
+namespace TagTool.BackendNew.DbContexts;
 
 public interface ITagToolDbContext : IDisposable, IAsyncDisposable
 {
     DbSet<TagBase> Tags { get; }
     DbSet<TaggableItem> TaggableItems { get; }
+    DbSet<CronTriggeredInvocableInfo> CronTriggeredInvocableInfos { get; }
+    DbSet<EventTriggeredInvocableInfo> EventTriggeredInvocableInfos { get; }
+    DbSet<BackgroundInvocableInfo> BackgroundInvocableInfos { get; }
 
     ChangeTracker ChangeTracker { get; }
     DatabaseFacade Database { get; }

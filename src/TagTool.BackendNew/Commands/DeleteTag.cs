@@ -21,9 +21,9 @@ public class DeleteTagRequest : ICommand<Response>
 public class DeleteTag : ICommandHandler<DeleteTagRequest, Response>
 {
     private readonly ILogger<DeleteTag> _logger;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public DeleteTag(ILogger<DeleteTag> logger, ITagToolDbContextExtended dbContext)
+    public DeleteTag(ILogger<DeleteTag> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

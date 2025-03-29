@@ -19,9 +19,9 @@ public class CreateTag : ICommand<Response>
 public class CreateTagCommandHandler : ICommandHandler<CreateTag, Response>
 {
     private readonly ILogger<CreateTagCommandHandler> _logger;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public CreateTagCommandHandler(ILogger<CreateTagCommandHandler> logger, ITagToolDbContextExtended dbContext)
+    public CreateTagCommandHandler(ILogger<CreateTagCommandHandler> logger, ITagToolDbContext dbContext)
     {
         _dbContext = dbContext;
         _logger = logger;

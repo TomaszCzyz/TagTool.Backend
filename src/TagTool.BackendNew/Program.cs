@@ -18,7 +18,6 @@ using TagTool.BackendNew;
 using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Broadcasting;
-using TagTool.BackendNew.Contracts.DbContexts;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Extensions;
@@ -35,7 +34,8 @@ builder.Host.UseSerilog((_, configuration) =>
         .Destructure.With<TagBaseDeconstructPolicy>()
         .Destructure.ByTransforming<TaggableItem>(item => new
         {
-            ItemId = item.Id, Tags = item.Tags.Select(tag => tag.Text).ToArray()
+            ItemId = item.Id,
+            Tags = item.Tags.Select(tag => tag.Text).ToArray()
         })
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
@@ -127,6 +127,8 @@ builder.Services.AddDbContext<ITagToolDbContext, TagToolDbContext>(options
         .EnableDetailedErrors()
         .EnableSensitiveDataLogging());
 
+builder.Services.AddScoped<ITagToolDbContextProxy>(provider => provider.GetRequiredService<TagToolDbContext>());
+
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddGrpcReflection();
@@ -154,7 +156,7 @@ app.Services
 
 using (var scope = app.Services.CreateScope())
 {
-    await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContextExtended>())
+    await using (var db = scope.ServiceProvider.GetRequiredService<ITagToolDbContext>())
     {
         app.Logger.LogInformation("Executing migrations...");
         // it freezes with .NET 9 nuget versions, use cli for now
@@ -170,7 +172,7 @@ using (var scope = app.Services.CreateScope())
                 .Cron(invocableInfo.CronExpression);
         }
 
-        app.Logger.LogInformation("Starting hosted services...");
+        app.Logger.LogInformation("Starting background invocables...");
         await foreach (var serviceInfo in db.BackgroundInvocableInfos)
         {
             var service = (IInvocable)scope.ServiceProvider.GetRequiredService(serviceInfo.InvocableType);

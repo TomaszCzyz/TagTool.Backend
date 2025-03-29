@@ -18,14 +18,14 @@ public class InvocablesManager
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IScheduler _scheduler;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
     private readonly InvocableDefinition[] _invocableDefinitions;
 
     public InvocablesManager(
         IServiceProvider serviceProvider,
         IScheduler scheduler,
-        ITagToolDbContextExtended dbContext,
+        ITagToolDbContext dbContext,
         InvocableDefinition[] invocableDefinitions)
     {
         _serviceProvider = serviceProvider;

@@ -20,9 +20,9 @@ public class TagItem : ICommand<Response>
 public class TagItemRequestHandler : ICommandHandler<TagItem, Response>
 {
     private readonly ILogger<TagItem> _logger;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public TagItemRequestHandler(ILogger<TagItem> logger, ITagToolDbContextExtended dbContext)
+    public TagItemRequestHandler(ILogger<TagItem> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OneOf;
 using OneOf.Types;
-using TagTool.BackendNew.Contracts.DbContexts;
+using TagTool.BackendNew.Contracts;
 
 namespace TagTool.BackendNew.TaggableItems.TaggableFile.Operations;
 
@@ -23,9 +23,9 @@ public class TaggableFileRename : ITaggableFileOperation<Response>
 public class TaggableFileRenameOperationHandler : IRequestHandler<TaggableFileRename, Response>
 {
     private readonly ILogger<TaggableFileRenameOperationHandler> _logger;
-    private readonly ITagToolDbContext _dbContext;
+    private readonly ITagToolDbContextProxy _dbContext;
 
-    public TaggableFileRenameOperationHandler(ILogger<TaggableFileRenameOperationHandler> logger, ITagToolDbContext dbContext)
+    public TaggableFileRenameOperationHandler(ILogger<TaggableFileRenameOperationHandler> logger, ITagToolDbContextProxy dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

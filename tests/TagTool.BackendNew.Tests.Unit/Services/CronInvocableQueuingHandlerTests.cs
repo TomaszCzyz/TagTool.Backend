@@ -17,7 +17,7 @@ public class CronInvocableQueuingHandlerTests
     private readonly CronInvocableQueuingHandler _sut;
 
     private readonly ILogger<CronInvocableQueuingHandler> _logger = Substitute.For<ILogger<CronInvocableQueuingHandler>>();
-    private readonly ITagToolDbContextExtended _dbContext = Substitute.For<ITagToolDbContextExtended>();
+    private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
 
     private readonly Guid _testInvocableId = Guid.NewGuid();

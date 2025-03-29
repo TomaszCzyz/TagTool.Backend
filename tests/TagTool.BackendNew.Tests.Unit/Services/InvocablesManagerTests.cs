@@ -21,7 +21,7 @@ public class InvocablesManagerTests
 
     private readonly IServiceProvider _serviceProvider = Substitute.For<IServiceProvider>();
     private readonly IScheduler _scheduler = Substitute.For<IScheduler>();
-    private readonly ITagToolDbContextExtended _dbContext = Substitute.For<ITagToolDbContextExtended>();
+    private readonly ITagToolDbContext _dbContext = Substitute.For<ITagToolDbContext>();
 
     private readonly string _testJsonPayload;
     private readonly InvocableDefinition _testInvocableDefinition;

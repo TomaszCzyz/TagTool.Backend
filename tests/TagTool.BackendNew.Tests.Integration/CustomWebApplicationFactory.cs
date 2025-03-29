@@ -7,7 +7,6 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using TagTool.BackendNew.Contracts.DbContexts;
 using TagTool.BackendNew.DbContexts;
 
 namespace TagToolBackendNew.Tests.Integration;

@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using MediatR;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Contracts.DbContexts;
+using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Models;
 
 namespace TagTool.BackendNew.Queries;

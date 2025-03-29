@@ -10,12 +10,12 @@ public class ItemTagsChangedEventListener : IListener<ItemTagsChangedEvent>
 {
     private readonly ILogger<ItemTagsChangedEventListener> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
     public ItemTagsChangedEventListener(
         ILogger<ItemTagsChangedEventListener> logger,
         IServiceProvider serviceProvider,
-        ITagToolDbContextExtended dbContext)
+        ITagToolDbContext dbContext)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;

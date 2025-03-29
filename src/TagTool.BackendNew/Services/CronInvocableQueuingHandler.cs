@@ -9,13 +9,13 @@ public class CronInvocableQueuingHandler : IInvocable
 {
     private readonly ILogger<CronInvocableQueuingHandler> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
     private readonly Guid _invocableId;
 
     public CronInvocableQueuingHandler(
         ILogger<CronInvocableQueuingHandler> logger,
-        ITagToolDbContextExtended dbContext,
+        ITagToolDbContext dbContext,
         IServiceProvider serviceProvider,
         Guid invocableId)
     {

@@ -20,9 +20,9 @@ public class UntagItem : ICommand<Response>
 public class UntagItemCommandHandler : ICommandHandler<UntagItem, Response>
 {
     private readonly ILogger<UntagItem> _logger;
-    private readonly ITagToolDbContextExtended _dbContext;
+    private readonly ITagToolDbContext _dbContext;
 
-    public UntagItemCommandHandler(ILogger<UntagItem> logger, ITagToolDbContextExtended dbContext)
+    public UntagItemCommandHandler(ILogger<UntagItem> logger, ITagToolDbContext dbContext)
     {
         _logger = logger;
         _dbContext = dbContext;

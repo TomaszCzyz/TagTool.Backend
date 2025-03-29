@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TagTool.BackendNew.Contracts;
-using TagTool.BackendNew.Contracts.DbContexts;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.Contracts.Invocables.Common;
 
@@ -25,7 +24,7 @@ public class NewFilesTagger : IBackgroundInvocable<NewFilesTaggerPayload>
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHostApplicationLifetime _applicationLifetime;
 
-    private ITagToolDbContext? _dbContext;
+    private ITagToolDbContextProxy? _dbContext;
     private FileSystemWatcher? _watcher;
 
     public NewFilesTaggerPayload Payload { get; set; }
@@ -51,7 +50,7 @@ public class NewFilesTagger : IBackgroundInvocable<NewFilesTaggerPayload>
         _logger.LogInformation("Starting Background Invocable {BackgroundInvocableName}", nameof(NewFilesTagger));
 
         using var serviceScope = _scopeFactory.CreateScope();
-        _dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContext>();
+        _dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContextProxy>();
 
         var tags = await _dbContext.Tags
             .Where(t => Payload.TagIds.Contains(t.Id))
@@ -107,7 +106,7 @@ public class NewFilesTagger : IBackgroundInvocable<NewFilesTaggerPayload>
         }
 
         using var serviceScope = _scopeFactory.CreateScope();
-        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContext>();
+        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContextProxy>();
 
         var tags = dbContext.Tags
             .Where(t => Payload.TagIds.Contains(t.Id))
@@ -147,7 +146,7 @@ public class NewFilesTagger : IBackgroundInvocable<NewFilesTaggerPayload>
     private void OnRenamed(object sender, RenamedEventArgs e)
     {
         using var serviceScope = _scopeFactory.CreateScope();
-        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContext>();
+        var dbContext = serviceScope.ServiceProvider.GetRequiredService<ITagToolDbContextProxy>();
 
         var oldTrackedFile = dbContext.Set<TaggableFile>()
             .FirstOrDefault(file => e.OldFullPath.Contains(file.Path));
