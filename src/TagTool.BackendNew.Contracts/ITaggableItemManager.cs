@@ -1,4 +1,4 @@
-namespace TagTool.BackendNew.Contracts.Invocables;
+namespace TagTool.BackendNew.Contracts;
 
 public interface ITaggableItemManagerBase
 {
