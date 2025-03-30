@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
@@ -8,9 +9,10 @@ namespace TagTool.BackendNew.Extensions;
 
 public static partial class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInvocableDefinitions(this IServiceCollection services)
+    public static IServiceCollection AddInvocableDefinitions(this IServiceCollection services, Assembly[] assemblyMarkers)
     {
-        var invocableDescriptions = typeof(Program).Assembly.ExportedTypes
+        var invocableDescriptions = assemblyMarkers
+            .SelectMany(x => x.ExportedTypes)
             .Where(x => typeof(IInvocableDescriptionBase).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false })
             .Select(type => (
                 Type: type
@@ -21,7 +23,8 @@ public static partial class ServiceCollectionExtensions
                 Instance: (IInvocableDescriptionBase)Activator.CreateInstance(type)!))
             .ToDictionary(tuple => tuple.Type, tuple => tuple.Instance);
 
-        var invocables = typeof(Program).Assembly.ExportedTypes
+        var invocables = assemblyMarkers
+            .SelectMany(x => x.ExportedTypes)
             .Where(t => IsInvocable(t) && t is { IsInterface: false, IsAbstract: false })
             .ToList();
 

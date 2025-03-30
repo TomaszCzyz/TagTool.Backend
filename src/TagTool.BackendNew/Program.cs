@@ -1,7 +1,5 @@
 #pragma warning disable CA1848
 using System.Globalization;
-using System.Reflection;
-using System.Runtime.Loader;
 using System.Text.Json;
 using Coravel;
 using Coravel.Invocable;
@@ -36,8 +34,8 @@ Log.Logger = new LoggerConfiguration()
         formatProvider: CultureInfo.CurrentCulture)
     .CreateBootstrapLogger();
 
-var pluginAssemblies = GetPluginAssemblies();
-var assemblies = new[] { typeof(Program).Assembly }.Concat(pluginAssemblies).ToArray();
+var assemblies = PluginsHelper.LoadedAssemblies.Append(typeof(Program).Assembly).ToArray();
+TaggableItemsHelper.Initialize(assemblies);
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
 var builder = WebApplication.CreateBuilder(args);
@@ -53,7 +51,6 @@ builder.Host.UseSerilog((_, configuration) =>
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
-        .MinimumLevel.Override("Hangfire.Storage.SQLite.ExpirationManager", LogEventLevel.Warning)
         .Filter.ByExcluding(c =>
             c.Properties.TryGetValue("EndpointName", out var endpointName)
             && endpointName.ToString() == "\"gRPC - /TagToolBackend.TagService/GetItem\"")
@@ -100,10 +97,10 @@ builder.Services.AddSingleton<UserConfiguration>(
     });
 builder.Services.AddSingleton<UserConfigurationWatcher>();
 builder.Services.AddSingleton<IOperationManger, OperationManger>();
-builder.Services.AddSingleton<ITaggableItemManager<TaggableItem>, TaggableItemManagerDispatcher>();
 builder.Services.AddSingleton<TaggableItemMapper>();
 
-builder.Services.AddInvocableDefinitions();
+builder.Services.AddInvocableDefinitions(assemblies);
+builder.Services.AddTaggableItemManagers(assemblies);
 builder.Services.AddTaggableMappers(assemblies);
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
@@ -216,25 +213,4 @@ void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
     {
         kestrelServerOptions.ListenLocalhost(5280, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
     }
-}
-
-Assembly[] GetPluginAssemblies()
-{
-    var pluginsDir = Environment.GetEnvironmentVariable("PLUGINS_DIR");
-    if (string.IsNullOrWhiteSpace(pluginsDir))
-    {
-        Log.Warning("PLUGINS_DIR is not set");
-        return [];
-    }
-
-    List<Assembly> loadedAssemblies = [];
-    foreach (var dllFilePath in Directory.GetFiles(pluginsDir, "TagTool.BackendNew.TaggableItems.*.dll", SearchOption.AllDirectories))
-    {
-        var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(dllFilePath);
-
-        Log.Information("Loading plugin {AssemblyName} from file {DllFilePath}", assembly.FullName, dllFilePath);
-        loadedAssemblies.Add(assembly);
-    }
-
-    return loadedAssemblies.ToArray();
 }

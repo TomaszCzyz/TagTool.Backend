@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Entities;
 
@@ -25,8 +24,10 @@ public sealed class TagToolDbContext : DbContext, ITagToolDbContext, ITagToolDbC
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TagToolDbContext).Assembly);
 
-        var assembly = Assembly.LoadFrom("../TagTool.BackendNew.TaggableItems.TaggableFile/bin/Debug/net9.0/TagTool.BackendNew.TaggableItems.TaggableFile.dll");
-        modelBuilder.ApplyConfigurationsFromAssembly(assembly);
+        foreach (var assembly in PluginsHelper.LoadedAssemblies)
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(assembly);
+        }
 
         base.OnModelCreating(modelBuilder);
 

@@ -22,12 +22,12 @@ public class AddItemCommandHandler : ICommandHandler<AddItem, Response>
 {
     private readonly ILogger<AddItem> _logger;
     private readonly TaggableItemMapper _taggableItemMapper;
-    private readonly ITaggableItemManager<TaggableItem> _taggableItemManager;
+    private readonly TaggableItemManagerDispatcher _taggableItemManager;
 
     public AddItemCommandHandler(
         ILogger<AddItem> logger,
         TaggableItemMapper taggableItemMapper,
-        ITaggableItemManager<TaggableItem> taggableItemManager)
+        TaggableItemManagerDispatcher taggableItemManager)
     {
         _logger = logger;
         _taggableItemMapper = taggableItemMapper;
