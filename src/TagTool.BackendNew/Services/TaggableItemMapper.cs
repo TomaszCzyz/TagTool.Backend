@@ -21,7 +21,7 @@ public class TaggableItemMapper
             return mapper.MapFromString(payload);
         }
 
-        throw new ArgumentOutOfRangeException(nameof(type), type, null);
+        throw new ArgumentOutOfRangeException(nameof(type), type, $"There is no mapper for type {type}.");
     }
 
     public (string Type, string Payload) MapToString(TaggableItem item)
@@ -31,6 +31,6 @@ public class TaggableItemMapper
             return mapper.MapToString(item);
         }
 
-        throw new ArgumentOutOfRangeException(nameof(item), item, null);
+        throw new ArgumentOutOfRangeException(nameof(item), item, $"There is no mapper for type {item.GetType().FullName}.");
     }
 }

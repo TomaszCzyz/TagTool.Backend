@@ -1,5 +1,7 @@
 #pragma warning disable CA1848
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Text.Json;
 using Coravel;
 using Coravel.Invocable;
@@ -25,6 +27,17 @@ using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Services.Grpc;
+
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .WriteTo.Seq("http://localhost:5341", formatProvider: CultureInfo.CurrentCulture)
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} <{SourceContext}>{NewLine}{Exception}",
+        formatProvider: CultureInfo.CurrentCulture)
+    .CreateBootstrapLogger();
+
+var pluginAssemblies = GetPluginAssemblies();
+var assemblies = new[] { typeof(Program).Assembly }.Concat(pluginAssemblies).ToArray();
 
 // todo: check if this would not be enough: Host.CreateDefaultBuilder() (or Slim version of builder);
 var builder = WebApplication.CreateBuilder(args);
@@ -91,7 +104,7 @@ builder.Services.AddSingleton<ITaggableItemManager<TaggableItem>, TaggableItemMa
 builder.Services.AddSingleton<TaggableItemMapper>();
 
 builder.Services.AddInvocableDefinitions();
-builder.Services.AddTaggableMappers();
+builder.Services.AddTaggableMappers(assemblies);
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
 
@@ -203,4 +216,25 @@ void ConfigureOptions(KestrelServerOptions kestrelServerOptions)
     {
         kestrelServerOptions.ListenLocalhost(5280, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
     }
+}
+
+Assembly[] GetPluginAssemblies()
+{
+    var pluginsDir = Environment.GetEnvironmentVariable("PLUGINS_DIR");
+    if (string.IsNullOrWhiteSpace(pluginsDir))
+    {
+        Log.Warning("PLUGINS_DIR is not set");
+        return [];
+    }
+
+    List<Assembly> loadedAssemblies = [];
+    foreach (var dllFilePath in Directory.GetFiles(pluginsDir, "TagTool.BackendNew.TaggableItems.*.dll", SearchOption.AllDirectories))
+    {
+        var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(dllFilePath);
+
+        Log.Information("Loading plugin {AssemblyName} from file {DllFilePath}", assembly.FullName, dllFilePath);
+        loadedAssemblies.Add(assembly);
+    }
+
+    return loadedAssemblies.ToArray();
 }

@@ -42,12 +42,14 @@ Content-Type: application/json
 }
 
 ###
-GRPC localhost:5280/TagToolBackendNew.TagService/AddItem
+GRPC localhost:5280/TagToolBackendNew.TagsService/AddItem
 Content-Type: application/json
 
 {
-  "itemType": "file",
-  "itemArgs": "{\"path\":\"/home/tczyz/Documents/TagTool/TagToolPlayground/polisa-wypowiedzenie.jpeg\"}"
+  "item": {
+    "type": "TaggableFile_A8ABBA71",
+    "payload": "{\"Path\":\"/home/tczyz/Documents/TagTool/TagToolPlayground/polisa-wypowiedzenie.jpeg\"}"
+  }
 }
 
 ###
