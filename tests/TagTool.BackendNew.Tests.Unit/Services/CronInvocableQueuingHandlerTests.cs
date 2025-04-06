@@ -49,11 +49,12 @@ public class CronInvocableQueuingHandlerTests
         var testInfo = new CronTriggeredInvocableInfo
         {
             Id = _testInvocableId,
+            InvocableId = "test",
             InvocableType = typeof(TestInvocable),
             InvocablePayloadType = typeof(TestInvocablePayload),
             Payload = "invalid_payload",
             CronExpression = "* * * * *",
-            TagQuery = []
+            TagQuery = [],
         };
 
         var invocableInfos = new List<CronTriggeredInvocableInfo>
@@ -89,6 +90,7 @@ public class CronInvocableQueuingHandlerTests
         var testInfo = new CronTriggeredInvocableInfo
         {
             Id = _testInvocableId,
+            InvocableId = "test",
             InvocableType = typeof(TestInvocable),
             InvocablePayloadType = payloadObject.GetType(),
             Payload = JsonSerializer.Serialize(payloadObject),
@@ -123,6 +125,7 @@ public class CronInvocableQueuingHandlerTests
         var testInfo = new CronTriggeredInvocableInfo
         {
             InvocableType = typeof(TestInvocable),
+            InvocableId = "test",
             InvocablePayloadType = typeof(TestInvocablePayload),
             Payload = JsonSerializer.Serialize(new object()),
             CronExpression = "* * * * *",

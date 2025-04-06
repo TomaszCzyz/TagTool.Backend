@@ -36,6 +36,30 @@ public class InvocablesManager
 
     public InvocableDefinition[] GetInvocableDefinitions() => _invocableDefinitions;
 
+    public IEnumerable<InvocableDescriptor> GetInvocables(int pageSize, int pageNumber)
+    {
+        var t1 = _dbContext.CronTriggeredInvocableInfos.Select(i => new { i.Id, i.InvocableType, i.Payload });
+
+        var t2 = _dbContext.EventTriggeredInvocableInfos.Select(i => new { i.Id, i.InvocableType, i.Payload });
+        var t3 = _dbContext.BackgroundInvocableInfos.Select(i => new { i.Id, i.InvocableType, i.Payload });
+
+        var s = t1
+            .Concat(t2)
+            .Concat(t3)
+            .OrderBy(t => t.InvocableType)
+            .Skip(pageNumber * pageSize)
+            .Take(pageSize);
+        // .Select(t => new InvocableDescriptor
+        // {
+        //     Trigger = t.InvocableType switch
+        //     {
+        //         IEventTriggeredInvocable
+        //     }
+        // });
+
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Add invocable to storage and active it based on trigger type
     /// </summary>
@@ -47,7 +71,7 @@ public class InvocablesManager
         {
             case ItemTaggedTrigger trigger:
             {
-                var info = ValidateEventTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
+                var info = ValidateEventTriggeredInvocable(trigger, invocableDefinition, invocableDescriptor.Args);
 
                 info.Id = Guid.CreateVersion7();
                 _dbContext.EventTriggeredInvocableInfos.Add(info);
@@ -58,7 +82,7 @@ public class InvocablesManager
             }
             case CronTrigger trigger:
             {
-                var info = ValidateCronTriggeredInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
+                var info = ValidateCronTriggeredInvocable(trigger, invocableDefinition, invocableDescriptor.Args);
 
                 info.Id = Guid.CreateVersion7();
                 _dbContext.CronTriggeredInvocableInfos.Add(info);
@@ -73,7 +97,7 @@ public class InvocablesManager
             }
             case BackgroundTrigger trigger:
             {
-                var info = ValidateBackgroundInvocable(trigger, invocableDefinition.InvocableType, invocableDescriptor.Args);
+                var info = ValidateBackgroundInvocable(trigger, invocableDefinition, invocableDescriptor.Args);
 
                 info.Id = Guid.CreateVersion7();
                 _dbContext.BackgroundInvocableInfos.Add(info);
@@ -89,10 +113,10 @@ public class InvocablesManager
 
     private BackgroundInvocableInfo ValidateBackgroundInvocable(
         BackgroundTrigger trigger,
-        Type invocableType,
+        InvocableDefinition invocableDefinition,
         string jsonPayload)
     {
-        ValidateInterfaces(invocableType, typeof(IBackgroundInvocable<>), typeof(PayloadWithQuery), out var payloadExactType);
+        ValidateInterfaces(invocableDefinition.InvocableType, typeof(IBackgroundInvocable<>), typeof(PayloadWithQuery), out var payloadExactType);
 
         if (JsonSerializer.Deserialize(jsonPayload, payloadExactType) is not PayloadWithQuery payload)
         {
@@ -103,7 +127,8 @@ public class InvocablesManager
 
         return new BackgroundInvocableInfo
         {
-            InvocableType = invocableType,
+            InvocableId = invocableDefinition.Id,
+            InvocableType = invocableDefinition.InvocableType,
             InvocablePayloadType = payloadExactType,
             Payload = jsonPayload,
         };
@@ -111,10 +136,14 @@ public class InvocablesManager
 
     private EventTriggeredInvocableInfo ValidateEventTriggeredInvocable(
         ItemTaggedTrigger _,
-        Type invocableType,
+        InvocableDefinition invocableDefinition,
         string jsonPayload)
     {
-        ValidateInterfaces(invocableType, typeof(IEventTriggeredInvocable<>), typeof(PayloadWithChangedItems), out var payloadExactType);
+        ValidateInterfaces(
+            invocableDefinition.InvocableType,
+            typeof(IEventTriggeredInvocable<>),
+            typeof(PayloadWithChangedItems),
+            out var payloadExactType);
 
         if (JsonSerializer.Deserialize(jsonPayload, payloadExactType) is not PayloadWithChangedItems payload)
         {
@@ -125,21 +154,22 @@ public class InvocablesManager
 
         return new EventTriggeredInvocableInfo
         {
+            InvocableId = invocableDefinition.Id,
             Payload = jsonPayload,
-            InvocableType = invocableType,
+            InvocableType = invocableDefinition.InvocableType,
             InvocablePayloadType = payloadExactType,
         };
     }
 
     private CronTriggeredInvocableInfo ValidateCronTriggeredInvocable(
         CronTrigger trigger,
-        Type invocableType,
+        InvocableDefinition invocableDefinition,
         string jsonPayload)
     {
         // throws MalformedCronExpressionException for incorrect value
         _ = new CronExpression(trigger.CronExpression);
 
-        ValidateInterfaces(invocableType, typeof(ICronTriggeredInvocable<>), typeof(PayloadWithQuery), out var payloadExactType);
+        ValidateInterfaces(invocableDefinition.InvocableType, typeof(ICronTriggeredInvocable<>), typeof(PayloadWithQuery), out var payloadExactType);
 
         if (JsonSerializer.Deserialize(jsonPayload, payloadExactType) is not PayloadWithQuery payload)
         {
@@ -158,7 +188,8 @@ public class InvocablesManager
 
         return new CronTriggeredInvocableInfo
         {
-            InvocableType = invocableType,
+            InvocableId = invocableDefinition.Id,
+            InvocableType = invocableDefinition.InvocableType,
             CronExpression = trigger.CronExpression,
             TagQuery = trigger.Query
                 .Select(param => new TagQueryPart

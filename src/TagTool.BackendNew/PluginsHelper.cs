@@ -6,15 +6,17 @@ namespace TagTool.BackendNew;
 
 public static class PluginsHelper
 {
-    public static Assembly[] LoadedAssemblies { get; private set; } = [];
+    private const string DefaultDir = "/home/tczyz/Source/Repos/My/TagTool/PluginsDir/";
+
+    public static Assembly[] LoadedAssemblies { get; private set; }
 
     static PluginsHelper()
     {
         var pluginsDir = Environment.GetEnvironmentVariable("PLUGINS_DIR");
         if (string.IsNullOrWhiteSpace(pluginsDir))
         {
-            Log.Warning("PLUGINS_DIR is not set");
-            return;
+            Log.Warning("PLUGINS_DIR is not set, setting default value ");
+            pluginsDir = DefaultDir;
         }
 
         List<Assembly> loadedAssemblies = [];

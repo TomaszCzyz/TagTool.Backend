@@ -47,6 +47,11 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
         });
     }
 
+    public override Task<GetInvocablesReply> GetInvocables(GetInvocablesRequest request, ServerCallContext context)
+    {
+        return base.GetInvocables(request, context);
+    }
+
     public override async Task<CreateInvocableReply> CreateInvocable(CreateInvocableRequest request, ServerCallContext context)
     {
         ITrigger trigger = request.TriggerCase switch

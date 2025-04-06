@@ -48,5 +48,9 @@
   <ItemGroup>
     <ProjectReference Include="..\TagTool.BackendNew.Contracts\TagTool.BackendNew.Contracts.csproj" />
   </ItemGroup>
+  
+  <Target Name="PublishDependency" BeforeTargets="Build">
+    <Exec Command="dotnet publish ../TagTool.BackendNew.TaggableItems.TaggableFile/TagTool.BackendNew.TaggableItems.TaggableFile.csproj -c Debug -o /home/tczyz/Source/Repos/My/TagTool/PluginsDir/TaggableFilePlugin/" />
+  </Target>
 
 </Project>

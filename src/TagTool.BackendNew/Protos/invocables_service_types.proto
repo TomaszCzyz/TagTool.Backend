@@ -25,9 +25,17 @@ message GetInvocablesDescriptionsReply {
 }
 
 message GetInvocablesRequest {
+  uint32 page_number = 1;
+  uint32 page_size = 2;
 }
 
 message GetInvocablesReply {
+  string payload = 2;
+  oneof trigger {
+    EventTrigger event_trigger = 3;
+    CronTrigger cron_trigger = 4;
+    BackgroundTrigger background_trigger = 5;
+  }
 }
 
 message CreateInvocableRequest {
