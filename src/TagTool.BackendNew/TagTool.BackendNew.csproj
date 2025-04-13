@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="Coravel" />
-    <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Include="AhoCorasick" />
@@ -47,6 +46,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TagTool.BackendNew.Contracts\TagTool.BackendNew.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Invocables\" />
   </ItemGroup>
   
   <Target Name="PublishDependency" BeforeTargets="Build">

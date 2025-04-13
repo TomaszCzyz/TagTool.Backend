@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using TagTool.BackendNew.Contracts.Invocables;
 
-namespace TagTool.BackendNew.Invocables;
+namespace TagTool.BackendNew.TaggableItems.TaggableFile.Invocables;
 
 [UsedImplicitly]
 public class MoveToCommonStorageInvocableDescription : IInvocableDescription<MoveToCommonStorage>

@@ -1,7 +1,7 @@
 using Coravel.Queuing.Interfaces;
 using TagTool.BackendNew.Contracts.Invocables;
 
-namespace TagTool.BackendNew.Invocables;
+namespace TagTool.BackendNew.TaggableItems.TaggableFile.Invocables;
 
 public class CronMoveToCommonStorageQueuingHandler : IQueuingHandler<CronMoveToCommonStorage, CronMoveToCommonStoragePayload>
 {

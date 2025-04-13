@@ -9,6 +9,42 @@ namespace TagTool.BackendNew.Extensions;
 
 public static partial class ServiceCollectionExtensions
 {
+    public static IServiceCollection AddInvocables(this IServiceCollection services, Assembly[] assemblyMarkers)
+    {
+        var invocables = assemblyMarkers
+            .SelectMany(x => x.ExportedTypes)
+            .Where(t => IsInvocable(t) && t is { IsInterface: false, IsAbstract: false })
+            .ToList();
+
+        foreach (var type in invocables)
+        {
+            if (type.ImplementsOpenGenericInterface(typeof(IBackgroundInvocable<>)))
+            {
+                services.AddSingleton(type);
+            }
+            else
+            {
+                services.AddScoped(type);
+            }
+        }
+
+        var queuingHandlers = assemblyMarkers
+            .SelectMany(x => x.ExportedTypes)
+            .Where(t => t.ImplementsOpenGenericInterface(typeof(IQueuingHandler<,>)) && t is { IsInterface: false, IsAbstract: false })
+            .ToList();
+
+
+        foreach (var queuingHandler in queuingHandlers)
+        {
+            // TODO: I think keyed services would be better here...
+            var interfaceType = queuingHandler.GetInterfaces().First(i => i.Name == "IQueuingHandler`2");
+
+            services.AddScoped(interfaceType, queuingHandler);
+        }
+
+        return services;
+    }
+
     public static IServiceCollection AddInvocableDefinitions(this IServiceCollection services, Assembly[] assemblyMarkers)
     {
         var invocableDescriptions = assemblyMarkers

@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace TagTool.BackendNew.Validations;
+namespace TagTool.BackendNew.TaggableItems.TaggableFile.Utils;
 
 public static class ValidationHelper
 {

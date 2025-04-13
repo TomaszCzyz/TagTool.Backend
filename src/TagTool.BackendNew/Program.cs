@@ -20,10 +20,8 @@ using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Broadcasting;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
-using TagTool.BackendNew.DbContexts.Interceptors;
 using TagTool.BackendNew.Extensions;
 using TagTool.BackendNew.Helpers;
-using TagTool.BackendNew.Invocables;
 using TagTool.BackendNew.Options;
 using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Services.Grpc;
@@ -101,22 +99,12 @@ builder.Services.AddSingleton<UserConfigurationWatcher>();
 builder.Services.AddSingleton<IOperationManger, OperationManger>();
 builder.Services.AddSingleton<TaggableItemMapper>();
 
+builder.Services.AddInvocables(assemblies);
 builder.Services.AddInvocableDefinitions(assemblies);
 builder.Services.AddTaggableItemManagers(assemblies);
 builder.Services.AddTaggableMappers(assemblies);
 builder.Services.AddScoped<InvocablesManager>();
 builder.Services.AddTransient<ItemTagsChangedEventListener>();
-
-// cron triggered jobs
-builder.Services.AddScoped<CronMoveToCommonStorage>();
-builder.Services.AddScoped<IQueuingHandler<CronMoveToCommonStorage, CronMoveToCommonStoragePayload>, CronMoveToCommonStorageQueuingHandler>();
-
-// event triggered jobs
-builder.Services.AddScoped<MoveToCommonStorage>();
-builder.Services.AddScoped<IQueuingHandler<MoveToCommonStorage, MoveToCommonStoragePayload>, MoveToCommonStorageQueuingHandler>();
-
-// background jobs
-// builder.Services.AddSingleton<NewFilesTagger>();
 
 // builder.Services.AddSingleton<ICommandsHistory, CommandsHistory>();
 // builder.Services.AddSingleton<ICustomFileSystemEnumerableFactory, CustomFileSystemEnumerableFactory>();

@@ -1,8 +1,8 @@
 using FluentValidation;
 using JetBrains.Annotations;
-using TagTool.BackendNew.Validations;
+using TagTool.BackendNew.TaggableItems.TaggableFile.Utils;
 
-namespace TagTool.BackendNew.Invocables;
+namespace TagTool.BackendNew.TaggableItems.TaggableFile.Invocables;
 
 [UsedImplicitly]
 public class MoveToCommonStoragePayloadValidator : AbstractValidator<MoveToCommonStoragePayload>

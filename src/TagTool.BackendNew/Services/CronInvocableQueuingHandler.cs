@@ -34,7 +34,7 @@ public class CronInvocableQueuingHandler : IInvocable
             return;
         }
 
-        var queuingHandlerType = typeof(IQueuingHandler<,>).MakeGenericType(info.InvocableType, info.InvocablePayloadType);
+        var queuingHandlerType = typeof( IQueuingHandler<,>).MakeGenericType(info.InvocableType, info.InvocablePayloadType);
         var queuingHandler = _serviceProvider.GetRequiredService(queuingHandlerType);
 
         if (queuingHandler is not IQueuingHandlerBase handler)

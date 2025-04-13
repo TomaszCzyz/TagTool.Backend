@@ -1,7 +1,8 @@
+using Microsoft.Extensions.Logging;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.Contracts.Invocables.Common;
 
-namespace TagTool.BackendNew.Invocables;
+namespace TagTool.BackendNew.TaggableItems.TaggableFile.Invocables;
 
 public class MoveToCommonStoragePayload : PayloadWithChangedItems
 {
