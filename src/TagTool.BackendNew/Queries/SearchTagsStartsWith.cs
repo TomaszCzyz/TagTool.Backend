@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Models;
 

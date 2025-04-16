@@ -61,7 +61,7 @@ public class InvocablesGrpcService : InvocablesService.InvocablesServiceBase
             CreateInvocableRequest.TriggerOneofCase.CronTrigger => new CronTrigger
             {
                 CronExpression = request.CronTrigger.CronExpression,
-                Query = request.CronTrigger.QueryParams.MapFromDto()
+                Query = null// TODO: fix it... request.CronTrigger.QueryParams.MapFromDto()
             },
             CreateInvocableRequest.TriggerOneofCase.BackgroundTrigger => new BackgroundTrigger(),
             _ => throw new UnreachableException()

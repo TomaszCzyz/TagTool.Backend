@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using MediatR;
 using OneOf;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Contracts.Invocables;
 
 namespace TagTool.BackendNew.Services;

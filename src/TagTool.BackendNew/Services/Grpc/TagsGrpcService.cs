@@ -3,6 +3,7 @@ using MediatR;
 using OneOf.Types;
 using TagTool.BackendNew.Commands;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Models;
 using TagTool.BackendNew.Queries;
@@ -356,7 +357,7 @@ public class TagsGrpcService : TagsService.TagsServiceBase
         }
     }
 
-    private Item Map(Contracts.TaggableItem item)
+    private Item Map(Contracts.Entities.TaggableItem item)
     {
         var (type, payload) = _taggableItemMapper.MapToString(item);
         return new Item
@@ -365,7 +366,7 @@ public class TagsGrpcService : TagsService.TagsServiceBase
         };
     }
 
-    private TaggableItem MapTaggableItem(Contracts.TaggableItem item)
+    private TaggableItem MapTaggableItem(Contracts.Entities.TaggableItem item)
         => new()
         {
             Item = Map(item),

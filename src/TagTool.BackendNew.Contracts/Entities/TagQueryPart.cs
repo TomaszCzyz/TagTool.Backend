@@ -1,4 +1,4 @@
-﻿namespace TagTool.BackendNew.Contracts;
+﻿namespace TagTool.BackendNew.Contracts.Entities;
 
 public class TagQueryPart
 {

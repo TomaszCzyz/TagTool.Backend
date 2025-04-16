@@ -3,6 +3,7 @@ using MockQueryable.NSubstitute;
 using NSubstitute;
 using Shouldly;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
@@ -11,7 +12,7 @@ using TagTool.BackendNew.Services;
 using TagTool.BackendNew.Tests.Unit.Utilities;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;
-using TagBase = TagTool.BackendNew.Contracts.TagBase;
+using TagBase = TagTool.BackendNew.Contracts.Entities.TagBase;
 
 namespace TagTool.BackendNew.Tests.Unit.Services;
 
@@ -78,7 +79,10 @@ public class InvocablesManagerTests
             Trigger = new CronTrigger
             {
                 CronExpression = "* * * * *",
-                Query = [new TagQueryParam { TagId = 5 }]
+                Query =
+                [
+                    // new TagQueryPart {Tag = new TaggTagId = 5 }
+                ]
             },
             Args = _testJsonPayload
         };

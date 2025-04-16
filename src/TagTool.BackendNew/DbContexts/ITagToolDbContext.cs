@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Entities;
 
 namespace TagTool.BackendNew.DbContexts;

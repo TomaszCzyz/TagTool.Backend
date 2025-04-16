@@ -1,5 +1,6 @@
 using MediatR;
 using OneOf;
+using TagTool.BackendNew.Contracts.Entities;
 
 namespace TagTool.BackendNew.Contracts.Invocables;
 

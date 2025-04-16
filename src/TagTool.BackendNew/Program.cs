@@ -18,6 +18,7 @@ using TagTool.BackendNew;
 using TagTool.BackendNew.Broadcasting.Listeners;
 using TagTool.BackendNew.Contracts;
 using TagTool.BackendNew.Contracts.Broadcasting;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Extensions;

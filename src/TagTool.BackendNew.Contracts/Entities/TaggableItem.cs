@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace TagTool.BackendNew.Contracts;
+namespace TagTool.BackendNew.Contracts.Entities;
 
 // ? complex ID with column 'TaggableItemType' (e.g. file) and 'CustomIdentifier' (e.g. path) to ensure uniqueness?
 // public interface ITaggableItem

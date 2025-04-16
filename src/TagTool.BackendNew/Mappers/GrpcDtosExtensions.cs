@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Google.Protobuf.Collections;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Services.Grpc.Dtos;
 using TagQueryParam = TagTool.BackendNew.Services.Grpc.Dtos.TagQueryParam;
 
@@ -20,11 +21,22 @@ public static class GrpcDtosExtensions
     public static List<Models.TagQueryParam> MapFromDto(this RepeatedField<TagQueryParam> tagQueryParams)
         => tagQueryParams.Select(x => x.MapFromDto()).ToList();
 
+    public static RepeatedField<TagQueryParam> MapToDto(this List<TagQueryPart> tagQueryParams)
+        => new() { tagQueryParams.Select(x => x.MapToDto()) };
+
     private static Models.TagQueryParam MapFromDto(this TagQueryParam tagQueryParam)
     {
         return new Models.TagQueryParam
         {
             TagId = tagQueryParam.TagId, State = MapFromDto(tagQueryParam.State),
+        };
+    }
+
+    private static TagQueryParam MapToDto(this TagQueryPart tagQueryPart)
+    {
+        return new TagQueryParam
+        {
+            TagId = tagQueryPart.Tag.Id, State = MapToDto(tagQueryPart.State),
         };
     }
 

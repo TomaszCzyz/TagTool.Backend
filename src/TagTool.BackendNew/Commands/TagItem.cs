@@ -2,6 +2,7 @@
 using OneOf;
 using OneOf.Types;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Contracts.Internal;
 using TagTool.BackendNew.DbContexts;
 

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using TagTool.BackendNew.Contracts.Entities;
 
 namespace TagTool.BackendNew.Contracts.Invocables.Common;
 

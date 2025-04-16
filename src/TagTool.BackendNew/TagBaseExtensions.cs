@@ -1,4 +1,5 @@
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Services.Grpc.Dtos;
 
 namespace TagTool.BackendNew;

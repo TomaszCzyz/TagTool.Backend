@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Serilog.Core;
 using Serilog.Events;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 
 namespace TagTool.BackendNew;
 

@@ -6,11 +6,15 @@ using Coravel.Scheduling.Schedule.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using TagTool.BackendNew.Contracts;
+using TagTool.BackendNew.Contracts.Entities;
 using TagTool.BackendNew.Contracts.Invocables;
 using TagTool.BackendNew.Contracts.Invocables.Common;
 using TagTool.BackendNew.DbContexts;
 using TagTool.BackendNew.Entities;
+using TagTool.BackendNew.Mappers;
 using TagTool.BackendNew.Models;
+using BackgroundTrigger = TagTool.BackendNew.Models.BackgroundTrigger;
+using CronTrigger = TagTool.BackendNew.Models.CronTrigger;
 
 namespace TagTool.BackendNew.Services;
 
@@ -38,26 +42,33 @@ public class InvocablesManager
 
     public IEnumerable<InvocableDescriptor> GetInvocables(int pageSize, int pageNumber)
     {
-        var t1 = _dbContext.CronTriggeredInvocableInfos.Select(i => new { i.Id, i.InvocableType, i.Payload });
-
-        var t2 = _dbContext.EventTriggeredInvocableInfos.Select(i => new { i.Id, i.InvocableType, i.Payload });
-        var t3 = _dbContext.BackgroundInvocableInfos.Select(i => new { i.Id, i.InvocableType, i.Payload });
-
-        var s = t1
-            .Concat(t2)
-            .Concat(t3)
-            .OrderBy(t => t.InvocableType)
+        var t = _dbContext.InvocableInfos
+            .OrderBy(t => t.ModifiedOnUtc)
             .Skip(pageNumber * pageSize)
             .Take(pageSize);
-        // .Select(t => new InvocableDescriptor
-        // {
-        //     Trigger = t.InvocableType switch
-        //     {
-        //         IEventTriggeredInvocable
-        //     }
-        // });
 
-        throw new NotImplementedException();
+        foreach (var invocableInfo in t)
+        {
+            ITrigger trigger = invocableInfo switch
+            {
+                BackgroundInvocableInfo => new BackgroundTrigger(),
+                CronTriggeredInvocableInfo cronTriggeredInvocableInfo
+                    => new CronTrigger
+                    {
+                        CronExpression = cronTriggeredInvocableInfo.CronExpression,
+                        Query = cronTriggeredInvocableInfo.TagQuery
+                    },
+                EventTriggeredInvocableInfo => ItemTaggedTrigger.Instance,
+                _ => throw new UnreachableException()
+            };
+
+            yield return new InvocableDescriptor
+            {
+                InvocableId = invocableInfo.InvocableId,
+                Trigger = trigger,
+                Args = invocableInfo.Payload
+            };
+        }
     }
 
     /// <summary>
@@ -178,7 +189,7 @@ public class InvocablesManager
 
         ValidatePayload(payload, payloadExactType);
 
-        var queryTagIds = trigger.Query.Select(param => param.TagId).ToArray();
+        var queryTagIds = trigger.Query.Select(param => param.Tag.Id).ToArray();
         var tagIds = _dbContext.Tags.Where(tag => queryTagIds.Contains(tag.Id)).ToList();
 
         if (tagIds.Count != queryTagIds.Length)
@@ -194,8 +205,8 @@ public class InvocablesManager
             TagQuery = trigger.Query
                 .Select(param => new TagQueryPart
                 {
-                    State = trigger.Query.First(queryParam => queryParam.TagId == param.TagId).State,
-                    Tag = tagIds.First(tag => tag.Id == param.TagId)
+                    State = trigger.Query.First(queryParam => queryParam.Tag.Id == param.Tag.Id).State,
+                    Tag = tagIds.First(tag => tag.Id == param.Tag.Id)
                 })
                 .ToList(),
             Payload = jsonPayload,

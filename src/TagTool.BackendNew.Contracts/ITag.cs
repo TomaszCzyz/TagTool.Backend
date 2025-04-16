@@ -1,3 +1,5 @@
+using TagTool.BackendNew.Contracts.Entities;
+
 namespace TagTool.BackendNew.Contracts;
 
 public interface ITag

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Serialization;
 
-namespace TagTool.BackendNew.Contracts;
+namespace TagTool.BackendNew.Contracts.Entities;
 
 // TODO: add _AddedBy_ property
 [DebuggerDisplay("{Text}")]

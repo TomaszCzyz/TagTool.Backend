@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Coravel" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="AhoCorasick" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
@@ -48,10 +48,6 @@
     <ProjectReference Include="..\TagTool.BackendNew.Contracts\TagTool.BackendNew.Contracts.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Invocables\" />
-  </ItemGroup>
-  
   <Target Name="PublishDependency" BeforeTargets="Build">
     <Exec Command="dotnet publish ../TagTool.BackendNew.TaggableItems.TaggableFile/TagTool.BackendNew.TaggableItems.TaggableFile.csproj -c Debug -o /home/tczyz/Source/Repos/My/TagTool/PluginsDir/TaggableFilePlugin/" />
   </Target>
